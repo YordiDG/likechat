@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -56,7 +55,6 @@ class _LikeChatScreenState extends State<LikeChatScreen> {
     }
   }
 
-
   void _deleteStory(int index) {
     setState(() {
       _stories.removeAt(index);
@@ -69,7 +67,7 @@ class _LikeChatScreenState extends State<LikeChatScreen> {
       margin: EdgeInsets.only(top: 0.0),
       padding: EdgeInsets.symmetric(vertical: 8.0),
       height: _activeStorySize + 40,
-      color: Color(0xFFB7ABF5),
+      color: Color(0xFFD2D1D1),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
@@ -83,13 +81,13 @@ class _LikeChatScreenState extends State<LikeChatScreen> {
                   height: _storySize,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: Color(0xFF6545E3)),
-                    color: Color(0xFFEAEAEA), // Color de fondo del botón de añadir
+                    border: Border.all(color: Color(0xFFD9F103)),
+                    color: Color(0xFF0D0D55), // Color de fondo del botón de añadir
                   ),
                   child: Icon(
                     Icons.add,
                     size: 40,
-                    color: Color(0xFF6545E3),
+                    color: Color(0xFFD9F103),
                   ),
                 ),
               ),
@@ -134,8 +132,6 @@ class _LikeChatScreenState extends State<LikeChatScreen> {
   }
 }
 
-
-
 class FullScreenStoryViewer extends StatelessWidget {
   final List<String> stories;
   final int currentIndex;
@@ -147,32 +143,61 @@ class FullScreenStoryViewer extends StatelessWidget {
     required this.onDelete,
   });
 
+  void _showOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.privacy_tip),
+              title: Text('Privacidad'),
+              onTap: () {
+                Navigator.pop(context);
+                // Implementar la acción de privacidad aquí
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.delete),
+              title: Text('Eliminar'),
+              onTap: () {
+                Navigator.pop(context);
+                onDelete(currentIndex);
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        if (currentIndex == 0) {
-          Navigator.pop(context);
-          return true;
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => FullScreenStoryViewer(
-                stories: stories,
-                currentIndex: 0,
-                onDelete: onDelete,
-              ),
-            ),
-          );
-          return false;
-        }
+        Navigator.pop(context);
+        return false;
       },
       child: Scaffold(
         backgroundColor: Colors.black,
         body: GestureDetector(
           onTap: () {
-            Navigator.pop(context);
+            if (currentIndex < stories.length - 1) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FullScreenStoryViewer(
+                    stories: stories,
+                    currentIndex: currentIndex + 1,
+                    onDelete: onDelete,
+                  ),
+                ),
+              );
+            } else {
+              Navigator.pop(context);
+            }
           },
           onLongPress: () {
             onDelete(currentIndex);
@@ -217,57 +242,35 @@ class FullScreenStoryViewer extends StatelessWidget {
                 ),
               ),
               Positioned(
+                top: 80,
+                right: 16,
+                child: GestureDetector(
+                  onTap: () {
+                    _showOptions(context);
+                  },
+                  child: Icon(
+                    Icons.more_vert,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              Positioned(
                 bottom: 16,
                 left: 0,
                 right: 0,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                child: Column(
                   children: [
-                    IconButton(
-                      onPressed: () {
-                        if (currentIndex > 0) {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => FullScreenStoryViewer(
-                                stories: stories,
-                                currentIndex: currentIndex - 1,
-                                onDelete: onDelete,
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                      icon: Icon(Icons.arrow_back_ios, color: Colors.purple),
-                    ),
                     Icon(
                       Icons.remove_red_eye,
-                      color: Colors.purple,
+                      color: Color(0xFFD9F103),
                     ),
-                    SizedBox(width: 4),
+                    SizedBox(height: 4),
                     Text(
-                      'Visto', // Placeholder para el número de visualizaciones
+                      'Visto por:',
                       style: TextStyle(
-                        color: Colors.purple,
+                        color: Color(0xFFD9F103),
                         fontSize: 16,
                       ),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        if (currentIndex < stories.length - 1) {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => FullScreenStoryViewer(
-                                stories: stories,
-                                currentIndex: currentIndex + 1,
-                                onDelete: onDelete,
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                      icon: Icon(Icons.arrow_forward_ios, color: Colors.purple),
                     ),
                   ],
                 ),
@@ -279,12 +282,3 @@ class FullScreenStoryViewer extends StatelessWidget {
     );
   }
 }
-
-
-
-
-
-
-
-
-

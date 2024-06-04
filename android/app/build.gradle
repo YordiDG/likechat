@@ -50,6 +50,8 @@ android {
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true // Habilita el soporte multidex
+
+        minSdkVersion 21
     }
 
     buildTypes {

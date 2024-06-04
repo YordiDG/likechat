@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import 'app/camera/UserAvatar.dart';
+import 'app/storys/LikeChatScreen.dart';import 'package:video_player/video_player.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-import 'app/storys/LikeChatScreen.dart';
 
 void main() {
   runApp(MyApp());
 }
+
 
 class MyApp extends StatelessWidget {
   @override
@@ -17,10 +23,9 @@ class MyApp extends StatelessWidget {
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: Color(0xFFD9F103),
-              //color: Colors.white,
             ),
           ),
-          backgroundColor: Color(0xFF0D0D55), // Púrpura oscuro
+          backgroundColor: Color(0xFF0D0D55),
           actions: [
             IconButton(
               icon: Icon(Icons.search, color: Colors.white),
@@ -45,15 +50,7 @@ class MyApp extends StatelessWidget {
             ),
           ],
         ),
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            LikeChatScreen(),
-            Expanded(
-              child: HomeScreen(),
-            ),
-          ],
-        ),
+        body: HomeScreen(), // Solo muestra el contenido principal en el cuerpo del Scaffold
       ),
     );
   }
@@ -65,8 +62,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex =
-      1; // Establecer 'Short Videos' como la pestaña predeterminada
+  int _selectedIndex = 1;
 
   static List<Widget> _widgetOptions = <Widget>[
     ChatsScreen(),
@@ -85,7 +81,17 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _widgetOptions.elementAt(_selectedIndex),
+
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (_selectedIndex == 0) // Mostrar LikeChatScreen solo cuando se selecciona la pestaña de chats
+            LikeChatScreen(),
+          Expanded(
+            child: _widgetOptions.elementAt(_selectedIndex),
+          ),
+        ],
+      ),
       bottomNavigationBar: Container(
         color: Color(0xFF5D3FD3), // Púrpura oscuro
         child: BottomNavigationBar(
@@ -115,23 +121,23 @@ class _HomeScreenState extends State<HomeScreen> {
           currentIndex: _selectedIndex,
           selectedItemColor: Color(0xFFD9F103),
           unselectedItemColor: Colors.white,
-          backgroundColor: Color(0xFF0D0D55),
-          // Púrpura oscuro
+          backgroundColor: Color(0xFF0D0D55), // Púrpura oscuro
           onTap: _onItemTapped,
         ),
       ),
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton(
-              onPressed: () {
-                // Abrir nueva pantalla de chat
-              },
-              child: Icon(Icons.message, color: Colors.white),
-              backgroundColor: Color(0xFF0D0D55), // Púrpura oscuro
-            )
+        onPressed: () {
+          // Abrir nueva pantalla de chat
+        },
+        child: Icon(Icons.message, color: Colors.white),
+        backgroundColor: Color(0xFF0D0D55), // Púrpura oscuro
+      )
           : null,
     );
   }
 }
+
 
 class ChatsScreen extends StatelessWidget {
   @override
@@ -162,7 +168,6 @@ class ChatsScreen extends StatelessWidget {
     );
   }
 }
-
 
 class MessageBubble extends StatelessWidget {
   final String message;
@@ -337,33 +342,187 @@ class _ChatScreenState extends State<ChatScreen> {
 }
 
 
+class ShortVideosScreen extends StatefulWidget {
+  @override
+  _ShortVideosScreenState createState() => _ShortVideosScreenState();
+}
 
-class StatusScreen extends StatelessWidget {
+class _ShortVideosScreenState extends State<ShortVideosScreen> {
+  final ItemScrollController itemScrollController = ItemScrollController();
+  final ItemPositionsListener itemPositionsListener =
+  ItemPositionsListener.create();
+
+  late VideoPlayerController _controller;
+  late Future<void> _initializeVideoPlayerFuture;
+  int _likes = 0;
+  int _comments = 0;
+  int _videoDuration = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.network(
+      'https://www.tiktok.com/@jas_jas33/video/7275047420218690848?is_from_webapp=1&sender_device=pc',
+    );
+
+    _initializeVideoPlayerFuture = _controller.initialize();
+
+    _controller.setLooping(true);
+    _controller.play();
+    _controller.addListener(() {
+      setState(() {
+        _videoDuration = _controller.value.duration.inSeconds;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text('Status Screen'),
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: FutureBuilder(
+        future: _initializeVideoPlayerFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return Stack(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    if (_controller.value.isPlaying) {
+                      _controller.pause();
+                    } else {
+                      _controller.play();
+                    }
+                  },
+                  child: AspectRatio(
+                    aspectRatio: _controller.value.aspectRatio,
+                    child: VideoPlayer(_controller),
+                  ),
+                ),
+                Positioned(
+                  top: MediaQuery.of(context).size.height * 0.40,
+                  right: 32.0,
+                  bottom: 9.0,
+                  child: UserAvatar(),
+                ),
+                Positioned(
+                  top: MediaQuery.of(context).size.height * 0.46,
+                  bottom: 8.0,
+                  right: 16.0,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.favorite_border, color: Colors.white, size: 30.0),
+                            onPressed: () {
+                              setState(() {
+                                _likes++;
+                              });
+                            },
+                          ),
+                          Text(
+                            '$_likes',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 12.0), // Ajuste del espacio entre los iconos
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.comment, color: Colors.white, size: 30.0),
+                            onPressed: () {
+                              setState(() {
+                                _comments++;
+                              });
+                            },
+                          ),
+                          Text(
+                            '$_comments',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 12.0), // Ajuste del espacio entre los iconos
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.local_offer, color: Colors.white, size: 30.0),
+                          SizedBox(width: 4.0),
+                        ],
+                      ),
+                      SizedBox(height: 12.0), // Ajuste del espacio entre los iconos
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.share, color: Colors.white, size: 30.0),
+                            onPressed: () {
+                              // Acción al presionar el botón de "Compartir"
+                            },
+                          ),
+                          Text(
+                            'Share',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                Positioned(
+                  bottom: MediaQuery.of(context).size.height * 0.0,
+                  left: MediaQuery.of(context).size.width / 2 - 28.0,
+                  child: FloatingActionButton(
+                    onPressed: _pickVideo,
+                    child: Icon(Icons.video_library),
+                  ),
+                ),
+              ],
+            );
+          } else {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        },
+      ),
     );
+  }
+
+  Future<void> _pickVideo() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickVideo(source: ImageSource.gallery, maxDuration: Duration(seconds: 20));
+    if (pickedFile != null) {
+      _controller = VideoPlayerController.file(File(pickedFile.path));
+
+      setState(() {
+        _initializeVideoPlayerFuture = _controller.initialize();
+      });
+
+      _controller.setLooping(true);
+      _controller.play();
+      _controller.addListener(() {
+        setState(() {
+          _videoDuration = _controller.value.duration.inSeconds;
+        });
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 }
 
-class CallsScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text('Calls Screen'),
-    );
-  }
-}
-
-class ShortVideosScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text('Short Videos Screen'),
-    );
-  }
-}
 
 class FriendsScreen extends StatelessWidget {
   @override

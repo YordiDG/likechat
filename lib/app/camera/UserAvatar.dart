@@ -1,13 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 
 class UserAvatar extends StatefulWidget {
   @override
   _UserAvatarState createState() => _UserAvatarState();
 }
 
-/*ctrl + shif + z recupera del ctrl + z*/
 class _UserAvatarState extends State<UserAvatar> {
   File? _image;
   bool _showButtons = false;
@@ -43,20 +43,23 @@ class _UserAvatarState extends State<UserAvatar> {
               _showButtons = !_showButtons;
             });
           },
-          child: CircleAvatar(
-            radius: 20,
-            backgroundImage: _image != null
-                ? FileImage(_image!)
-                : AssetImage('assets/placeholder.png') as ImageProvider,
-            child: _image == null
-                ? Icon(Icons.person, color: Colors.white, size: 20)
-                : null,
+          child: Center(
+            child: CircleAvatar(
+              radius: 27,
+              backgroundImage: _image != null
+                  ? FileImage(_image!)
+                  : AssetImage('assets/placeholder.png') as ImageProvider,
+              child: _image == null
+                  ? Icon(Icons.person, color: Colors.white, size: 20)
+                  : null,
+
+            ),
           ),
         ),
         if (_showButtons)
           Positioned(
-            top: 2,
-            right: -5,
+            top: 10,
+            right: 1,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [

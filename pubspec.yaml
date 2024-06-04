@@ -54,6 +54,9 @@ dev_dependencies:
   video_player: ^2.8.6
   camera: ^0.11.0+1
   permission_handler: ^11.3.1
+  volume_control:
+  connectivity: ^3.0.6
+  flutter_sliding_up_panel:
   scrollable_positioned_list:
 
 # For information on the generic Dart part of this file, see the

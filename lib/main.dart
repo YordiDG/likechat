@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'app/camera/UserAvatar.dart';
-import 'app/storys/LikeChatScreen.dart';import 'package:video_player/video_player.dart';
+import 'app/storys/LikeChatScreen.dart';
+import 'package:video_player/video_player.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_sliding_up_panel/flutter_sliding_up_panel.dart';
 
 
 void main() {
   runApp(MyApp());
 }
-
 
 class MyApp extends StatelessWidget {
   @override
@@ -50,7 +51,8 @@ class MyApp extends StatelessWidget {
             ),
           ],
         ),
-        body: HomeScreen(), // Solo muestra el contenido principal en el cuerpo del Scaffold
+        body:
+            HomeScreen(), // Solo muestra el contenido principal en el cuerpo del Scaffold
       ),
     );
   }
@@ -81,11 +83,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (_selectedIndex == 0) // Mostrar LikeChatScreen solo cuando se selecciona la pestaña de chats
+          if (_selectedIndex ==
+              0) // Mostrar LikeChatScreen solo cuando se selecciona la pestaña de chats
             LikeChatScreen(),
           Expanded(
             child: _widgetOptions.elementAt(_selectedIndex),
@@ -121,23 +123,23 @@ class _HomeScreenState extends State<HomeScreen> {
           currentIndex: _selectedIndex,
           selectedItemColor: Color(0xFFD9F103),
           unselectedItemColor: Colors.white,
-          backgroundColor: Color(0xFF0D0D55), // Púrpura oscuro
+          backgroundColor: Color(0xFF0D0D55),
+          // Púrpura oscuro
           onTap: _onItemTapped,
         ),
       ),
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton(
-        onPressed: () {
-          // Abrir nueva pantalla de chat
-        },
-        child: Icon(Icons.message, color: Colors.white),
-        backgroundColor: Color(0xFF0D0D55), // Púrpura oscuro
-      )
+              onPressed: () {
+                // Abrir nueva pantalla de chat
+              },
+              child: Icon(Icons.message, color: Colors.white),
+              backgroundColor: Color(0xFF0D0D55), // Púrpura oscuro
+            )
           : null,
     );
   }
 }
-
 
 class ChatsScreen extends StatelessWidget {
   @override
@@ -341,7 +343,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 }
 
-
 class ShortVideosScreen extends StatefulWidget {
   @override
   _ShortVideosScreenState createState() => _ShortVideosScreenState();
@@ -350,7 +351,7 @@ class ShortVideosScreen extends StatefulWidget {
 class _ShortVideosScreenState extends State<ShortVideosScreen> {
   final ItemScrollController itemScrollController = ItemScrollController();
   final ItemPositionsListener itemPositionsListener =
-  ItemPositionsListener.create();
+      ItemPositionsListener.create();
 
   late VideoPlayerController _controller;
   late Future<void> _initializeVideoPlayerFuture;
@@ -380,125 +381,101 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: FutureBuilder(
-        future: _initializeVideoPlayerFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            return Stack(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    if (_controller.value.isPlaying) {
-                      _controller.pause();
-                    } else {
-                      _controller.play();
-                    }
-                  },
-                  child: AspectRatio(
-                    aspectRatio: _controller.value.aspectRatio,
-                    child: VideoPlayer(_controller),
-                  ),
-                ),
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 0.40,
-                  right: 32.0,
-                  bottom: 9.0,
-                  child: UserAvatar(),
-                ),
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 0.46,
-                  bottom: 8.0,
-                  right: 16.0,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.favorite_border, color: Colors.white, size: 30.0),
-                            onPressed: () {
-                              setState(() {
-                                _likes++;
-                              });
-                            },
-                          ),
-                          Text(
-                            '$_likes',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 12.0), // Ajuste del espacio entre los iconos
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.comment, color: Colors.white, size: 30.0),
-                            onPressed: () {
-                              setState(() {
-                                _comments++;
-                              });
-                            },
-                          ),
-                          Text(
-                            '$_comments',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 12.0), // Ajuste del espacio entre los iconos
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.local_offer, color: Colors.white, size: 30.0),
-                          SizedBox(width: 4.0),
-                        ],
-                      ),
-                      SizedBox(height: 12.0), // Ajuste del espacio entre los iconos
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.share, color: Colors.white, size: 30.0),
-                            onPressed: () {
-                              // Acción al presionar el botón de "Compartir"
-                            },
-                          ),
-                          Text(
-                            'Share',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                Positioned(
-                  bottom: MediaQuery.of(context).size.height * 0.0,
-                  left: MediaQuery.of(context).size.width / 2 - 28.0,
-                  child: FloatingActionButton(
-                    onPressed: _pickVideo,
-                    child: Icon(Icons.video_library),
-                  ),
-                ),
-              ],
-            );
-          } else {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
+      body: GestureDetector(
+        onVerticalDragUpdate: (details) {
+          if (details.delta.dy < -20) {
+            // Slide up gesture detected, trigger actions here
+            _showVideoOptions(context);
           }
         },
+        child: FutureBuilder(
+          future: _initializeVideoPlayerFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              return Stack(
+                children: [
+                  Center(
+                    child: AspectRatio(
+                      aspectRatio: _controller.value.aspectRatio,
+                      child: VideoPlayer(_controller),
+                    ),
+                  ),
+                  Positioned(
+                    top: MediaQuery.of(context).size.height * 0.36,
+                    right: 20.0,
+                    child: UserAvatar(),
+                  ),
+                  Positioned(
+                    bottom: 90.0, // Ajusta el valor según sea necesario
+                    right: 19.0,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.favorite_border, color: Colors.white, size: 30.0),
+                          onPressed: () {
+                            setState(() {
+                              _likes++;
+                            });
+                          },
+                        ),
+                        Text(
+                          '$_likes',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        SizedBox(height: 12.0),
+                        IconButton(
+                          icon: Icon(Icons.comment, color: Colors.purple, size: 30.0),
+                          onPressed: () {
+                            setState(() {
+                              _comments++;
+                            });
+                          },
+                        ),
+                        Text(
+                          '$_comments',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        SizedBox(height: 12.0),
+                        Icon(Icons.local_offer, color: Colors.yellow, size: 30.0),
+                        SizedBox(height: 12.0),
+                        IconButton(
+                          icon: Icon(Icons.share, color: Colors.blue, size: 30.0),
+                          onPressed: () {
+                            // Acción al presionar el botón de "Compartir"
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 20.0,
+                    left: MediaQuery.of(context).size.width / 2 - 28.0,
+                    child: FloatingActionButton(
+                      onPressed: () {
+                        _showVideoOptions(context);
+                      },
+                      child: Icon(Icons.camera_alt_rounded),
+                    ),
+                  ),
+                ],
+              );
+            } else {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+          },
+        ),
       ),
     );
   }
 
   Future<void> _pickVideo() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickVideo(source: ImageSource.gallery, maxDuration: Duration(seconds: 20));
+    final pickedFile = await picker.pickVideo(
+        source: ImageSource.gallery, maxDuration: Duration(seconds: 20));
     if (pickedFile != null) {
       _controller = VideoPlayerController.file(File(pickedFile.path));
 
@@ -516,13 +493,68 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
     }
   }
 
+  void _showVideoOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Wrap(
+          children: [
+            ListTile(
+              leading: Icon(Icons.camera_alt),
+              title: Text('Grabar Video'),
+              onTap: () {
+                Navigator.pop(context);
+                _recordVideo();
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.video_library),
+              title: Text('Elegir de la Galería'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickVideo();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _recordVideo() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickVideo(
+      source: ImageSource.camera,
+      maxDuration: Duration(seconds: 20),
+    );
+
+    if (pickedFile != null) {
+      // Crear un nuevo controlador de vídeo con el archivo seleccionado
+      _controller = VideoPlayerController.file(File(pickedFile.path));
+
+      // Inicializar el controlador de vídeo y esperar a que se complete
+      await _controller.initialize();
+
+      // Configurar el controlador de vídeo para repetir y reproducir automáticamente
+      _controller.setLooping(true);
+      _controller.play();
+
+      // Actualizar el estado para reflejar la duración del vídeo
+      setState(() {
+        _initializeVideoPlayerFuture = _controller.initialize();
+        _videoDuration = _controller.value.duration.inSeconds;
+      });
+    }
+  }
+
+
+
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
 }
-
 
 class FriendsScreen extends StatelessWidget {
   @override

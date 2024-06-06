@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'app/camera/UserAvatar.dart';
+import 'app/camera/filtros/EditMediaScreen.dart';
 import 'app/storys/LikeChatScreen.dart';
 import 'package:video_player/video_player.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'dart:io';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:flutter_sliding_up_panel/flutter_sliding_up_panel.dart';
+import 'package:image/image.dart' as img;
+import 'package:volume_controller/volume_controller.dart';
 
 
 void main() {
@@ -349,30 +351,52 @@ class ShortVideosScreen extends StatefulWidget {
 }
 
 class _ShortVideosScreenState extends State<ShortVideosScreen> {
-  final ItemScrollController itemScrollController = ItemScrollController();
-  final ItemPositionsListener itemPositionsListener =
-      ItemPositionsListener.create();
-
-  late VideoPlayerController _controller;
-  late Future<void> _initializeVideoPlayerFuture;
+  final List<dynamic> _videos = [];
+  VideoPlayerController? _controller;
+  Future<void>? _initializeVideoPlayerFuture;
   int _likes = 0;
   int _comments = 0;
-  int _videoDuration = 0;
+  double _volumeListenerValue = 0;
+  double _getVolume = 0;
+  double _setVolumeValue = 0;
+  int  _videoDuration = 0;
+  int _currentIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.network(
-      'https://www.tiktok.com/@jas_jas33/video/7275047420218690848?is_from_webapp=1&sender_device=pc',
-    );
+    if (_videos.isNotEmpty) {
+      _initializeVideoPlayer(_videos[_currentIndex]);
+    }
+    VolumeController().listener((volume) {
+      setState(() => _volumeListenerValue = volume);
+    });
 
-    _initializeVideoPlayerFuture = _controller.initialize();
+    VolumeController().getVolume().then((volume) => _setVolumeValue = volume);
+  }
 
-    _controller.setLooping(true);
-    _controller.play();
-    _controller.addListener(() {
+  void _initializeVideoPlayer(dynamic video) {
+    if (_controller != null) {
+      _controller!.dispose();
+    }
+
+    if (video is String) {
+      _controller = VideoPlayerController.network(video);
+    } else if (video is File) {
+      _controller = VideoPlayerController.file(video);
+    }
+
+    _initializeVideoPlayerFuture = _controller!.initialize().then((_) {
       setState(() {
-        _videoDuration = _controller.value.duration.inSeconds;
+        _videoDuration = _controller!.value.duration.inSeconds;
+        _controller!.setLooping(true);
+        _controller!.play();
+      });
+    });
+
+    _controller!.addListener(() {
+      setState(() {
+        _videoDuration = _controller!.value.duration.inSeconds;
       });
     });
   }
@@ -381,114 +405,180 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: GestureDetector(
-        onVerticalDragUpdate: (details) {
-          if (details.delta.dy < -20) {
-            // Slide up gesture detected, trigger actions here
-            _showVideoOptions(context);
+      body: _videos.isEmpty
+          ? _buildPlaceholder()
+          : FutureBuilder(
+        future: _initializeVideoPlayerFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return PageView.builder(
+              scrollDirection: Axis.vertical,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentIndex = index;
+                  _initializeVideoPlayer(_videos[_currentIndex]);
+                });
+              },
+              itemCount: _videos.length,
+              itemBuilder: (context, index) {
+                return GestureDetector( // Agrega un GestureDetector para detectar el clic en el video
+                  onTap: _toggleVideoPlayback, // Llama al método para pausar/activar el video al hacer clic
+                  child: Stack(
+                    children: [
+                      Center(
+                        child: AspectRatio(
+                          aspectRatio: _controller!.value.aspectRatio,
+                          child: VideoPlayer(_controller!),
+                        ),
+                      ),
+                      _buildIcons(),
+                    ],
+                  ),
+                );
+              },
+            );
+          } else {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
           }
         },
-        child: FutureBuilder(
-          future: _initializeVideoPlayerFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
-              return Stack(
-                children: [
-                  Center(
-                    child: AspectRatio(
-                      aspectRatio: _controller.value.aspectRatio,
-                      child: VideoPlayer(_controller),
-                    ),
-                  ),
-                  Positioned(
-                    top: MediaQuery.of(context).size.height * 0.36,
-                    right: 20.0,
-                    child: UserAvatar(),
-                  ),
-                  Positioned(
-                    bottom: 90.0, // Ajusta el valor según sea necesario
-                    right: 19.0,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.favorite_border, color: Colors.white, size: 30.0),
-                          onPressed: () {
-                            setState(() {
-                              _likes++;
-                            });
-                          },
-                        ),
-                        Text(
-                          '$_likes',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        SizedBox(height: 12.0),
-                        IconButton(
-                          icon: Icon(Icons.comment, color: Colors.purple, size: 30.0),
-                          onPressed: () {
-                            setState(() {
-                              _comments++;
-                            });
-                          },
-                        ),
-                        Text(
-                          '$_comments',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        SizedBox(height: 12.0),
-                        Icon(Icons.local_offer, color: Colors.yellow, size: 30.0),
-                        SizedBox(height: 12.0),
-                        IconButton(
-                          icon: Icon(Icons.share, color: Colors.blue, size: 30.0),
-                          onPressed: () {
-                            // Acción al presionar el botón de "Compartir"
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 20.0,
-                    left: MediaQuery.of(context).size.width / 2 - 28.0,
-                    child: FloatingActionButton(
-                      onPressed: () {
-                        _showVideoOptions(context);
-                      },
-                      child: Icon(Icons.camera_alt_rounded),
-                    ),
-                  ),
-                ],
-              );
-            } else {
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-          },
-        ),
+      ),
+      floatingActionButton: _buildFloatingActionButton(),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.video_library,
+            color: Colors.white,
+            size: 80.0,
+          ),
+          SizedBox(height: 20),
+          Text(
+            'No videos available. Add a new video!',
+            style: TextStyle(color: Colors.white, fontSize: 18),
+          ),
+          SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {
+              _showVideoOptions(context);
+            },
+            child: Text('Add Video'),
+          ),
+        ],
       ),
     );
   }
 
+  Widget _buildIcons() {
+    return Positioned(
+      bottom: 90.0, // Ajusta el valor según sea necesario
+      right: 19.0,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.30,
+            right: 20.0,
+            child: UserAvatar(
+              isOwner: true, // O false, según corresponda
+              addFriendCallback: (List<String> friendsList) {
+                // Lógica para agregar amigos si no eres el propietario del video
+              },
+            ),
+          ),
+          IconButton(
+            icon: SvgPicture.asset(
+              'lib/assets/favorite.svg',
+              width: 34.0,
+              height: 34.0,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              // Acción al presionar el botón de "Compartir"
+            },
+          ),
+          Text(
+            '$_likes',
+            style: TextStyle(color: Colors.white),
+          ),
+          SizedBox(height: 12.0),
+          IconButton(
+            icon: SvgPicture.asset(
+              'lib/assets/mesage.svg',
+              width: 34.0,
+              height: 34.0,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              // Acción al presionar el botón de "Compartir"
+            },
+          ),
+          Text(
+            '$_comments',
+            style: TextStyle(color: Colors.white),
+          ),
+          SizedBox(height: 12.0),
+          IconButton(
+            icon: SvgPicture.asset(
+              'lib/assets/shared.svg',
+              width: 34.0,
+              height: 34.0,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              // Acción al presionar el botón de "Compartir"
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.more_vert, color: Colors.white, size: 30.0), // Icono de tres puntos
+            onPressed: () {
+              // Acción al presionar el botón de tres puntos
+            },
+          ),
+        ],
+      ),
+
+    );
+  }
+
+  Widget _buildFloatingActionButton() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        FloatingActionButton(
+          onPressed: () {
+            _showVideoOptions(context);
+          },
+          child: Icon(
+            Icons.camera_alt_rounded,
+            size: 33, // Tamaño del icono
+            color: Colors.red, // Color del icono
+          ),
+        ),
+      ],
+    );
+  }
+
+
+
   Future<void> _pickVideo() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickVideo(
-        source: ImageSource.gallery, maxDuration: Duration(seconds: 20));
+      source: ImageSource.gallery,
+      maxDuration: Duration(seconds: 20),
+    );
     if (pickedFile != null) {
-      _controller = VideoPlayerController.file(File(pickedFile.path));
-
       setState(() {
-        _initializeVideoPlayerFuture = _controller.initialize();
-      });
-
-      _controller.setLooping(true);
-      _controller.play();
-      _controller.addListener(() {
-        setState(() {
-          _videoDuration = _controller.value.duration.inSeconds;
-        });
+        _videos.add(File(pickedFile.path));
+        _currentIndex = _videos.length - 1;
+        _initializeVideoPlayer(_videos[_currentIndex]);
       });
     }
   }
@@ -501,25 +591,91 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
           children: [
             ListTile(
               leading: Icon(Icons.camera_alt),
-              title: Text('Grabar Video'),
+              title: Text('Record Video'),
               onTap: () {
-                Navigator.pop(context);
+                Navigator.pop(context); // Utiliza Navigator.pop para regresar
                 _recordVideo();
               },
             ),
             ListTile(
               leading: Icon(Icons.video_library),
-              title: Text('Elegir de la Galería'),
+              title: Text('Choose from Gallery'),
               onTap: () {
-                Navigator.pop(context);
+                Navigator.pop(context); // Utiliza Navigator.pop para regresar
                 _pickVideo();
               },
             ),
+            ListTile(
+              leading: Icon(Icons.photo),
+              title: Text('Choose Image'),
+              onTap: () {
+                Navigator.pop(context); // Utiliza Navigator.pop para regresar
+                _pickImage();
+              },
+            ),
+            // Agrega más opciones según sea necesario
           ],
         );
       },
     );
   }
+
+  // Método para pausar/activar el video al hacer clic en él
+  void _toggleVideoPlayback() {
+    if (_controller!.value.isPlaying) {
+      _controller!.pause(); // Pausar el video si está reproduciéndose
+    } else {
+      _controller!.play(); // Reanudar la reproducción si el video está pausado
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      // Aplicar filtro a la imagen seleccionada
+      await _applyImageFilter(File(pickedFile.path));
+    }
+  }
+
+  Future<void> _recordImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+    if (pickedFile != null) {
+      // Aplicar filtro a la imagen grabada desde la cámara
+      await _applyImageFilter(File(pickedFile.path));
+    }
+  }
+
+  Future<void> _applyImageFilter(File imageFile) async {
+    final bytes = await imageFile.readAsBytes();
+    final imagen = img.decodeImage(bytes);
+    final filtroSepia = img.grayscale(imagen!);
+    final filtroCartoon = _aplicarCartoon(imagen);
+    final filtroAcuarela = _aplicarAcuarela(imagen);
+    final filtroEspejo = img.flipHorizontal(imagen);
+
+    // Actualizar la imagen en la lista de videos
+    setState(() {
+      _videos.add(imagen);
+      _videos.add(filtroSepia);
+      _videos.add(filtroCartoon);
+      _videos.add(filtroAcuarela);
+      _videos.add(filtroEspejo);
+    });
+  }
+
+  img.Image _aplicarCartoon(img.Image imagen) {
+    final grayscale = img.grayscale(imagen);
+    final sobel = img.sobel(grayscale);
+    return img.invert(sobel);
+  }
+
+  img.Image _aplicarAcuarela(img.Image imagen) {
+    final blur = img.gaussianBlur(imagen, radius: 20);
+    return img.colorOffset(blur, red: 30, green: 30, blue: 30);
+  }
+
 
   void _recordVideo() async {
     final picker = ImagePicker();
@@ -529,86 +685,76 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
     );
 
     if (pickedFile != null) {
-      // Crear un nuevo controlador de vídeo con el archivo seleccionado
-      _controller = VideoPlayerController.file(File(pickedFile.path));
-
-      // Inicializar el controlador de vídeo y esperar a que se complete
-      await _controller.initialize();
-
-      // Configurar el controlador de vídeo para repetir y reproducir automáticamente
-      _controller.setLooping(true);
-      _controller.play();
-
-      // Actualizar el estado para reflejar la duración del vídeo
       setState(() {
-        _initializeVideoPlayerFuture = _controller.initialize();
-        _videoDuration = _controller.value.duration.inSeconds;
+        _videos.add(File(pickedFile.path));
+        _currentIndex = _videos.length - 1;
+        _initializeVideoPlayer(_videos[_currentIndex]);
       });
     }
   }
 
-
-
   @override
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
+    VolumeController().removeListener();
     super.dispose();
   }
 }
 
+
+
 class FriendsScreen extends StatelessWidget {
+  // Simulación de datos de sugerencias de amigos
+  final List<String> friendSuggestions = ['User1', 'User2', 'User3'];
+
+  // Algoritmo de recomendación para sugerir amigos
+  List<String> recommendFriends() {
+    // Implementa aquí tu algoritmo de recomendación
+    // Puedes utilizar Machine Learning o cualquier otro método para calcular las sugerencias de amigos
+    // Por ahora, retornamos una lista de amigos simulada
+    return ['User4', 'User5', 'User6'];
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Obtenemos las sugerencias de amigos recomendadas
+    final recommendedFriends = recommendFriends();
+
     return ListView(
       children: [
-        ListTile(
-          leading: CircleAvatar(
-            backgroundColor: Colors.blue,
-            child: Icon(Icons.person_add, color: Colors.white),
+        // Sección de sugerencias de amigos recomendadas
+        for (var friend in recommendedFriends)
+          ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Colors.blue,
+              child: Icon(Icons.person_add, color: Colors.white),
+            ),
+            title: Text(friend),
+            trailing: ElevatedButton(
+              onPressed: () {
+                // Lógica para agregar al amigo sugerido
+                // Aquí puedes implementar la lógica para seguir al usuario sugerido
+              },
+              child: Text('Add Friend'),
+            ),
           ),
-          title: Text('Friend Suggestion 1'),
-          trailing: ElevatedButton(
-            onPressed: () {},
-            child: Text('Add Friend'),
-          ),
-        ),
-        ListTile(
-          leading: CircleAvatar(
-            backgroundColor: Colors.blue,
-            child: Icon(Icons.person_add, color: Colors.white),
-          ),
-          title: Text('Friend Suggestion 2'),
-          trailing: ElevatedButton(
-            onPressed: () {},
-            child: Text('Add Friend'),
-          ),
-        ),
+
         Divider(),
-        ListTile(
-          leading: CircleAvatar(
-            backgroundColor: Colors.green,
-            child: Text('F'),
+
+        // Sección de amigos actuales
+        for (var friend in friendSuggestions)
+          ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Colors.green,
+              child: Text('F'),
+            ),
+            title: Text(friend),
           ),
-          title: Text('Friend 1'),
-        ),
-        ListTile(
-          leading: CircleAvatar(
-            backgroundColor: Colors.green,
-            child: Text('F'),
-          ),
-          title: Text('Friend 2'),
-        ),
-        ListTile(
-          leading: CircleAvatar(
-            backgroundColor: Colors.green,
-            child: Text('F'),
-          ),
-          title: Text('Friend 3'),
-        ),
       ],
     );
   }
 }
+
 
 class NotificationsScreen extends StatelessWidget {
   @override

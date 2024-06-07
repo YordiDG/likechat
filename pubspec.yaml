@@ -50,6 +50,7 @@ dependencies:
   iconoir_flutter: ^7.7.0
   flutter_svg: ^2.0.10+1
   volume_controller: ^2.0.7
+  lottie: ^3.1.2
   flutter_sliding_up_panel:
   scrollable_positioned_list:
 
@@ -79,6 +80,8 @@ flutter:
     - lib/assets/favorite.svg
     - lib/assets/mesage.svg
     - lib/assets/shared.svg
+    - lib/assets/logo.png
+    - lib/assets/loading_animation.json
 
   # To add assets to your application, add an assets section, like this:
   # assets:

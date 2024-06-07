@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'app/camera/UserAvatar.dart';
 import 'app/camera/filtros/EditMediaScreen.dart';
+import 'app/registros/login/ForgotPasswordScreen.dart';
+import 'app/registros/login/LoginScreen.dart';
+import 'app/registros/providers/AuthProvider.dart';
+import 'app/registros/register/RegisterScreen.dart';
+import 'app/registros/splash/SplashScreen.dart';
 import 'app/storys/LikeChatScreen.dart';
 import 'package:video_player/video_player.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -18,43 +24,46 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            'LikeChat',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Color(0xFFD9F103),
+    return ChangeNotifierProvider(
+      create: (context) => AuthProvider(),
+      child: MaterialApp(
+        title: 'LikeChat',
+        theme: ThemeData(
+          primaryColor: Color(0xFFD9F103),
+          scaffoldBackgroundColor: Color(0xFF0D0D55),
+          textTheme: TextTheme(
+            bodyText1: TextStyle(color: Colors.white),
+            bodyText2: TextStyle(color: Colors.white),
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: Color(0xFFD9F103)),
+            ),
+            labelStyle: TextStyle(color: Colors.grey[700]),
+          ),
+          buttonTheme: ButtonThemeData(
+            buttonColor: Color(0xFFD9F103),
+            textTheme: ButtonTextTheme.primary,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
             ),
           ),
-          backgroundColor: Color(0xFF0D0D55),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.search, color: Colors.white),
-              onPressed: () {
-                // Acción de búsqueda
-              },
-            ),
-            PopupMenuButton(
-              itemBuilder: (BuildContext context) => [
-                PopupMenuItem(
-                  child: Text('Settings'),
-                  value: 'settings',
-                ),
-                PopupMenuItem(
-                  child: Text('Logout'),
-                  value: 'logout',
-                ),
-              ],
-              onSelected: (value) {
-                // Manejar acciones del menú
-              },
-            ),
-          ],
         ),
-        body:
-            HomeScreen(), // Solo muestra el contenido principal en el cuerpo del Scaffold
+        initialRoute: '/',
+        routes: {
+          '/': (context) => SplashScreen(),
+          '/login': (context) => LoginScreen(),
+          '/recover_password': (context) => RecoverPasswordScreen(),
+          '/register': (context) => RegisterScreen(),
+          '/home': (context) => HomeScreen(),
+        },
       ),
     );
   }

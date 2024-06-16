@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/AuthProvider.dart';
 import 'ForgotPasswordScreen.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -16,6 +17,17 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _showPasswordError = false;
   int _loginAttempts = 0;
   DateTime? _lockoutEndTime;
+
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+
+  void _loginWithGoogle() async {
+    try {
+      await _googleSignIn.signIn();
+      Navigator.pushReplacementNamed(context, '/home');
+    } catch (error) {
+      print(error);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -325,6 +337,34 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 SizedBox(height: 25),
+                ElevatedButton(
+                  onPressed: _loginWithGoogle,
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.black, backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14), // Bordes redondeados
+                      side: BorderSide(color: Colors.black, width: 2), // Borde negro
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 14, horizontal: 80), // Padding vertical
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        'lib/assets/logo_google_login.png',
+                        height: 24,
+                      ),
+                      SizedBox(width: 12),
+                      Text(
+                        'Sign in with Google',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 TextButton(
                   onPressed: () {
                     Navigator.pushReplacementNamed(context, '/register');
@@ -336,7 +376,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: RichText(
                     text: TextSpan(
                       style: TextStyle(
-                        fontSize: 20, // Tamaño de fuente de "Register"
+                        fontSize: 20,
                         color: Color(0xFFD9F103),
                       ),
                       children: [

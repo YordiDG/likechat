@@ -5,11 +5,12 @@ import 'app/camera/filtros/EditMediaScreen.dart';
 import 'app/registros/login/ForgotPasswordScreen.dart';
 import 'app/registros/login/LoginScreen.dart';
 import 'app/registros/providers/AuthProvider.dart';
+import 'app/registros/providers/CodeVerificationScreen.dart';
 import 'app/registros/register/RegisterScreen.dart';
 import 'app/registros/splash/SplashScreen.dart';
 import 'app/storys/LikeChatScreen.dart';
 import 'package:video_player/video_player.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:network_info_plus/network_info_plus.dart';
 import 'dart:io';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
@@ -25,6 +26,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
+
       create: (context) => AuthProvider(),
       child: MaterialApp(
         title: 'LikeChat',
@@ -62,6 +64,7 @@ class MyApp extends StatelessWidget {
           '/login': (context) => LoginScreen(),
           '/recover_password': (context) => RecoverPasswordScreen(),
           '/register': (context) => RegisterScreen(),
+          '/verification': (context) => CodeVerificationScreen(email: '',),
           '/home': (context) => HomeScreen(),
         },
       ),
@@ -430,8 +433,8 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
               },
               itemCount: _videos.length,
               itemBuilder: (context, index) {
-                return GestureDetector( // Agrega un GestureDetector para detectar el clic en el video
-                  onTap: _toggleVideoPlayback, // Llama al método para pausar/activar el video al hacer clic
+                return GestureDetector(
+                  onTap: _toggleVideoPlayback,
                   child: Stack(
                     children: [
                       Center(
@@ -709,8 +712,6 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
     super.dispose();
   }
 }
-
-
 
 class FriendsScreen extends StatelessWidget {
   // Simulación de datos de sugerencias de amigos

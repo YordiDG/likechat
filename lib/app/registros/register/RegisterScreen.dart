@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/AuthProvider.dart';
+import '../providers/CodeVerificationScreen.dart';
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -12,7 +13,8 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final _usernameController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _dobDayController = TextEditingController();
@@ -23,6 +25,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String _selectedGender = 'Male';
   bool _obscurePassword = true;
   bool _acceptTerms = false;
+
+  final _codeControllers = List.generate(6, (index) => TextEditingController());
 
   bool _isRegistered = false;
 
@@ -97,7 +101,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ],
               ),
-
               SizedBox(height: 28),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0),
@@ -114,7 +117,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     }).toList(),
                     onChanged: (newValue) {
                       setState(() {
-                        _selectedGender = newValue!;
+                        _selectedGender = newValue ??
+                            _selectedGender;
                       });
                     },
                     decoration: InputDecoration(
@@ -143,7 +147,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     value: _acceptTerms,
                     onChanged: (bool? value) {
                       setState(() {
-                        _acceptTerms = value!;
+                        _acceptTerms = value ?? false;
                       });
                     },
                     activeColor: Color(0xFFD9F103),
@@ -189,7 +193,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ],
               ),
               SizedBox(height: 4),
-
               ElevatedButton(
                 onPressed: () async {
                   String? errorMessage = _validateFields();
@@ -205,14 +208,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                           ),
                           child: AlertDialog(
-                            title: Text('Error de registro', style: TextStyle(color: Colors.white)),
-                            content: Text(errorMessage, style: TextStyle(color: Colors.white)),
+                            title: Text(
+                              'Error de registro',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            content: Text(
+                              errorMessage,
+                              style: TextStyle(color: Colors.white),
+                            ),
                             actions: <Widget>[
                               TextButton(
                                 onPressed: () {
                                   Navigator.of(context).pop();
                                 },
-                                child: Text('OK', style: TextStyle(color: Colors.white)),
+                                child: Text(
+                                  'OK',
+                                  style: TextStyle(color: Colors.white),
+                                ),
                               ),
                             ],
                           ),
@@ -222,42 +234,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return;
                   }
 
+                  if (_formKey.currentState != null && !_formKey.currentState!.validate()) {
+                    return;
+                  }
+
                   try {
+                    // Realizar el registro
                     await Provider.of<AuthProvider>(context, listen: false).register(
-                      _usernameController.text,
-                      _emailController.text,
-                      _passwordController.text,
                       _firstNameController.text,
                       _lastNameController.text,
+                      _emailController.text,
+                      _passwordController.text,
                       "${_dobYearController.text}-${_dobMonthController.text.padLeft(2, '0')}-${_dobDayController.text.padLeft(2, '0')}",
+                      _selectedGender.toUpperCase(),
                       _acceptTerms,
                     );
 
-                    if (!_isRegistered) {
-                      _isRegistered = true; // Marcar que ya se mostró el diálogo
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return Theme(
-                            data: ThemeData(
-                              dialogBackgroundColor: Colors.green.withOpacity(0.9),
-                              textTheme: TextTheme(
-                                bodyText1: TextStyle(color: Colors.white),
-                              ),
-                            ),
-                            child: AlertDialog(
-                              title: Text('Registro exitoso', style: TextStyle(color: Colors.white)),
-                              content: Text('¡Registro exitoso!', style: TextStyle(color: Colors.white)),
-                            ),
-                          );
-                        },
-                      );
+                    // Enviar código de verificación por correo
+                    await Provider.of<AuthProvider>(context, listen: false)
+                        .sendVerificationCode(_emailController.text);
 
-                      await Future.delayed(Duration(seconds: 2));
+                    // Navegar a la pantalla de verificación con parámetros
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CodeVerificationScreen(
+                          email: _emailController.text,
+                        ),
+                      ),
+                    );
 
-                      Navigator.pushReplacementNamed(context, '/login');
-                    }
                   } catch (e) {
+                    print('Error durante el registro: $e');
                     showDialog(
                       context: context,
                       builder: (BuildContext context) {
@@ -319,7 +327,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
               ),
-
               SizedBox(height: 8),
               SizedBox(height: 7),
               Center(
@@ -364,7 +371,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!(_passwordController.text.length >= 8 &&
         _passwordController.text.contains(new RegExp(r'[A-Za-z]')) &&
         _passwordController.text.contains(new RegExp(r'[0-9]')) &&
-        _passwordController.text.contains(new RegExp(r'[!@#$%^&*(),.?":{}|<>]')))) {
+        _passwordController.text
+            .contains(new RegExp(r'[!@#$%^&*(),.?":{}|<>]')))) {
       return 'La contraseña debe tener al menos 8 caracteres, una letra, un número y un símbolo.';
     }
     if (!_validateBirthday()) {
@@ -376,13 +384,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return null;
   }
 
-
   Widget _buildTextField(
-      String labelText,
-      TextEditingController controller, {
-        TextInputType keyboardType = TextInputType.text,
-        int? maxLength,
-      }) {
+    String labelText,
+    TextEditingController controller, {
+    TextInputType keyboardType = TextInputType.text,
+    int? maxLength,
+  }) {
     bool showError = false;
     String? errorText;
     // Validar el campo
@@ -394,14 +401,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
       errorText = 'Por favor, ingrese su apellido.';
     }
 
-
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
-      maxLength: maxLength, // Usar el valor de maxLength si se proporciona
+      maxLength: maxLength,
+      // Usar el valor de maxLength si se proporciona
       decoration: InputDecoration(
         labelText: labelText,
-        counterText: '', // Desactivar el contador de longitud máxima
+        counterText: '',
+        // Desactivar el contador de longitud máxima
         filled: true,
         fillColor: Colors.transparent,
         border: OutlineInputBorder(
@@ -416,14 +424,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
           borderSide: BorderSide(color: Color(0xFFD9F103), width: 2.0),
         ),
         labelStyle: TextStyle(color: Colors.white),
-        errorText: showError ? errorText : null, // Mostrar el mensaje de error si corresponde
+        errorText: showError
+            ? errorText
+            : null, // Mostrar el mensaje de error si corresponde
       ),
       style: TextStyle(
         color: Colors.white,
       ),
     );
   }
-
 
   Widget _buildEmailField(String labelText, TextEditingController controller) {
     bool showError = false;
@@ -489,7 +498,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-
   bool validateEmail(String email) {
     final emailRegex = RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$');
 
@@ -510,8 +518,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   bool _validateBirthday() {
     final int day = int.tryParse(_dobDayController.text.padLeft(2, '0')) ?? 0;
-    final int month = int.tryParse(_dobMonthController.text.padLeft(2, '0')) ?? 0;
-    final int year = int.tryParse(_dobYearController.text.substring(0, 4).padLeft(4, '0')) ?? 0;
+    final int month =
+        int.tryParse(_dobMonthController.text.padLeft(2, '0')) ?? 0;
+    final int year =
+        int.tryParse(_dobYearController.text.substring(0, 4).padLeft(4, '0')) ??
+            0;
 
     final DateTime now = DateTime.now();
 
@@ -527,12 +538,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     // Validar el número de días según el mes
     if (day > 28 && month == 2) {
-      // Febrero tiene máximo 28 días (sin tener en cuenta años bisiestos)
       return false;
     }
-    if ((day > 30 && (month == 4 || month == 6 || month == 9 || month == 11)) || day > 31) {
-      // Abril, junio, septiembre y noviembre tienen máximo 30 días
-      // Otros meses tienen máximo 31 días
+    if ((day > 30 && (month == 4 || month == 6 || month == 9 || month == 11)) ||
+        day > 31) {
       return false;
     }
 
@@ -547,7 +556,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     return age >= 18 && year <= now.year;
   }
-
 
   Widget _buildPasswordField(
       String labelText, TextEditingController controller) {

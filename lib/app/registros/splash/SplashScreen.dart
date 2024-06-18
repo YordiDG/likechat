@@ -27,13 +27,26 @@ class _SplashScreenState extends State<SplashScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('No Internet Connection'),
-        content: Row(
+        title: Text(
+          'Sin Conexión de Internet',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Colors.red, // Color llamativo para el título
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.wifi_off, color: Color(0xFFD9F103)),
-            SizedBox(width: 10),
-            Expanded(
-              child: Text('Please check your internet connection and try again.'),
+            Icon(Icons.wifi_off, color: Colors.red, size: 50),
+            SizedBox(height: 20),
+            Text(
+              'Por favor, verifica tu conexión a internet e intenta nuevamente.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.black87,
+                fontSize: 16,
+              ),
             ),
           ],
         ),
@@ -43,12 +56,19 @@ class _SplashScreenState extends State<SplashScreen> {
               Navigator.of(context).pop();
               _checkInternetConnection();
             },
-            child: Text('Retry'),
+            child: Text(
+              'Reintentar',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.red,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
+
 
   void _navigateToLogin() {
     Future.delayed(Duration(seconds: 2), () {

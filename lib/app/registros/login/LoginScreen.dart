@@ -50,20 +50,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
-                    label: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 30.0, vertical: 5.0),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        'Email',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
+                    labelText: 'Email',
+                    prefixIcon: Icon(Icons.email, color: Colors.black),
+                    errorText: _showEmailError ? 'Correo electrónico inválido' : null,
+                    errorStyle: TextStyle(color: Color(0xFFFF0E0E)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide.none,
@@ -72,16 +62,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(color: Color(0xFFD9F103), width: 4.0),
                     ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.grey, width: 1.0),
-                    ),
-                    prefixIcon: Icon(Icons.email, color: Colors.black),
-                    errorText: _showEmailError ? 'Correo electrónico inválido' : null,
-                    errorStyle: TextStyle(
-                      color: Color(0xFFFF0E0E),
-                    ),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0), // Padding adicional
                   ),
                   keyboardType: TextInputType.emailAddress,
                   style: TextStyle(color: Colors.black),
@@ -94,32 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
-                    label: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        'Password',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Color(0xFFD9F103), width: 4.0),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.grey, width: 1.0),
-                    ),
+                    labelText: 'Password',
                     prefixIcon: Icon(Icons.lock, color: Colors.black),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -133,10 +88,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
                     errorText: _showPasswordError ? 'Contraseña incorrecta' : null,
-                    errorStyle: TextStyle(
-                      color: Color(0xFFFF0E0E),
+                    errorStyle: TextStyle(color: Color(0xFFFF0E0E)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
                     ),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0), // Padding adicional
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Color(0xFFD9F103), width: 4.0),
+                    ),
                   ),
                   style: TextStyle(color: Colors.black),
                 ),
@@ -147,68 +107,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 50,
                   child: ElevatedButton(
                     onPressed: () async {
-                      if (_lockoutEndTime != null &&
-                          DateTime.now().isBefore(_lockoutEndTime!)) {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return Center(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(1),
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                                padding: EdgeInsets.all(16),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      'Cuenta bloqueada',
-                                      style: TextStyle(
-                                        color: Color(0x00ffffff),
-                                        fontSize: 23,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    SizedBox(height: 16),
-                                    Text(
-                                      'Su cuenta se ha bloqueado por datos incorrectos. Vuelva a intentar más tarde.',
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 20,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    SizedBox(height: 16),
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        foregroundColor: Colors.red,
-                                        backgroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                        ),
-                                      ),
-                                      child: Text(
-                                        'OK',
-                                        style: TextStyle(
-                                          color: Colors.red,
-                                          fontSize: 20,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                        return;
-                      }
-
                       setState(() {
                         _showEmailError = false;
                         _showPasswordError = false;
@@ -217,20 +115,20 @@ class _LoginScreenState extends State<LoginScreen> {
                       try {
                         await Provider.of<AuthProvider>(context, listen: false)
                             .login(
-                          _emailController.text,
-                          _passwordController.text,
+                          _emailController.text.trim(),
+                          _passwordController.text.trim(),
                         );
                         Navigator.pushReplacementNamed(context, '/home');
                       } catch (e) {
                         setState(() {
-                          if (_emailController.text.isEmpty ||
-                              !RegExp(r'^[^@]+@[^@]+\.[^@]+')
-                                  .hasMatch(_emailController.text)) {
+                          if (e.toString().contains('Invalid email format')) {
                             _showEmailError = true;
-                          }
-                          if (_passwordController.text.isEmpty ||
-                              _passwordController.text.length < 6) {
+                          } else if (e.toString().contains('Invalid password')) {
                             _showPasswordError = true;
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error: $e')),
+                            );
                           }
                         });
 
@@ -249,10 +147,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             builder: (BuildContext context) {
                               return Center(
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 24.0), // Agrega padding en los laterales
+                                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
                                   child: Container(
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(1),
+                                      color: Colors.white,
                                       borderRadius: BorderRadius.circular(15),
                                     ),
                                     padding: EdgeInsets.all(16),
@@ -271,8 +169,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                         SizedBox(height: 16),
                                         Text(
                                           'Su cuenta se ha bloqueado temporalmente. Vuelva a intentar en 10 días.',
-                                          style: TextStyle(color: Colors.black, fontSize: 20),
-                                          textAlign: TextAlign.justify, // Texto justificado
+                                          style: TextStyle(color: Colors.black, fontSize: 16),
+                                          textAlign: TextAlign.justify,
                                         ),
                                         SizedBox(height: 16),
                                         ElevatedButton(
@@ -280,7 +178,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                             Navigator.of(context).pop();
                                           },
                                           style: ElevatedButton.styleFrom(
-                                            foregroundColor: Colors.white,
                                             backgroundColor: Colors.red,
                                             shape: RoundedRectangleBorder(
                                               borderRadius: BorderRadius.circular(10),
@@ -296,10 +193,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                           );
                         }
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Login failed')),
-                        );
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -323,8 +216,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => RecoverPasswordScreen()),
+                      MaterialPageRoute(builder: (context) => RecoverPasswordScreen()),
                     );
                   },
                   child: Text(
@@ -342,10 +234,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.black, backgroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14), // Bordes redondeados
-                      side: BorderSide(color: Colors.black, width: 2), // Borde negro
+                      borderRadius: BorderRadius.circular(14),
+                      side: BorderSide(color: Colors.black, width: 2),
                     ),
-                    padding: EdgeInsets.symmetric(vertical: 14, horizontal: 80), // Padding vertical
+                    padding: EdgeInsets.symmetric(vertical: 14, horizontal: 80),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,

@@ -99,17 +99,18 @@ class _CodeVerificationScreenState extends State<CodeVerificationScreen> {
                         builder: (BuildContext context) {
                           return AlertDialog(
                             title: Text(
-                              'Token válido',
+                              'Felicidades',
                               style: TextStyle(
-                                color: Color(0xFF1CC909),
+                                color: Color(0xFF15B903),
                                 fontWeight: FontWeight.bold,
                                 fontSize: 24.0,
                               ),
                             ),
                             content: Text(
-                              '¡Token verificado con éxito!',
+                              '¡Su cuenta ha sido verificada con éxito!',
                               style: TextStyle(
                                 fontSize: 18.0,
+                                color: Colors.black,
                               ),
                             ),
                             backgroundColor: Colors.white,
@@ -123,7 +124,7 @@ class _CodeVerificationScreenState extends State<CodeVerificationScreen> {
                                   Navigator.pushReplacementNamed(context, '/login');
                                 },
                                 style: TextButton.styleFrom(
-                                  backgroundColor: Colors.green,
+                                  backgroundColor: Colors.black,
                                   padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8.0),
@@ -132,7 +133,7 @@ class _CodeVerificationScreenState extends State<CodeVerificationScreen> {
                                 child: Text(
                                   'OK',
                                   style: TextStyle(
-                                    color: Colors.blue,
+                                    color: Colors.white,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 18.0,
                                   ),

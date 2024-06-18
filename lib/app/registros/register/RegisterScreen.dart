@@ -238,6 +238,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return;
                   }
 
+
                   try {
                     // Realizar el registro
                     await Provider.of<AuthProvider>(context, listen: false).register(
@@ -254,7 +255,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     await Provider.of<AuthProvider>(context, listen: false)
                         .sendVerificationCode(_emailController.text);
 
-                    // Navegar a la pantalla de verificación con parámetros
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
@@ -263,49 +263,62 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                     );
-
                   } catch (e) {
                     print('Error durante el registro: $e');
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          backgroundColor: Colors.transparent,
-                          content: Container(
-                            padding: EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.red.withOpacity(0.9),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'Registro fallido',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  'Hubo un error durante el registro. Por favor, inténtelo de nuevo.',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                SizedBox(height: 16),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: Text(
-                                    'OK',
+
+                    if (e.toString().contains('202')) {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CodeVerificationScreen(
+                            email: _emailController.text,
+                          ),
+                        ),
+                      );
+                    } else {
+                      // Mostrar un mensaje genérico para otros errores
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            backgroundColor: Colors.transparent,
+                            content: Container(
+                              padding: EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.red.withOpacity(0.9),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Registro fallido',
                                     style: TextStyle(color: Colors.white),
                                   ),
-                                ),
-                              ],
+                                  SizedBox(height: 8),
+                                  Text(
+                                    'Hubo un error durante el registro. Por favor, inténtelo de nuevo.',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  SizedBox(height: 16),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: Text(
+                                      'OK',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    );
+                          );
+                        },
+                      );
+                    }
                   }
+
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFFD9F103),
@@ -444,6 +457,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         TextFormField(
           controller: controller,
           keyboardType: TextInputType.emailAddress,
+          maxLength: 60,
           decoration: InputDecoration(
             labelText: labelText,
             filled: true,
@@ -463,7 +477,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
             setState(() {
               showError = !validateEmail(value);
               _timer?.cancel();
-              // Inicia un temporizador para ocultar el mensaje de error después de 2 segundos
               _timer = Timer(Duration(seconds: 2), () {
                 setState(() {
                   showError = false;
@@ -568,6 +581,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           controller: controller,
           keyboardType: TextInputType.text,
           obscureText: _obscurePassword,
+          maxLength: 25,
           decoration: InputDecoration(
             labelText: labelText,
             filled: true,

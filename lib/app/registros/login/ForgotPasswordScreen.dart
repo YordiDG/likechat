@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/AuthProvider.dart';
 import 'UpdatePasswordScreen.dart';
+import 'VerificationPassword.dart';
 
 class RecoverPasswordScreen extends StatelessWidget {
   final _emailController = TextEditingController();
@@ -61,7 +62,7 @@ class RecoverPasswordScreen extends StatelessWidget {
                         await Provider.of<AuthProvider>(context, listen: false).recoverPassword(_emailController.text);
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => UpdatePasswordScreen(email: _emailController.text)),
+                          MaterialPageRoute(builder: (context) => VerificationPassword(email: '')),
                         );
                       } catch (e) {
                         ScaffoldMessenger.of(context).showSnackBar(

@@ -112,7 +112,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> recoverPassword(String email) async {
-    final url = '';
+    final url = 'http://192.168.0.10:8088/api/v1/auth/generate-password-reset-code';
     try {
       final response = await http.post(
         Uri.parse(url),
@@ -128,15 +128,15 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<void> updatePassword(String email, String oldPassword, String newPassword) async {
-    final url = '';
+  Future<void> updatePassword(String email, String token, String newPassword) async {
+    final url = 'http://192.168.0.10:8088/api/v1/auth/reset-password';
     try {
       final response = await http.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'email': email,
-          'oldPassword': oldPassword,
+          'token': token,
           'newPassword': newPassword,
         }),
       );
@@ -148,4 +148,5 @@ class AuthProvider with ChangeNotifier {
       throw Exception('Failed to update password: $e');
     }
   }
+
 }

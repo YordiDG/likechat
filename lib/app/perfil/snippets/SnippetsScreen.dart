@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-class GalleryScreen extends StatefulWidget {
+class SnippetsScreen extends StatefulWidget {
   @override
-  _GalleryScreenState createState() => _GalleryScreenState();
+  _SnippetsScreenState createState() => _SnippetsScreenState();
 }
 
-class _GalleryScreenState extends State<GalleryScreen> {
-  List<String> images = [];
+class _SnippetsScreenState extends State<SnippetsScreen> {
+  List<String> videos = [];
 
   @override
   void initState() {
@@ -16,7 +16,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
   void addPhoto(String imagePath) {
     setState(() {
       // Agregar nueva imagen al inicio de la lista
-      images.insert(0, imagePath);
+      videos.insert(0, imagePath);
     });
   }
 
@@ -24,7 +24,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Galería de Fotos'),
+        title: Text('Snippets de Fotos'),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -47,7 +47,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   Widget _buildGalleryContent() {
-    if (images.isEmpty) {
+    if (videos.isEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -58,7 +58,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
           ),
           SizedBox(height: 16),
           Text(
-            'No hay fotos disponibles',
+            'No hay Snippets disponibles',
             style: TextStyle(fontSize: 18),
             textAlign: TextAlign.center,
           ),
@@ -70,7 +70,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Contenido de Galería',
+          'Contenido de Snippets',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         SizedBox(height: 8),
@@ -83,20 +83,20 @@ class _GalleryScreenState extends State<GalleryScreen> {
             mainAxisSpacing: 8.0,
             crossAxisSpacing: 8.0,
           ),
-          itemCount: images.length,
+          itemCount: videos.length,
           itemBuilder: (context, index) {
             return GestureDetector(
               onTap: () {
                 // Acción al hacer clic en la imagen
                 // Puedes implementar la lógica para mostrar la imagen en grande
                 // o cualquier otra acción según tus necesidades
-                print('Clic en imagen ${images[index]}');
+                print('Clic en el Snippets ${videos[index]}');
               },
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8.0),
                   image: DecorationImage(
-                    image: AssetImage(images[index]),
+                    image: AssetImage(videos[index]),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -111,13 +111,13 @@ class _GalleryScreenState extends State<GalleryScreen> {
   Widget _buildGalleryList() {
     return ListView.builder(
       shrinkWrap: true,
-      itemCount: images.length,
+      itemCount: videos.length,
       itemBuilder: (context, index) {
         return ListTile(
           leading: CircleAvatar(
-            backgroundImage: AssetImage(images[index]),
+            backgroundImage: AssetImage(videos[index]),
           ),
-          title: Text('Imagen ${index + 1}'),
+          title: Text('Snippets ${index + 1}'),
 
         );
       },

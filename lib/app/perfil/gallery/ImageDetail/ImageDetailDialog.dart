@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:path/path.dart';
 
 class ImageDetailScreen extends StatelessWidget {
   final List<String> imageUrls;
@@ -185,9 +186,12 @@ class ImageDetailScreen extends StatelessWidget {
       body: CustomScrollView(
         slivers: <Widget>[
           SliverAppBar(
-            title: Text('Publicaciones'),
+            title: Text(
+              'Publicaciones',
+              style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white), // Text color
+            ),
             leading: IconButton(
-              icon: Icon(Icons.arrow_back),
+              icon: Icon(Icons.arrow_back, color: Colors.white,),
               onPressed: () {
                 Navigator.pop(context);
               },
@@ -195,7 +199,7 @@ class ImageDetailScreen extends StatelessWidget {
             pinned: true,
             floating: true,
             snap: true,
-            backgroundColor: Colors.white,
+            backgroundColor: Colors.deepPurpleAccent,
             elevation: 0,
           ),
           SliverToBoxAdapter(
@@ -294,16 +298,18 @@ class ImageDetailScreen extends StatelessWidget {
                                             // Manejar la selección del menú
                                             switch (value) {
                                               case 'editar':
-                                              // Lógica para editar la publicación
+                                                _handleEditar(context);
                                                 break;
                                               case 'eliminar':
-                                              // Lógica para eliminar la publicación
+                                                _handleEliminar(context);
                                                 break;
                                               case 'privado':
                                               // Lógica para cambiar a privado
+                                                _handlePrivado(context);
                                                 break;
                                               case 'publico':
                                               // Lógica para cambiar a público
+                                                _handlePublico(context);
                                                 break;
                                               default:
                                             }
@@ -388,6 +394,149 @@ class ImageDetailScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _handleEditar(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text('Editar Publicación'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text('Aquí puedes editar el contenido de tu publicación.'),
+              SizedBox(height: 20),
+              TextField(
+                maxLines: 5,
+                decoration: InputDecoration(
+                  hintText: 'Escribe aquí tu nueva publicación...',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // Aquí iría la lógica para guardar los cambios
+                print('Guardando cambios...');
+                Navigator.of(dialogContext).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.deepPurple,
+              ),
+              child: Text('Guardar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _handleEliminar(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text('Eliminar Publicación'),
+          content: Text('¿Estás seguro de que deseas eliminar esta publicación?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // Aquí iría la lógica para eliminar la publicación
+                print('Eliminando publicación...');
+                Navigator.of(dialogContext).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.red,
+              ),
+              child: Text('Eliminar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
+  void _handlePrivado(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text('Cambiar a Privado'),
+          content: Text('¿Estás seguro de cambiar esta publicación a privada?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // Aquí iría la lógica para cambiar la publicación a privada
+                print('Cambiando a privado...');
+                // Puedes agregar aquí la lógica para cambiar el estado visualmente
+                Navigator.of(dialogContext).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white, backgroundColor: Colors.blue,
+              ),
+              child: Text('Cambiar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _handlePublico(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text('Cambiar a Público'),
+          content: Text('¿Estás seguro de cambiar esta publicación a pública?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // Aquí iría la lógica para cambiar la publicación a pública
+                print('Cambiando a público...');
+                // Puedes agregar aquí la lógica para cambiar el estado visualmente
+                Navigator.of(dialogContext).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white, backgroundColor: Colors.blue,
+              ),
+              child: Text('Cambiar'),
+            ),
+          ],
+        );
+      },
     );
   }
 

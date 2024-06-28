@@ -56,11 +56,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     errorStyle: TextStyle(color: Color(0xFFFF0E0E)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
+                      borderSide: BorderSide(color: Colors.black),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Color(0xFFD9F103), width: 4.0),
+                      borderSide: BorderSide(color: Colors.black, width: 4.0),
                     ),
                   ),
                   keyboardType: TextInputType.emailAddress,
@@ -91,11 +91,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     errorStyle: TextStyle(color: Color(0xFFFF0E0E)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
+                      borderSide: BorderSide(color: Colors.black),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Color(0xFFD9F103), width: 4.0),
+                      borderSide: BorderSide(color: Colors.black, width: 4.0),
                     ),
                   ),
                   style: TextStyle(color: Colors.black),
@@ -196,7 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFFD9F103),
+                      backgroundColor: Color(0xFF0D0D55),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
@@ -206,7 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: TextStyle(
                         fontSize: 25,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF0D0D55),
+                        color: Color(0xFFD9F103),
                       ),
                     ),
                   ),
@@ -222,7 +222,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Text(
                     'Forgot password?',
                     style: TextStyle(
-                      color: Color(0xFFD9F103),
+                      color: Color(0xFF99A804),
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
                     ),
@@ -252,6 +252,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          color: Color(0xFF0D0D55),
                         ),
                       ),
                     ],
@@ -269,14 +270,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     text: TextSpan(
                       style: TextStyle(
                         fontSize: 20,
-                        color: Color(0xFFD9F103),
+                        color: Color(0xFF0D0D55),
                       ),
                       children: [
                         TextSpan(
                           text: "Don't have an account? ",
                           style: TextStyle(
                             fontSize: 16,
-                            color: Color(0xFFB3C708),
+                            color: Color(0xFF0D0D55),
                           ),
                         ),
                         TextSpan(

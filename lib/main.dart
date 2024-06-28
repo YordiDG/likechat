@@ -14,7 +14,6 @@ import 'app/shortVideos/ShortVideosScreen.dart';
 import 'app/storys/LikeChatScreen.dart';
 
 
-
 void main() {
   runApp(MyApp());
 }
@@ -135,7 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
           selectedItemColor: Color(0xFFD9F103),
           unselectedItemColor: Colors.white,
           backgroundColor: Color(0xFF0D0D55),
-          // Púrpura oscuro
+          iconSize: 30.0,
           onTap: _onItemTapped,
         ),
       ),

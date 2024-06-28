@@ -1,3 +1,4 @@
+import 'package:LikeChat/app/shortVideos/searchRapida/SearchScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'dart:io';
@@ -20,10 +21,10 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
   int _likes = 0;
   int _comments = 0;
   double _volumeListenerValue = 0;
-  double _getVolume = 0;
   double _setVolumeValue = 0;
-  int  _videoDuration = 0;
+  int _videoDuration = 0;
   int _currentIndex = 0;
+  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -68,44 +69,94 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: _videos.isEmpty
-          ? _buildPlaceholder()
-          : FutureBuilder(
-        future: _initializeVideoPlayerFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            return PageView.builder(
-              scrollDirection: Axis.vertical,
-              onPageChanged: (index) {
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.menu, color: Colors.white,),
+          onPressed: () {
+
+          },
+        ),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextButton(
+              onPressed: () {
                 setState(() {
-                  _currentIndex = index;
-                  _initializeVideoPlayer(_videos[_currentIndex]);
+                  _selectedIndex = 0;
                 });
               },
-              itemCount: _videos.length,
-              itemBuilder: (context, index) {
-                return GestureDetector(
-                  onTap: _toggleVideoPlayback,
-                  child: Stack(
-                    children: [
-                      Center(
-                        child: AspectRatio(
-                          aspectRatio: _controller!.value.aspectRatio,
-                          child: VideoPlayer(_controller!),
-                        ),
-                      ),
-                      _buildIcons(),
-                    ],
-                  ),
-                );
+              child: Text(
+                'Snippets',
+                style: TextStyle(
+                  color: _selectedIndex == 0 ? Colors.white : Colors.grey,
+                  fontSize: 18,
+                  fontWeight: _selectedIndex == 0 ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _selectedIndex = 1;
+                });
               },
+              child: Text(
+                'Posts',
+                style: TextStyle(
+                  color: _selectedIndex == 1 ? Colors.white : Colors.grey,
+                  fontSize: 18,
+                  fontWeight: _selectedIndex == 1 ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.search, color: Colors.white, size: 30,),
+            onPressed: () {
+              // Navegar a la pantalla de búsqueda cuando se presiona el ícono de búsqueda
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SearchScreen()),
+              );
+            },
+          ),
+
+        ],
+      ),
+      body: _videos.isEmpty
+          ? _buildPlaceholder()
+          : RefreshIndicator(
+        onRefresh: _handleRefresh,
+        child: PageView.builder(
+          scrollDirection: Axis.vertical,
+          onPageChanged: (index) {
+            setState(() {
+              _currentIndex = index;
+              _initializeVideoPlayer(_videos[_currentIndex]);
+            });
+          },
+          itemCount: _videos.length,
+          itemBuilder: (context, index) {
+            return GestureDetector(
+              onTap: _toggleVideoPlayback,
+              child: Stack(
+                children: [
+                  Center(
+                    child: AspectRatio(
+                      aspectRatio: _controller!.value.aspectRatio,
+                      child: VideoPlayer(_controller!),
+                    ),
+                  ),
+                  _buildIcons(),
+                ],
+              ),
             );
-          } else {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-        },
+          },
+        ),
       ),
       floatingActionButton: _buildFloatingActionButton(),
     );
@@ -123,16 +174,10 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
           ),
           SizedBox(height: 20),
           Text(
-            'No videos available. Add a new video!',
+            'No videos available!',
             style: TextStyle(color: Colors.white, fontSize: 18),
           ),
           SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              _showVideoOptions(context);
-            },
-            child: Text('Add Video'),
-          ),
         ],
       ),
     );
@@ -207,7 +252,6 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
           ),
         ],
       ),
-
     );
   }
 
@@ -229,7 +273,13 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
     );
   }
 
-
+  Future<void> _handleRefresh() async {
+    // Simular carga de datos o actualizar la lista de videos
+    await Future.delayed(Duration(seconds: 2)); // Simula una carga de 2 segundos
+    setState(() {
+      _videos.clear(); // Limpiar la lista de videos
+    });
+  }
 
   Future<void> _pickVideo() async {
     final picker = ImagePicker();
@@ -301,6 +351,27 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
     }
   }
 
+  Future<void> _applyImageFilter(File imageFile) async {
+    final bytes = await imageFile.readAsBytes();
+    final imagen = img.decodeImage(bytes);
+    final filtroSepia = img.grayscale(imagen!);
+    final filtroCartoon = _aplicarCartoon(imagen);
+    final filtroAcuarela = _aplicarAcuarela(imagen);
+    final filtroEspejo = img.flipHorizontal(imagen);
+
+    // Actualizar la lista de videos
+    setState(() {
+      var pickedFile;
+      _videos.add(File(pickedFile.path));
+      _videos.add(filtroSepia);
+      _videos.add(filtroCartoon);
+      _videos.add(filtroAcuarela);
+      _videos.add(filtroEspejo);
+      _currentIndex = _videos.length - 1;
+      _initializeVideoPlayer(_videos[_currentIndex]);
+    });
+  }
+
   Future<void> _recordImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.camera);
@@ -310,23 +381,6 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
     }
   }
 
-  Future<void> _applyImageFilter(File imageFile) async {
-    final bytes = await imageFile.readAsBytes();
-    final imagen = img.decodeImage(bytes);
-    final filtroSepia = img.grayscale(imagen!);
-    final filtroCartoon = _aplicarCartoon(imagen);
-    final filtroAcuarela = _aplicarAcuarela(imagen);
-    final filtroEspejo = img.flipHorizontal(imagen);
-
-    // Actualizar la imagen en la lista de videos
-    setState(() {
-      _videos.add(imagen);
-      _videos.add(filtroSepia);
-      _videos.add(filtroCartoon);
-      _videos.add(filtroAcuarela);
-      _videos.add(filtroEspejo);
-    });
-  }
 
   img.Image _aplicarCartoon(img.Image imagen) {
     final grayscale = img.grayscale(imagen);
@@ -338,7 +392,6 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
     final blur = img.gaussianBlur(imagen, radius: 20);
     return img.colorOffset(blur, red: 30, green: 30, blue: 30);
   }
-
 
   void _recordVideo() async {
     final picker = ImagePicker();

@@ -33,6 +33,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFF0D0D55),
       body: Padding(
         padding: EdgeInsets.all(30.10),
         child: SingleChildScrollView(
@@ -57,7 +58,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: Color(0xFF99A804),
                       ),
                     ),
                   ],
@@ -237,7 +238,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   if (_formKey.currentState != null && !_formKey.currentState!.validate()) {
                     return;
                   }
-
 
                   try {
                     // Realizar el registro

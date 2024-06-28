@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class ImageDetailScreen extends StatelessWidget {
+class SnippetsDetailScreen extends StatelessWidget {
   final List<String> imageUrls;
   final int initialIndex;
 
-  const ImageDetailScreen({
+  const SnippetsDetailScreen({
     Key? key,
     required this.imageUrls,
     required this.initialIndex,

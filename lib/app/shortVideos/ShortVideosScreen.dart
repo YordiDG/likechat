@@ -1,4 +1,6 @@
 import 'package:LikeChat/app/shortVideos/searchRapida/SearchScreen.dart';
+import 'package:connectivity/connectivity.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'dart:io';
@@ -8,6 +10,9 @@ import 'package:image/image.dart' as img;
 import 'package:volume_controller/volume_controller.dart';
 
 import '../camera/UserAvatar.dart';
+import 'Comments/CommentSection.dart';
+import 'LikeButton.dart';
+import 'Posts/PostClass.dart';
 
 class ShortVideosScreen extends StatefulWidget {
   @override
@@ -25,6 +30,12 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
   int _videoDuration = 0;
   int _currentIndex = 0;
   int _selectedIndex = 0;
+  bool _isLiked = false;
+  bool _isPlaying = true;
+  bool _isVideoPaused = false;
+  bool _isSnippetsTab = true;
+
+  PageController _pageController = PageController();
 
   @override
   void initState() {
@@ -37,7 +48,13 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
     });
 
     VolumeController().getVolume().then((volume) => _setVolumeValue = volume);
+
+    // Inicializar el primer video si hay videos disponibles
+    if (_videos.isNotEmpty) {
+      _initializeVideoPlayer(_videos[_currentIndex]);
+    }
   }
+
 
   void _initializeVideoPlayer(dynamic video) {
     if (_controller != null) {
@@ -54,7 +71,11 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
       setState(() {
         _videoDuration = _controller!.value.duration.inSeconds;
         _controller!.setLooping(true);
-        _controller!.play();
+        if (_selectedIndex == 0 && !_isVideoPaused) {
+          _controller!.play();
+        } else {
+          _controller!.pause(); // Asegurar que el video se pause inicialmente si no está en la pestaña 'Snippets'
+        }
       });
     });
 
@@ -73,19 +94,15 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.menu, color: Colors.white,),
-          onPressed: () {
-
-          },
+          icon: Icon(Icons.menu, color: Colors.white),
+          onPressed: () {},
         ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextButton(
               onPressed: () {
-                setState(() {
-                  _selectedIndex = 0;
-                });
+                _pageController.jumpToPage(0);
               },
               child: Text(
                 'Snippets',
@@ -98,9 +115,7 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
             ),
             TextButton(
               onPressed: () {
-                setState(() {
-                  _selectedIndex = 1;
-                });
+                _pageController.jumpToPage(1);
               },
               child: Text(
                 'Posts',
@@ -115,50 +130,99 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.search, color: Colors.white, size: 30,),
+            icon: Icon(Icons.search, color: Colors.white, size: 30),
             onPressed: () {
-              // Navegar a la pantalla de búsqueda cuando se presiona el ícono de búsqueda
+              // Navigate to search screen
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => SearchScreen()),
               );
             },
           ),
-
         ],
       ),
-      body: _videos.isEmpty
-          ? _buildPlaceholder()
-          : RefreshIndicator(
-        onRefresh: _handleRefresh,
-        child: PageView.builder(
-          scrollDirection: Axis.vertical,
-          onPageChanged: (index) {
-            setState(() {
-              _currentIndex = index;
-              _initializeVideoPlayer(_videos[_currentIndex]);
-            });
-          },
-          itemCount: _videos.length,
-          itemBuilder: (context, index) {
-            return GestureDetector(
-              onTap: _toggleVideoPlayback,
-              child: Stack(
-                children: [
-                  Center(
-                    child: AspectRatio(
-                      aspectRatio: _controller!.value.aspectRatio,
-                      child: VideoPlayer(_controller!),
-                    ),
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() {
+            _currentIndex = index;
+            _initializeVideoPlayer(_videos[_currentIndex]);
+
+            // Actualizar el estado de reproducción del video al cambiar de página
+            if (_selectedIndex == 1) {
+              // Reproducir el video automáticamente si está en la pestaña 'Snippets'
+              _controller?.play();
+              _isVideoPaused = false; // Indicar que el video está reproduciéndose
+            } else {
+              // Pausar el video si está en cualquier otra pestaña (por ejemplo, 'Posts')
+              _controller?.pause();
+              _isVideoPaused = true; // Indicar que el video está pausado
+            }
+          });
+        },
+
+        children: [
+          _buildSnippetsPage(),
+          PostClass(), // Mostrar PostClass en la segunda página
+        ],
+      ),
+      floatingActionButton: _isSnippetsTab ? _buildFloatingActionButton() : null,
+    );
+  }
+
+
+  Widget _buildSnippetsPage() {
+    return _videos.isEmpty
+        ? _buildPlaceholder()
+        : RefreshIndicator(
+      onRefresh: _handleRefresh,
+      child: PageView.builder(
+        scrollDirection: Axis.vertical,
+        onPageChanged: (index) {
+          setState(() {
+            _currentIndex = index;
+            _initializeVideoPlayer(_videos[_currentIndex]);
+            _isSnippetsTab = true; // Asegura que siempre esté en 'Snippets'
+          });
+        },
+        itemCount: _videos.length,
+        itemBuilder: (context, index) {
+          return GestureDetector(
+            onTap: _toggleVideoPlayback,
+            child: Stack(
+              children: [
+                Center(
+                  child: AspectRatio(
+                    aspectRatio: _controller!.value.aspectRatio,
+                    child: VideoPlayer(_controller!),
                   ),
-                  _buildIcons(),
-                ],
-              ),
-            );
+                ),
+                _buildIcons(),
+                _avatarPhoto(context),
+                _pauseVideo(context),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _pauseVideo(BuildContext context) {
+    return Center(
+      child: Visibility(
+        visible: _isVideoPaused, // Mostrar cuando el video está pausado
+        child: IconButton(
+          icon: Icon(
+            Icons.play_circle,
+            size: 80,
+            color: Colors.grey[400]?.withOpacity(0.3), // Icono con opacidad
+          ),
+          onPressed: () {
+            _toggleVideoPlayback();
           },
         ),
       ),
-      floatingActionButton: _buildFloatingActionButton(),
     );
   }
 
@@ -183,102 +247,250 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
     );
   }
 
-  Widget _buildIcons() {
+  Widget _avatarPhoto(BuildContext context) {
     return Positioned(
-      bottom: 90.0, // Ajusta el valor según sea necesario
-      right: 19.0,
+      bottom: 20.0,
+      left: 20.0,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Positioned(
-            top: MediaQuery.of(context).size.height * 0.30,
-            right: 20.0,
-            child: UserAvatar(
-              isOwner: true, // O false, según corresponda
-              addFriendCallback: (List<String> friendsList) {
-                // Lógica para agregar amigos si no eres el propietario del video
-              },
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              UserAvatar(
+                isOwner: true, // O false, según corresponda
+                addFriendCallback: (List<String> friendsList) {
+                  // Lógica para agregar amigos si no eres el propietario del video
+                },
+                size: 25.0, // Ajusta el tamaño del avatar
+              ),
+              SizedBox(width: 8.0),
+              Text(
+                'Yordi Gonzales',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(width: 8.0),
+              ElevatedButton(
+                onPressed: () {
+                  // Implementar lógica para seguir al usuario
+                },
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.red,
+                  // Color del texto
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(10.0), // Bordes redondeados
+                  ),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+                  // Tamaño más delgado
+                  textStyle: TextStyle(
+                      fontSize: 13.0,
+                      fontWeight: FontWeight.bold), // Tamaño de la fuente
+                ),
+                child: Text('Follow'),
+              ),
+            ],
           ),
-          IconButton(
-            icon: SvgPicture.asset(
-              'lib/assets/favorite.svg',
-              width: 34.0,
-              height: 34.0,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              // Acción al presionar el botón de "Compartir"
-            },
-          ),
+          SizedBox(height: 4),
           Text(
-            '$_likes',
-            style: TextStyle(color: Colors.white),
-          ),
-          SizedBox(height: 12.0),
-          IconButton(
-            icon: SvgPicture.asset(
-              'lib/assets/mesage.svg',
-              width: 34.0,
-              height: 34.0,
+            'User description or status',
+            style: TextStyle(
               color: Colors.white,
+              fontSize: 14,
             ),
-            onPressed: () {
-              // Acción al presionar el botón de "Compartir"
-            },
-          ),
-          Text(
-            '$_comments',
-            style: TextStyle(color: Colors.white),
-          ),
-          SizedBox(height: 12.0),
-          IconButton(
-            icon: SvgPicture.asset(
-              'lib/assets/shared.svg',
-              width: 34.0,
-              height: 34.0,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              // Acción al presionar el botón de "Compartir"
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.more_vert, color: Colors.white, size: 30.0), // Icono de tres puntos
-            onPressed: () {
-              // Acción al presionar el botón de tres puntos
-            },
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFloatingActionButton() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        FloatingActionButton(
-          onPressed: () {
-            _showVideoOptions(context);
-          },
-          child: Icon(
-            Icons.camera_alt_rounded,
-            size: 33, // Tamaño del icono
-            color: Colors.red, // Color del icono
+  Widget _buildIcons() {
+    return Positioned(
+      bottom: 140.0, // Ajusta el valor según sea necesario
+      right: 19.0,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          LikeButton(
+            iconPath: 'lib/assets/favorite.svg',
+            isFilled: true,
+            onLiked: (bool isLiked, int likes) {
+              setState(() {
+                _isLiked = isLiked; // Actualiza el estado de _isLiked
+                _likes = likes; // Actualiza el contador de likes
+              });
+            },
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2), // Color de la sombra
+                  spreadRadius: 1, // Extensión de la sombra
+                  blurRadius: 28, // Difuminado de la sombra
+                  offset: Offset(0, 2), // Desplazamiento de la sombra
+                ),
+              ],
+            ),
+            iconSize: 30,
           ),
-        ),
-      ],
+          _buildIconButton(
+            iconPath: 'lib/assets/mesage.svg',
+            onPressed: () {
+              // Acción al presionar el botón de "Mensaje"
+            },
+            isFilled: true, // Rellenar el icono de blanco
+            iconSize: 40.0, // Tamaño del icono
+          ),
+          Container(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3), // Color de la sombra
+                  spreadRadius: 1, // Extensión de la sombra
+                  blurRadius: 8, // Difuminado de la sombra
+                  offset: Offset(0, 2), // Desplazamiento de la sombra
+                ),
+              ],
+            ),
+            child: Text(
+              '$_comments',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18.0,
+                shadows: [
+                  Shadow(
+                    color: Colors.black.withOpacity(0.3),
+                    offset: Offset(0, 2),
+                    blurRadius: 3,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          _buildIconButton(
+            iconPath: 'lib/assets/shared.svg',
+            onPressed: () {
+              // Acción al presionar el botón de "Compartir"
+            },
+            isFilled: true,
+            iconSize: 40.0, // Tamaño del icono
+          ),
+        ],
+      ),
     );
   }
 
+  Widget _buildIconButton({
+    required String iconPath,
+    required VoidCallback onPressed,
+    bool isFilled = false,
+    double iconSize = 34.0,
+  }) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 0.0),
+      // Ajusta el margen inferior entre íconos
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1), // Color de la sombra
+            spreadRadius: 1, // Extensión de la sombra
+            blurRadius: 8, // Difuminado de la sombra
+            offset: Offset(0, 2), // Desplazamiento de la sombra
+          ),
+        ],
+      ),
+      child: IconButton(
+        icon: SvgPicture.asset(
+          iconPath,
+          width: iconSize,
+          // Usa iconSize en lugar de un valor fijo para width
+          height: iconSize,
+          // Usa iconSize en lugar de un valor fijo para height
+          color: isFilled
+              ? Colors.white
+              : null, // Color del interior relleno si es necesario
+        ),
+        onPressed: onPressed,
+        iconSize: iconSize, // Usa iconSize para el tamaño del icono
+      ),
+    );
+  }
+
+  Widget _buildFloatingActionButton() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10.0, right: 16.0), // Ajusta el valor de right según necesites
+      child: Align(
+        alignment: Alignment.bottomRight,
+        child: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                spreadRadius: 2,
+                blurRadius: 9,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: FloatingActionButton(
+            backgroundColor: Colors.white,
+            onPressed: () {
+              _showVideoOptions(context);
+            },
+            child: Icon(
+              Icons.camera_alt_rounded,
+              size: 33,
+              color: Colors.red,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+
+
   Future<void> _handleRefresh() async {
     // Simular carga de datos o actualizar la lista de videos
-    await Future.delayed(Duration(seconds: 2)); // Simula una carga de 2 segundos
-    setState(() {
-      _videos.clear(); // Limpiar la lista de videos
-    });
+    // Aquí deberías tener lógica para verificar conectividad antes de actualizar
+    await _checkInternetConnectivity(context);
+
+    await Future.delayed(
+        Duration(seconds: 2)); // Simula una carga de 2 segundos
+
+    if (_videos.isNotEmpty) {
+      setState(() {
+        _currentIndex = _videos.length - 1;
+        _initializeVideoPlayer(_videos[_currentIndex]);
+      });
+    }
+  }
+
+  Future<void> _checkInternetConnectivity(BuildContext context) async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'No hay conexión a Internet',
+            textAlign: TextAlign.center, // Alineación centrada del texto
+          ),
+          duration: Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+          // Hace que el SnackBar flote en la parte superior
+          margin: EdgeInsets.all(10), // Margen para el SnackBar
+        ),
+      );
+      throw 'No hay conexión a Internet';
+    }
   }
 
   Future<void> _pickVideo() async {
@@ -299,107 +511,75 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
   void _showVideoOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.black,
       builder: (BuildContext context) {
         return Wrap(
           children: [
             ListTile(
-              leading: Icon(Icons.camera_alt),
-              title: Text('Record Video'),
+              leading: Icon(Icons.camera_alt, color: Colors.white),
+              title: Text(
+                'Grabar Video',
+                style: TextStyle(color: Colors.white),
+              ),
               onTap: () {
-                Navigator.pop(context); // Utiliza Navigator.pop para regresar
+                Navigator.pop(context);
                 _recordVideo();
               },
             ),
             ListTile(
-              leading: Icon(Icons.video_library),
-              title: Text('Choose from Gallery'),
+              leading: Icon(Icons.video_library, color: Colors.white),
+              title: Text(
+                'Seleccionar de la Galería',
+                style: TextStyle(color: Colors.white),
+              ),
               onTap: () {
-                Navigator.pop(context); // Utiliza Navigator.pop para regresar
+                Navigator.pop(context);
                 _pickVideo();
               },
             ),
             ListTile(
-              leading: Icon(Icons.photo),
-              title: Text('Choose Image'),
+              leading: Icon(Icons.photo, color: Colors.white),
+              title: Text(
+                'Seleccionar Imagen',
+                style: TextStyle(color: Colors.white),
+              ),
               onTap: () {
-                Navigator.pop(context); // Utiliza Navigator.pop para regresar
+                Navigator.pop(context);
                 _pickImage();
               },
             ),
-            // Agrega más opciones según sea necesario
+            // Puedes agregar más opciones aquí según sea necesario
           ],
         );
       },
     );
   }
 
-  // Método para pausar/activar el video al hacer clic en él
+  // Método para pausar/activar la reproducción del video
   void _toggleVideoPlayback() {
     if (_controller!.value.isPlaying) {
-      _controller!.pause(); // Pausar el video si está reproduciéndose
+      _controller!.pause();
+      setState(() {
+        _isVideoPaused = true; // Actualiza el estado para mostrar el icono de pausa
+      });
     } else {
-      _controller!.play(); // Reanudar la reproducción si el video está pausado
-    }
-  }
-
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      // Aplicar filtro a la imagen seleccionada
-      await _applyImageFilter(File(pickedFile.path));
-    }
-  }
-
-  Future<void> _applyImageFilter(File imageFile) async {
-    final bytes = await imageFile.readAsBytes();
-    final imagen = img.decodeImage(bytes);
-    final filtroSepia = img.grayscale(imagen!);
-    final filtroCartoon = _aplicarCartoon(imagen);
-    final filtroAcuarela = _aplicarAcuarela(imagen);
-    final filtroEspejo = img.flipHorizontal(imagen);
-
-    // Actualizar la lista de videos
-    setState(() {
-      var pickedFile;
-      _videos.add(File(pickedFile.path));
-      _videos.add(filtroSepia);
-      _videos.add(filtroCartoon);
-      _videos.add(filtroAcuarela);
-      _videos.add(filtroEspejo);
-      _currentIndex = _videos.length - 1;
-      _initializeVideoPlayer(_videos[_currentIndex]);
-    });
-  }
-
-  Future<void> _recordImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.camera);
-    if (pickedFile != null) {
-      // Aplicar filtro a la imagen grabada desde la cámara
-      await _applyImageFilter(File(pickedFile.path));
+      _controller!.play();
+      setState(() {
+        _isVideoPaused = false; // Actualiza el estado para ocultar el icono de pausa
+      });
     }
   }
 
 
-  img.Image _aplicarCartoon(img.Image imagen) {
-    final grayscale = img.grayscale(imagen);
-    final sobel = img.sobel(grayscale);
-    return img.invert(sobel);
-  }
 
-  img.Image _aplicarAcuarela(img.Image imagen) {
-    final blur = img.gaussianBlur(imagen, radius: 20);
-    return img.colorOffset(blur, red: 30, green: 30, blue: 30);
-  }
 
+  // Método para grabar un nuevo video
   void _recordVideo() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickVideo(
       source: ImageSource.camera,
       maxDuration: Duration(seconds: 20),
     );
-
     if (pickedFile != null) {
       setState(() {
         _videos.add(File(pickedFile.path));
@@ -409,10 +589,19 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
     }
   }
 
+  // Método para elegir una imagen desde la galería
+  void _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      final bytes = await pickedFile.readAsBytes();
+      final image = img.decodeImage(bytes);
+    }
+  }
+
   @override
   void dispose() {
     _controller?.dispose();
-    VolumeController().removeListener();
     super.dispose();
   }
 }

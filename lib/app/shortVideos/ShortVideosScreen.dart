@@ -34,6 +34,7 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
   bool _isPlaying = true;
   bool _isVideoPaused = false;
   bool _isSnippetsTab = true;
+  bool _floatingActionButtonVisible = true;
 
   PageController _pageController = PageController();
 
@@ -43,6 +44,10 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
     if (_videos.isNotEmpty) {
       _initializeVideoPlayer(_videos[_currentIndex]);
     }
+
+    // Inicializar el controlador de la página con el índice inicial
+    _pageController = PageController(initialPage: _selectedIndex);
+
     VolumeController().listener((volume) {
       setState(() => _volumeListenerValue = volume);
     });
@@ -71,10 +76,12 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
       setState(() {
         _videoDuration = _controller!.value.duration.inSeconds;
         _controller!.setLooping(true);
-        if (_selectedIndex == 0 && !_isVideoPaused) {
+
+        // Reproducir automáticamente si estamos en la pestaña de 'Snippets'
+        if (_isSnippetsTab && !_isVideoPaused) {
           _controller!.play();
         } else {
-          _controller!.pause(); // Asegurar que el video se pause inicialmente si no está en la pestaña 'Snippets'
+          _controller!.pause(); // Asegurar que el video se pausa inicialmente si no está en la pestaña 'Snippets'
         }
       });
     });
@@ -102,27 +109,33 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
           children: [
             TextButton(
               onPressed: () {
-                _pageController.jumpToPage(0);
+                _pageController.animateToPage(0,
+                    duration: Duration(milliseconds: 500),
+                    curve: Curves.easeInOut);
               },
               child: Text(
                 'Snippets',
                 style: TextStyle(
                   color: _selectedIndex == 0 ? Colors.white : Colors.grey,
                   fontSize: 18,
-                  fontWeight: _selectedIndex == 0 ? FontWeight.bold : FontWeight.normal,
+                  fontWeight:
+                  _selectedIndex == 0 ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
             ),
             TextButton(
               onPressed: () {
-                _pageController.jumpToPage(1);
+                _pageController.animateToPage(1,
+                    duration: Duration(milliseconds: 500),
+                    curve: Curves.easeInOut);
               },
               child: Text(
                 'Posts',
                 style: TextStyle(
                   color: _selectedIndex == 1 ? Colors.white : Colors.grey,
                   fontSize: 18,
-                  fontWeight: _selectedIndex == 1 ? FontWeight.bold : FontWeight.normal,
+                  fontWeight:
+                  _selectedIndex == 1 ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
             ),
@@ -145,31 +158,20 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
         controller: _pageController,
         onPageChanged: (index) {
           setState(() {
-            _currentIndex = index;
-            _initializeVideoPlayer(_videos[_currentIndex]);
-
-            // Actualizar el estado de reproducción del video al cambiar de página
-            if (_selectedIndex == 1) {
-              // Reproducir el video automáticamente si está en la pestaña 'Snippets'
-              _controller?.play();
-              _isVideoPaused = false; // Indicar que el video está reproduciéndose
-            } else {
-              // Pausar el video si está en cualquier otra pestaña (por ejemplo, 'Posts')
-              _controller?.pause();
-              _isVideoPaused = true; // Indicar que el video está pausado
-            }
+            _selectedIndex = index;
+            _floatingActionButtonVisible = index == 0; // Mostrar FAB solo en Snippets
           });
         },
-
         children: [
           _buildSnippetsPage(),
           PostClass(), // Mostrar PostClass en la segunda página
         ],
       ),
-      floatingActionButton: _isSnippetsTab ? _buildFloatingActionButton() : null,
+      floatingActionButton: _floatingActionButtonVisible
+          ? _buildFloatingActionButton()
+          : null,
     );
   }
-
 
   Widget _buildSnippetsPage() {
     return _videos.isEmpty
@@ -177,12 +179,30 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
         : RefreshIndicator(
       onRefresh: _handleRefresh,
       child: PageView.builder(
+        controller: _pageController,
         scrollDirection: Axis.vertical,
         onPageChanged: (index) {
           setState(() {
             _currentIndex = index;
             _initializeVideoPlayer(_videos[_currentIndex]);
-            _isSnippetsTab = true; // Asegura que siempre esté en 'Snippets'
+            _isSnippetsTab = index == 0; // Ajustar según la pestaña actual
+
+            // Actualizar visibilidad del FAB
+            _floatingActionButtonVisible = _isSnippetsTab && _videos.isNotEmpty;
+
+            if (!_isSnippetsTab) {
+              _controller!.pause();
+              setState(() {
+                _isPlaying = false;
+                _isVideoPaused = true; // Mostrar el ícono de pausa
+              });
+            } else {
+              _controller!.play();
+              setState(() {
+                _isPlaying = true;
+                _isVideoPaused = false; // Ocultar el ícono de pausa
+              });
+            }
           });
         },
         itemCount: _videos.length,
@@ -208,13 +228,51 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
     );
   }
 
+  Widget _buildFloatingActionButton() {
+    if (!_floatingActionButtonVisible) {
+      return SizedBox(); // Ocultar el FAB si no es visible
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10.0, right: 16.0),
+      child: Align(
+        alignment: Alignment.bottomRight,
+        child: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                spreadRadius: 2,
+                blurRadius: 9,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: FloatingActionButton(
+            backgroundColor: Colors.white,
+            onPressed: () {
+              _showVideoOptions(context);
+            },
+            child: Icon(
+              Icons.video_camera_back_outlined,
+              size: 33,
+              color: Colors.red,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+
   Widget _pauseVideo(BuildContext context) {
     return Center(
       child: Visibility(
         visible: _isVideoPaused, // Mostrar cuando el video está pausado
         child: IconButton(
           icon: Icon(
-            Icons.play_circle,
+            _isPlaying ? Icons.pause_circle : Icons.play_circle,
             size: 80,
             color: Colors.grey[400]?.withOpacity(0.3), // Icono con opacidad
           ),
@@ -423,39 +481,6 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
     );
   }
 
-  Widget _buildFloatingActionButton() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10.0, right: 16.0), // Ajusta el valor de right según necesites
-      child: Align(
-        alignment: Alignment.bottomRight,
-        child: Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.3),
-                spreadRadius: 2,
-                blurRadius: 9,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: FloatingActionButton(
-            backgroundColor: Colors.white,
-            onPressed: () {
-              _showVideoOptions(context);
-            },
-            child: Icon(
-              Icons.camera_alt_rounded,
-              size: 33,
-              color: Colors.red,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
 
 
   Future<void> _handleRefresh() async {
@@ -556,21 +581,21 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
   }
 
   // Método para pausar/activar la reproducción del video
-  void _toggleVideoPlayback() {
+  Future<void> _toggleVideoPlayback() async {
     if (_controller!.value.isPlaying) {
-      _controller!.pause();
+      await _controller!.pause();
       setState(() {
-        _isVideoPaused = true; // Actualiza el estado para mostrar el icono de pausa
+        _isPlaying = false;
+        _isVideoPaused = true; // Mostrar el ícono de pausa
       });
     } else {
-      _controller!.play();
+      await _controller!.play();
       setState(() {
-        _isVideoPaused = false; // Actualiza el estado para ocultar el icono de pausa
+        _isPlaying = true;
+        _isVideoPaused = false; // Ocultar el ícono de pausa
       });
     }
   }
-
-
 
 
   // Método para grabar un nuevo video
@@ -601,6 +626,7 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
 
   @override
   void dispose() {
+    _pageController.dispose();
     _controller?.dispose();
     super.dispose();
   }

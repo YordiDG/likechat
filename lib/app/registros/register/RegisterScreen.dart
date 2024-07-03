@@ -205,7 +205,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           data: ThemeData(
                             dialogBackgroundColor: Colors.red.withOpacity(0.9),
                             textTheme: TextTheme(
-                              bodyText1: TextStyle(color: Colors.white),
+                              bodyLarge: TextStyle(color: Colors.white),
                             ),
                           ),
                           child: AlertDialog(

@@ -255,7 +255,7 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
               _showVideoOptions(context);
             },
             child: Icon(
-              Icons.video_camera_back_outlined,
+              Icons.video_camera_back,
               size: 33,
               color: Colors.red,
             ),

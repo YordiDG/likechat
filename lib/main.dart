@@ -30,8 +30,8 @@ class MyApp extends StatelessWidget {
           primaryColor: Color(0xFFD9F103),
           scaffoldBackgroundColor: Colors.white,
           textTheme: TextTheme(
-            bodyText1: TextStyle(color: Colors.white),
-            bodyText2: TextStyle(color: Colors.white),
+            bodyLarge: TextStyle(color: Colors.white),
+            bodyMedium: TextStyle(color: Colors.white),
           ),
           inputDecorationTheme: InputDecorationTheme(
             filled: true,
@@ -62,6 +62,7 @@ class MyApp extends StatelessWidget {
           '/register': (context) => RegisterScreen(),
           '/verification': (context) => CodeVerificationScreen(email: '',),
           '/home': (context) => HomeScreen(),
+          '/shortVideos': (context) => ShortVideosScreen(),
         },
       ),
     );
@@ -139,15 +140,6 @@ class _HomeScreenState extends State<HomeScreen> {
           onTap: _onItemTapped,
         ),
       ),
-      floatingActionButton: _selectedIndex == 0
-          ? FloatingActionButton(
-        onPressed: () {
-          // Abrir nueva pantalla de chat
-        },
-        child: Icon(Icons.message, color: Colors.white),
-        backgroundColor: Color(0xFF8A960A), // Púrpura oscuro
-      )
-          : null,
     );
   }
 

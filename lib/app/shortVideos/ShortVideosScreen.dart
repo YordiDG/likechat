@@ -13,6 +13,7 @@ import '../camera/UserAvatar.dart';
 import 'Comments/CommentSection.dart';
 import 'LikeButton.dart';
 import 'Posts/PostClass.dart';
+import 'PreviewVideo/VideoPreviewScreen.dart';
 
 class ShortVideosScreen extends StatefulWidget {
   @override
@@ -35,6 +36,9 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
   bool _isVideoPaused = false;
   bool _isSnippetsTab = true;
   bool _floatingActionButtonVisible = true;
+
+  String? _videoPath;
+  TextEditingController _descriptionController = TextEditingController();
 
   PageController _pageController = PageController();
 
@@ -185,7 +189,7 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
           setState(() {
             _currentIndex = index;
             _initializeVideoPlayer(_videos[_currentIndex]);
-            _isSnippetsTab = index == 0; // Ajustar según la pestaña actual
+            _isSnippetsTab = true; // Ajustar según la pestaña actual
 
             // Actualizar visibilidad del FAB
             _floatingActionButtonVisible = _isSnippetsTab && _videos.isNotEmpty;
@@ -255,7 +259,7 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
               _showVideoOptions(context);
             },
             child: Icon(
-              Icons.video_camera_back_outlined,
+              Icons.video_camera_back,
               size: 33,
               color: Colors.red,
             ),
@@ -400,7 +404,7 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
           _buildIconButton(
             iconPath: 'lib/assets/mesage.svg',
             onPressed: () {
-              // Acción al presionar el botón de "Mensaje"
+
             },
             isFilled: true, // Rellenar el icono de blanco
             iconSize: 40.0, // Tamaño del icono
@@ -525,11 +529,30 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
       maxDuration: Duration(seconds: 20),
     );
     if (pickedFile != null) {
-      setState(() {
-        _videos.add(File(pickedFile.path));
-        _currentIndex = _videos.length - 1;
-        _initializeVideoPlayer(_videos[_currentIndex]);
-      });
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => VideoPreviewScreen(videoPath: pickedFile.path),
+        ),
+      );
+    }
+  }
+
+
+  // Método para grabar un nuevo video
+  void _recordVideo() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickVideo(
+      source: ImageSource.camera,
+      maxDuration: Duration(seconds: 20),
+    );
+    if (pickedFile != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => VideoPreviewScreen(videoPath: pickedFile.path),
+        ),
+      );
     }
   }
 
@@ -573,12 +596,12 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
                 _pickImage();
               },
             ),
-            // Puedes agregar más opciones aquí según sea necesario
           ],
         );
       },
     );
   }
+
 
   // Método para pausar/activar la reproducción del video
   Future<void> _toggleVideoPlayback() async {
@@ -598,21 +621,6 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
   }
 
 
-  // Método para grabar un nuevo video
-  void _recordVideo() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickVideo(
-      source: ImageSource.camera,
-      maxDuration: Duration(seconds: 20),
-    );
-    if (pickedFile != null) {
-      setState(() {
-        _videos.add(File(pickedFile.path));
-        _currentIndex = _videos.length - 1;
-        _initializeVideoPlayer(_videos[_currentIndex]);
-      });
-    }
-  }
 
   // Método para elegir una imagen desde la galería
   void _pickImage() async {
@@ -631,3 +639,4 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
     super.dispose();
   }
 }
+

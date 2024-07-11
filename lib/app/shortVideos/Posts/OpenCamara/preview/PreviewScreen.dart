@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
-
 class PreviewScreen extends StatefulWidget {
   final String imagePath;
   final TextEditingController descriptionController;
@@ -43,26 +42,21 @@ class _PreviewScreenState extends State<PreviewScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        leadingWidth: 1,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white), // Flecha personalizada
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        leadingWidth: 56, // Ajusta el ancho del leading si es necesario
         backgroundColor: Colors.black,
-        title: Row(
-          children: [
-            IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            SizedBox(width: 10),
-            Text(
-              'New Post',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                fontSize: 20,
-              ),
-            ),
-          ],
+        title: Text(
+          'New Post',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            fontSize: 20,
+          ),
         ),
         actions: [
           Padding(
@@ -113,50 +107,50 @@ class _PreviewScreenState extends State<PreviewScreen> {
                 },
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  CarouselSlider(
-                    items: [
-                      _buildCarouselButton(
-                        onPressed: _pickImage,
-                        icon: Icons.add_photo_alternate,
-                        label: 'Añadir Foto',
-                      ),
-                      _buildCarouselButton(
-                        onPressed: _editMedia,
-                        icon: Icons.edit,
-                        label: 'Editar',
-                      ),
-                      _buildCarouselButton(
-                        onPressed: _addLocation,
-                        icon: Icons.location_on,
-                        label: 'Ubicación',
-                      ),
-                      _buildCarouselButton(
-                        onPressed: _addTags,
-                        icon: Icons.tag,
-                        label: 'Etiquetas',
-                      ),
-                    ],
-                    options: CarouselOptions(
-                      height: 50.0,
-                      enableInfiniteScroll: false,
-                      enlargeCenterPage: true,
-                      viewportFraction: 0.3,
-                      initialPage: 0,
-                    ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              CarouselSlider(
+                items: [
+                  _buildCarouselButton(
+                    onPressed: _pickImage,
+                    icon: Icons.add_photo_alternate,
+                    label: 'Add Foto',
+                  ),
+                  _buildCarouselButton(
+                    onPressed: _editMedia,
+                    icon: Icons.edit,
+                    label: 'Editar',
+                  ),
+                  _buildCarouselButton(
+                    onPressed: _addLocation,
+                    icon: Icons.location_on,
+                    label: 'Ubicación',
+                  ),
+                  _buildCarouselButton(
+                    onPressed: _addTags,
+                    icon: Icons.tag,
+                    label: 'Etiquetas',
                   ),
                 ],
+                options: CarouselOptions(
+                  height: 50.0,
+                  enableInfiniteScroll: false,
+                  enlargeCenterPage: true,
+                  viewportFraction: 0.44, // Ajustar el ancho de los botones
+                  initialPage: 0,
+                ),
               ),
-            ),
+            ],
+          ),
+        ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
               child: TextField(
                 controller: widget.descriptionController,
-                style: TextStyle(color: Colors.black),
+                style: TextStyle(color: Colors.black,),
                 decoration: InputDecoration(
                   hintText: 'Agregar una descripción...',
                   border: OutlineInputBorder(
@@ -175,7 +169,8 @@ class _PreviewScreenState extends State<PreviewScreen> {
             Divider(color: Colors.grey),
             ListTile(
               leading: Icon(Icons.person_add_alt, color: Colors.blue),
-              title: Text('Etiquetar personas', style: TextStyle(color: Colors.white)),
+              title: Text('Etiquetar personas',
+                  style: TextStyle(color: Colors.white)),
               onTap: () {
                 // Acción para etiquetar personas
               },
@@ -189,7 +184,8 @@ class _PreviewScreenState extends State<PreviewScreen> {
             ),
             ListTile(
               leading: Icon(Icons.trending_up, color: Colors.orange),
-              title: Text('Promocionar publicación', style: TextStyle(color: Colors.white)),
+              title: Text('Promocionar publicación',
+                  style: TextStyle(color: Colors.white)),
               onTap: () {
                 // Acción para promocionar publicación
               },
@@ -197,7 +193,6 @@ class _PreviewScreenState extends State<PreviewScreen> {
           ],
         ),
       ),
-
     );
   }
 
@@ -221,15 +216,29 @@ class _PreviewScreenState extends State<PreviewScreen> {
     required IconData icon,
     required String label,
   }) {
-    return ElevatedButton.icon(
+    return ElevatedButton(
       onPressed: onPressed,
-      icon: Icon(icon, color: Colors.white),
-      label: Text(label, style: TextStyle(color: Colors.white)),
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Colors.deepPurple, // Fondo morado
+        minimumSize: Size(120, 30), // Ancho y alto mínimos del botón
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 24.0, color: Colors.white),
+          SizedBox(width: 8.0),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 16.0,
+              color: Colors.white, // Letras blancas
+              fontWeight: FontWeight.bold, // Letras en negrita
+            ),
+          ),
+        ],
       ),
     );
   }

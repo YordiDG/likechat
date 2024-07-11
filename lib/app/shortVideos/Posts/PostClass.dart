@@ -14,13 +14,21 @@ class _PostClassState extends State<PostClass> {
   TextEditingController _descriptionController = TextEditingController();
   String? _imagePath;
   List<Post> _publishedPosts = [];
+  bool _permissionsDeniedMessageShown = false;
 
   @override
   void initState() {
     super.initState();
-    // Abrir la cámara automáticamente cuando se carga la pantalla
+    // Solicitar permisos de cámara y abrir la cámara automáticamente cuando se carga la pantalla
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _selectImage(source: ImageSource.camera);
+      _requestCameraPermission().then((granted) {
+        if (granted) {
+          _selectImage(source: ImageSource.camera);
+        } else if (!_permissionsDeniedMessageShown) {
+          _showPermissionDeniedMessage();
+          _permissionsDeniedMessageShown = true;
+        }
+      });
     });
   }
 
@@ -107,6 +115,12 @@ class _PostClassState extends State<PostClass> {
         ),
       ),
     );
+  }
+
+  Future<bool> _requestCameraPermission() async {
+    // Solicitar permisos de cámara
+    PermissionStatus cameraPermission = await Permission.camera.request();
+    return cameraPermission.isGranted;
   }
 
   void _showImageSourceSelection() {
@@ -211,6 +225,14 @@ class _PostClassState extends State<PostClass> {
         ),
       ));
     }
+  }
+
+  void _showPermissionDeniedMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Permiso de cámara denegado. Por favor, habilite los permisos en la configuración.'),
+      ),
+    );
   }
 
   void _publishPost() {
@@ -332,8 +354,6 @@ class _PostClassState extends State<PostClass> {
       }).toList(),
     );
   }
-
-
 }
 
 class Post {
@@ -342,8 +362,3 @@ class Post {
 
   Post({required this.description, required this.imagePath});
 }
-
-
-
-
-

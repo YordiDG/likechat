@@ -13,7 +13,7 @@ class ProfileDetailScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: Colors.deepPurpleAccent,
+        backgroundColor: Colors.black,
         title: Text(
           'Foto de Perfil',
           style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white), // Text color

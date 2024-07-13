@@ -3,9 +3,11 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  agora_rtc_engine
   emoji_picker_flutter
   file_selector_windows
   flutter_volume_controller
+  iris_method_channel
   permission_handler_windows
   share_plus
   url_launcher_windows

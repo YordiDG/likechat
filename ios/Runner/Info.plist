@@ -10,6 +10,10 @@
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Used to demonstrate image picker plugin</string>
 
+    <key>NSContactsUsageDescription</key>
+    <string>Se necesita acceso a los contactos para seleccionar contactos.</string>
+
+
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

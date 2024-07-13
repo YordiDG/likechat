@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'app/chats/ChatsScreen.dart';
+import 'app/chats/storys/LikeChatScreen.dart';
 import 'app/friends/FriendsScreen.dart';
 import 'app/notificaction/NotificationsScreen.dart';
 import 'app/perfil/ProfileScreen.dart';
@@ -11,7 +12,7 @@ import 'app/registros/providers/CodeVerificationScreen.dart';
 import 'app/registros/register/RegisterScreen.dart';
 import 'app/registros/splash/SplashScreen.dart';
 import 'app/shortVideos/ShortVideosScreen.dart';
-import 'app/storys/LikeChatScreen.dart';
+
 
 
 void main() {
@@ -112,28 +113,28 @@ class _HomeScreenState extends State<HomeScreen> {
           type: BottomNavigationBarType.fixed,
           items: <BottomNavigationBarItem>[
             BottomNavigationBarItem(
-              icon: Icon(Icons.chat, color: _selectedIndex == 0 ? Colors.white : Colors.grey), // Ícono blanco cuando seleccionado, gris cuando no
+              icon: Icon(Icons.chat, color: _selectedIndex == 0 ? Colors.cyan : Colors.grey), // Ícono azul turquesa cuando seleccionado, gris cuando no
               label: 'Chats',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.group, color: _selectedIndex == 1 ? Colors.white : Colors.grey), // Ícono blanco cuando seleccionado, gris cuando no
+              icon: Icon(Icons.group, color: _selectedIndex == 1 ? Colors.cyan : Colors.grey), // Ícono azul turquesa cuando seleccionado, gris cuando no
               label: 'Amigos',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.video_collection_rounded, color: _selectedIndex == 2 ? Colors.white : Colors.grey), // Ícono blanco cuando seleccionado, gris cuando no
+              icon: Icon(Icons.video_collection_rounded, color: _selectedIndex == 2 ? Colors.cyan : Colors.grey), // Ícono azul turquesa cuando seleccionado, gris cuando no
               label: 'Snippets',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.notifications, color: _selectedIndex == 3 ? Colors.white : Colors.grey), // Ícono blanco cuando seleccionado, gris cuando no
+              icon: Icon(Icons.notifications, color: _selectedIndex == 3 ? Colors.cyan : Colors.grey), // Ícono azul turquesa cuando seleccionado, gris cuando no
               label: 'Notification',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person, color: _selectedIndex == 4 ? Colors.white : Colors.grey), // Ícono blanco cuando seleccionado, gris cuando no
+              icon: Icon(Icons.person, color: _selectedIndex == 4 ? Colors.cyan : Colors.grey), // Ícono azul turquesa cuando seleccionado, gris cuando no
               label: 'Perfil',
             ),
           ],
           currentIndex: _selectedIndex,
-          selectedItemColor: Colors.white, // Color de ícono seleccionado (relleno blanco)
+          selectedItemColor: Colors.cyan, // Color azul turquesa para ícono seleccionado (relleno y texto)
           unselectedItemColor: Colors.grey, // Color de ícono no seleccionado (gris sin relleno)
           backgroundColor: Colors.black, // Color de fondo del BottomNavigationBar (blanco)
           iconSize: 30.0,
@@ -142,7 +143,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
 
 }
 

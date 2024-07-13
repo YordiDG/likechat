@@ -144,14 +144,12 @@ class _LikeChatScreenState extends State<LikeChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      //color: Color(0xFF128C7E),
       color: Colors.black,
       child: Padding(
         padding: EdgeInsets.only(top: 30.0),
         child: Container(
           height: 150,
           color: Colors.black,
-          //color: Color(0xFF128C7E), // Color de fondo del contenedor principal
           child: Stack(
             children: [
               Row(
@@ -207,11 +205,10 @@ class _LikeChatScreenState extends State<LikeChatScreen> {
                             height: _storySize,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.grey[300], // Color de fondo del círculo de historias
+                              color: Colors.grey[300],
                             ),
                             child: Stack(
                               children: [
-                                // Imagen del usuario o placeholder si no hay imagen
                                 Center(
                                   child: _image != null
                                       ? Container(
@@ -237,7 +234,6 @@ class _LikeChatScreenState extends State<LikeChatScreen> {
                                     ),
                                   ),
                                 ),
-                                // Icono de agregar historia
                                 Positioned(
                                   bottom: 1.0,
                                   right: 1.0,
@@ -247,9 +243,7 @@ class _LikeChatScreenState extends State<LikeChatScreen> {
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       color: Colors.white,
-                                      //border: Border.all(color: Color(0xFFD9F103)),
-                                      border: Border.all(color: Colors.red,
-                                          width: 3.0),
+                                      border: Border.all(color: Colors.red, width: 3.0),
                                       boxShadow: [
                                         BoxShadow(
                                           color: Colors.black.withOpacity(0.3),
@@ -274,64 +268,65 @@ class _LikeChatScreenState extends State<LikeChatScreen> {
                         ),
                       ),
                       SizedBox(width: 8),
-                      GestureDetector(
-                        onTap: () {
-                          if (_stories.isNotEmpty) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => FullScreenStoryViewer(
-                                  stories: _stories,
-                                  currentIndex: _currentIndex,
-                                  onDelete: _deleteStory,
+                      if (_stories.isNotEmpty)
+                        GestureDetector(
+                          onTap: () {
+                            if (_stories.isNotEmpty) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => FullScreenStoryViewer(
+                                    stories: _stories,
+                                    currentIndex: _currentIndex,
+                                    onDelete: _deleteStory,
+                                  ),
                                 ),
+                              );
+                            }
+                          },
+                          child: Container(
+                            width: _activeStorySize + 2.0,
+                            height: _activeStorySize + 3.0,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.red, // Color del borde al tener historia activa
+                                width: 4.0, // Ancho del borde
                               ),
-                            );
-                          }
-                        },
-                        child: Container(
-                          width: _activeStorySize + 2.0,
-                          height: _activeStorySize + 3.0,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.red, // Color del borde al tener historia activa
-                              width: 4.0, // Ancho del borde
+                            ),
+                            child: Stack(
+                              children: [
+                                ClipOval(
+                                  child: _stories.isNotEmpty
+                                      ? Image.file(
+                                    File(_stories[_currentIndex]),
+                                    fit: BoxFit.cover,
+                                    width: _activeStorySize + 4.0, // Ajuste del tamaño de la imagen
+                                    height: _activeStorySize + 4.0,
+                                  )
+                                      : Container(),
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  left: 0,
+                                  right: 0,
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withOpacity(0.6),
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                    child: Text(
+                                      'Tu Historia',
+                                      style: TextStyle(color: Colors.white, fontSize: 12.0),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          child: Stack(
-                            children: [
-                              ClipOval(
-                                child: _stories.isNotEmpty
-                                    ? Image.file(
-                                  File(_stories[_currentIndex]),
-                                  fit: BoxFit.cover,
-                                  width: _activeStorySize + 4.0, // Ajuste del tamaño de la imagen
-                                  height: _activeStorySize + 4.0,
-                                )
-                                    : Container(),
-                              ),
-                              Positioned(
-                                bottom: 0,
-                                left: 0,
-                                right: 0,
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.6),
-                                    borderRadius: BorderRadius.circular(8.0),
-                                  ),
-                                  child: Text(
-                                    'Tu Historia',
-                                    style: TextStyle(color: Colors.white, fontSize: 12.0),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),

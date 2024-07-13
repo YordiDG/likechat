@@ -25,7 +25,7 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.deepPurple[600],
+        backgroundColor: Colors.black,
         title: Text('Previsualización',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),

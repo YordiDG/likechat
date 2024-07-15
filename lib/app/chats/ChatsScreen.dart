@@ -12,6 +12,8 @@ import 'dart:io';
 
 import 'call/CallScreen.dart';
 import 'call/VideoCall.dart';
+import 'contactatos/ContactSelectionScreen.dart';
+import 'encuestas/EncuestaDialog.dart';
 import 'mesaage/MessageBubble.dart';
 
 class ChatsScreen extends StatelessWidget {
@@ -481,15 +483,14 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-
   void _showAttachmentOptions() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.grey[850], // Fondo gris oscuro
+      backgroundColor: Colors.grey[850],
       builder: (context) {
         return Container(
           padding: EdgeInsets.all(16),
-          height: 200,
+          height: 150,
           child: GridView.count(
             crossAxisCount: 3,
             children: [
@@ -513,15 +514,27 @@ class _ChatScreenState extends State<ChatScreen> {
                 _openContacts();
                 Navigator.of(context).pop();
               }),
-              _buildAttachmentOption(Icons.call, 'Llamadas', Colors.yellow, () {
-                _openCallLogs();
-                Navigator.of(context).pop();
+              _buildAttachmentOption(Icons.poll, 'Encuestas', Colors.brown, () {
+                _openEncuestas();
+                // Eliminar Navigator.of(context).pop() aquí
               }),
             ],
           ),
         );
       },
     );
+  }
+
+  void _openEncuestas() {
+    print("Abriendo diálogo de Encuestas");
+    if (mounted) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return EncuestaDialog();
+        },
+      );
+    }
   }
 
   Widget _buildAttachmentOption(IconData icon, String label, Color color, VoidCallback onPressed) {
@@ -548,47 +561,6 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  void _showContactSelectionDialog(Iterable<Contact> contacts) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: Colors.grey[850], // Fondo gris oscuro
-          title: Text(
-            'Seleccionar Contacto',
-            style: TextStyle(color: Colors.white), // Título en blanco
-          ),
-          content: Container(
-            width: double.maxFinite,
-            child: ListView(
-              children: contacts.map((contact) {
-                return ListTile(
-                  title: Text(
-                    contact.displayName ?? '',
-                    style: TextStyle(color: Colors.white), // Texto en blanco
-                  ),
-                  onTap: () {
-                    // Handle contact selection
-                    Navigator.of(context).pop();
-                  },
-                );
-              }).toList(),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'Cancelar',
-                style: TextStyle(color: Colors.white), // Texto en blanco
-              ),
-            ),
-          ],
-        );
-      },
     );
   }
 
@@ -650,14 +622,14 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _openContacts() async {
-    // Pedir permiso de contactos
     var status = await Permission.contacts.request();
     if (status.isGranted) {
-      // Si se concede el permiso, obtener contactos
-      Iterable<Contact> contacts = await ContactsService.getContacts();
-      _showContactSelectionDialog(contacts);
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => ContactSelectionScreen(),
+        ),
+      );
     } else {
-      // Manejar el caso en que no se concede el permiso
       _showPermissionDeniedDialog();
     }
   }
@@ -667,12 +639,22 @@ class _ChatScreenState extends State<ChatScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Permiso Denegado'),
-          content: Text('Por favor, permite el acceso a los contactos en la configuración de la aplicación.'),
+          backgroundColor: Colors.grey[900], // Dark background
+          title: Text(
+            'Permiso Denegado',
+            style: TextStyle(color: Colors.white), // White title
+          ),
+          content: Text(
+            'Por favor, permite el acceso a los contactos en la configuración de la aplicación.',
+            style: TextStyle(color: Colors.grey[300]), // Light gray text
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cerrar'),
+              child: Text(
+                'Cerrar',
+                style: TextStyle(color: Colors.cyan), // Cyan text
+              ),
             ),
           ],
         );
@@ -681,27 +663,17 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
 
-  void _openCallLogs() async {
-    // Implement logic to access call logs (requires additional permissions)
-    // You may need to use a plugin or custom method to access call logs
-  }
-
 
 // Function to build an image widget
   Widget _buildImageWithTitle(String assetPath) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(0.1),
       child: Column(
         children: [
           Image.asset(
             assetPath,
             width: 60, // Adjust the size as needed
             height: 60,
-          ),
-          SizedBox(height: 5),
-          Text(
-            'Imagen',
-            style: TextStyle(color: Colors.white),
           ),
         ],
       ),
@@ -1014,6 +986,7 @@ class ChatMessage {
     this.videoFile,
   });
 }
+
 
 
 

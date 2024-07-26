@@ -35,7 +35,7 @@ class _CodeVerificationScreenState extends State<CodeVerificationScreen> {
                 style: TextStyle(
                   fontSize: 24.0,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFFD9F103),
+                  color: Colors.black,
                 ),
                 textAlign: TextAlign.center,
               ),

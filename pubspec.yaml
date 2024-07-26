@@ -46,7 +46,7 @@ dependencies:
   flutter_image_filters: ^0.0.19
   share_plus: ^9.0.0
   carousel_slider: ^4.2.1
-  video_trimmer: ^2.0.1
+  video_trimmer: ^2.1.0
   text_editor: ^0.7.0
   file_picker: ^8.0.6
   url_launcher: ^6.3.0
@@ -55,6 +55,20 @@ dependencies:
   wakelock_plus: ^1.2.5
   get: ^4.6.5
   contacts_service: ^0.6.3
+  animations: ^2.0.11
+  flutter_vibrate: ^1.3.0
+  font_awesome_flutter: ^10.7.0
+  google_maps_flutter: ^2.7.0
+  audioplayers: ^6.0.0
+  flutter_sound: ^9.6.0
+  flutter_riverpod: ^2.5.1
+  ffmpeg_kit_flutter: ^5.1.0-LTS
+  #geolocator: ^12.0.0
+
+  #flutter_localizations:
+  #    sdk: flutter
+  #  intl: ^0.19.0
+
 
 dev_dependencies:
   flutter_test:
@@ -83,7 +97,6 @@ flutter:
     - lib/assets/placeholder_user.jpg
     - lib/assets/emoticon.json
     - lib/assets/emoticon2.json
-
     - lib/assets/angry.json
     - lib/assets/aplausos.json
     - lib/assets/enamo.json
@@ -93,6 +106,8 @@ flutter:
     - lib/assets/sorpresa.json
     - lib/assets/ultima.json
 
+    - lib/assets/LikeChat.gif
+
 
   fonts:
     - family: Poppins
@@ -101,3 +116,121 @@ flutter:
         - asset: assets/fonts/Poppins-Bold.ttf
           weight: 700
 
+    - family: Oswald
+      fonts:
+        - asset: assets/fonts/Oswald-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Oswald-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Oswald-BoldItalic.ttf
+          weight: 500
+        - asset: assets/fonts/Oswald-Heavy.ttf
+          weight: 400
+
+    - family: Billabong
+      fonts:
+        - asset: assets/fonts/Billabong.otf
+          weight: 400
+
+    - family: Quicksand
+      fonts:
+        - asset: assets/fonts/Quicksand x.ttf
+          weight: 600
+        - asset: assets/fonts/Quicksand_Bold.otf
+          weight: 700
+        - asset: assets/fonts/Quicksand_Bold_Oblique.otf
+          weight: 400
+        - asset: assets/fonts/Quicksand_Book.otf
+          weight: 600
+        - asset: assets/fonts/Quicksand_Dash.otf
+          weight: 700
+
+    - family: Anton
+      fonts:
+        - asset: assets/fonts/Anton.ttf
+          weight: 400
+
+    - family: Antonella
+      fonts:
+        - asset: assets/fonts/Antonella.otf
+          weight: 400
+
+    - family: Antonellie Callygraphy Demo
+      fonts:
+        - asset: assets/fonts/Antonellie Callygraphy Demo.otf
+          weight: 400
+
+    - family: Antonine Personal Use
+      fonts:
+        - asset: assets/fonts/Antonine Personal Use.ttf
+          weight: 400
+
+    - family: Badgear Script DEMO
+      fonts:
+        - asset: assets/fonts/Badgear Script DEMO.otf
+          weight: 400
+
+    - family: Badrudin-Script
+      fonts:
+        - asset: assets/fonts/Badrudin-Script.otf
+          weight: 400
+
+    - family: BebasNeue-Regular
+      fonts:
+        - asset: assets/fonts/BebasNeue-Regular.otf
+          weight: 500
+
+    - family: Julia Antonio
+      fonts:
+        - asset: assets/fonts/Julia Antonio.otf
+          weight: 400
+
+    - family: Latton
+      fonts:
+        - asset: assets/fonts/Latton.otf
+          weight: 400
+
+    - family: Pacifico
+      fonts:
+        - asset: assets/fonts/Pacifico.ttf
+          weight: 500
+
+    - family: Sacramento
+      fonts:
+        - asset: assets/fonts/Sacramento.ttf
+          weight: 500
+
+    - family: Lobster 1.4
+      fonts:
+        - asset: assets/fonts/Lobster 1.4.otf
+          weight: 400
+
+    - family: Miss Antonia
+      fonts:
+        - asset: assets/fonts/Miss Antonia.otf
+          weight: 400
+
+    - family: Naishila Dancing Script
+      fonts:
+        - asset: assets/fonts/Naishila Dancing Script.ttf
+          weight: 400
+
+    - family: Rick Lobster
+      fonts:
+        - asset: assets/fonts/Rick Lobster.ttf
+          weight: 400
+
+    - family: San Antonio Charros_personal_use_only
+      fonts:
+        - asset: assets/fonts/San Antonio Charros_personal_use_only.ttf
+          weight: 400
+
+    - family: Spiny Lobster DEMO
+      fonts:
+        - asset: assets/fonts/Spiny Lobster DEMO.ttf
+          weight: 400
+
+    - family: Yakuza Lobster
+      fonts:
+        - asset: assets/fonts/Yakuza Lobster.ttf
+          weight: 400

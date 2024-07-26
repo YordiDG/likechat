@@ -16,7 +16,8 @@ class AuthProvider with ChangeNotifier {
       String gender,
       bool acceptTerms,
       ) async {
-    final url = 'http://192.168.0.10:8088/api/v1/auth/register';
+    final url = 'http://192.168.213.226:8088/api/v1/auth/register';
+
 
     try {
       final response = await http.post(
@@ -48,7 +49,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> sendVerificationCode(String email) async {
-    final url = 'http://192.168.0.10:8088/api/v1/auth/authenticate';// URL del endpoint para enviar el código de verificación, ajusta según tu backend
+    final url = 'http://192.168.213.226:8088/api/v1/auth/authenticate';// URL del endpoint para enviar el código de verificación, ajusta según tu backend
     try {
       final response = await http.post(
         Uri.parse(url),
@@ -68,7 +69,8 @@ class AuthProvider with ChangeNotifier {
 
 
   Future<void> verifyCode(String email, String code) async {
-    final url = 'http://192.168.0.10:8088/api/v1/auth/activate-account';
+
+    final url = 'http://192.168.213.226:8088/api/v1/auth/activate-account';
     try {
       final response = await http.post(
         Uri.parse(url),
@@ -89,7 +91,7 @@ class AuthProvider with ChangeNotifier {
 
 
   Future<void> login(String email, String password) async {
-    final url = 'http://192.168.0.10:8088/api/v1/auth/authenticate';
+    final url = 'http://192.168.213.226:8088/api/v1/auth/authenticate';
     try {
       final response = await http.post(
         Uri.parse(url),
@@ -100,19 +102,27 @@ class AuthProvider with ChangeNotifier {
         }),
       );
 
+      final responseBody = json.decode(response.body);
+
       if (response.statusCode == 200) {
         _isAuthenticated = true;
         notifyListeners();
       } else {
-        throw Exception('Failed to login: ${response.statusCode}');
+        final errorMessage = responseBody['message'] ?? 'Failed to login';
+        if (response.statusCode == 401) {
+          throw Exception('Unauthorized: $errorMessage');
+        } else {
+          throw Exception('Login failed: $errorMessage');
+        }
       }
     } catch (e) {
-      throw Exception('Failed to login: $e');
+      throw Exception('Login error: $e');
     }
   }
 
+
   Future<void> recoverPassword(String email) async {
-    final url = 'http://192.168.0.10:8088/api/v1/auth/generate-password-reset-code';
+    final url = 'http://192.168.213.226:8088/api/v1/auth/generate-password-reset-code';
     try {
       final response = await http.post(
         Uri.parse(url),
@@ -129,7 +139,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> updatePassword(String email, String token, String newPassword) async {
-    final url = 'http://192.168.0.10:8088/api/v1/auth/reset-password';
+    final url = 'http://192.168.213.226:8088/api/v1/auth/reset-password';
     try {
       final response = await http.post(
         Uri.parse(url),

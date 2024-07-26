@@ -15,6 +15,8 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscureText = true;
   bool _showEmailError = false;
   bool _showPasswordError = false;
+  bool _isEmailEmpty = false;
+  bool _isPasswordEmpty = false;
   int _loginAttempts = 0;
   DateTime? _lockoutEndTime;
 
@@ -26,6 +28,11 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushReplacementNamed(context, '/home');
     } catch (error) {
       print(error);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(
+                'Error al iniciar sesión con Google. Inténtalo nuevamente.')),
+      );
     }
   }
 
@@ -50,9 +57,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
-                    labelText: 'Email',
+                    labelText: 'Correo electrónico',
                     prefixIcon: Icon(Icons.email, color: Colors.black),
-                    errorText: _showEmailError ? 'Correo electrónico inválido' : null,
+                    errorText: _showEmailError
+                        ? 'Correo inválido o no autenticado'
+                        : null,
                     errorStyle: TextStyle(color: Color(0xFFFF0E0E)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -62,11 +71,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(color: Colors.black, width: 4.0),
                     ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: _isEmailEmpty ? Color(0xFFFF0E0E) : Colors.black,
+                      ),
+                    ),
                   ),
                   keyboardType: TextInputType.emailAddress,
                   style: TextStyle(color: Colors.black),
                 ),
-
                 SizedBox(height: 22),
                 TextField(
                   controller: _passwordController,
@@ -74,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
-                    labelText: 'Password',
+                    labelText: 'Contraseña',
                     prefixIcon: Icon(Icons.lock, color: Colors.black),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -87,7 +101,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         });
                       },
                     ),
-                    errorText: _showPasswordError ? 'Contraseña incorrecta' : null,
+                    errorText: _showPasswordError
+                        ? 'Contraseña incorrecta. Verifica e intenta nuevamente.'
+                        : null,
                     errorStyle: TextStyle(color: Color(0xFFFF0E0E)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -97,10 +113,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(color: Colors.black, width: 4.0),
                     ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color:
+                            _isPasswordEmpty ? Color(0xFFFF0E0E) : Colors.black,
+                      ),
+                    ),
                   ),
                   style: TextStyle(color: Colors.black),
                 ),
-
                 SizedBox(height: 40),
                 SizedBox(
                   width: double.infinity,
@@ -110,7 +132,18 @@ class _LoginScreenState extends State<LoginScreen> {
                       setState(() {
                         _showEmailError = false;
                         _showPasswordError = false;
+                        _isEmailEmpty = _emailController.text.trim().isEmpty;
+                        _isPasswordEmpty =
+                            _passwordController.text.trim().isEmpty;
                       });
+
+                      if (_isEmailEmpty || _isPasswordEmpty) {
+                        setState(() {
+                          if (_isEmailEmpty) _showEmailError = true;
+                          if (_isPasswordEmpty) _showPasswordError = true;
+                        });
+                        return;
+                      }
 
                       try {
                         await Provider.of<AuthProvider>(context, listen: false)
@@ -121,13 +154,23 @@ class _LoginScreenState extends State<LoginScreen> {
                         Navigator.pushReplacementNamed(context, '/home');
                       } catch (e) {
                         setState(() {
-                          if (e.toString().contains('Invalid email format')) {
+                          if (e.toString().contains('Unauthorized')) {
                             _showEmailError = true;
-                          } else if (e.toString().contains('Invalid password')) {
+                            _showPasswordError = true;
+                          } else if (e
+                                  .toString()
+                                  .contains('Invalid email format') ||
+                              e
+                                  .toString()
+                                  .contains('Email not authenticated')) {
+                            _showEmailError = true;
+                          } else if (e
+                              .toString()
+                              .contains('Invalid password')) {
                             _showPasswordError = true;
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error: $e')),
+                              SnackBar(content: Text('Error inesperado: $e')),
                             );
                           }
                         });
@@ -147,7 +190,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             builder: (BuildContext context) {
                               return Center(
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 24.0),
                                   child: Container(
                                     decoration: BoxDecoration(
                                       color: Colors.white,
@@ -168,8 +212,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                         Icon(Icons.lock),
                                         SizedBox(height: 16),
                                         Text(
-                                          'Su cuenta se ha bloqueado temporalmente. Vuelva a intentar en 10 días.',
-                                          style: TextStyle(color: Colors.black, fontSize: 16),
+                                          'Debido a múltiples intentos fallidos, tu cuenta ha sido bloqueada temporalmente. Vuelve a intentar en 10 minutos.',
+                                          style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 16),
                                           textAlign: TextAlign.justify,
                                         ),
                                         SizedBox(height: 16),
@@ -180,7 +226,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: Colors.red,
                                             shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(10),
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
                                             ),
                                           ),
                                           child: Text('OK'),
@@ -202,7 +249,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     child: Text(
-                      'Login',
+                      'Iniciar sesión',
                       style: TextStyle(
                         fontSize: 25,
                         fontWeight: FontWeight.bold,
@@ -216,11 +263,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => RecoverPasswordScreen()),
+                      MaterialPageRoute(
+                          builder: (context) => RecoverPasswordScreen()),
                     );
                   },
                   child: Text(
-                    'Forgot password?',
+                    '¿Olvidaste tu contraseña?',
                     style: TextStyle(
                       color: Color(0xFF99A804),
                       fontSize: 17,
@@ -232,28 +280,33 @@ class _LoginScreenState extends State<LoginScreen> {
                 ElevatedButton(
                   onPressed: _loginWithGoogle,
                   style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.black, backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    backgroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                       side: BorderSide(color: Colors.black, width: 2),
                     ),
-                    padding: EdgeInsets.symmetric(vertical: 14, horizontal: 80),
+                    padding: EdgeInsets.symmetric(vertical: 14, horizontal: 16), // Ajusta el padding horizontal
                   ),
                   child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisSize: MainAxisSize.max, // Asegura que el Row ocupe todo el ancho disponible
+                    mainAxisAlignment: MainAxisAlignment.center, // Centra los elementos dentro del Row
+                    crossAxisAlignment: CrossAxisAlignment.center, // Alinea verticalmente los elementos en el centro
                     children: [
                       Image.asset(
                         'lib/assets/logo_google_login.png',
                         height: 24,
                       ),
-                      SizedBox(width: 12),
+                      SizedBox(width: 8), // Espacio entre el icono y el texto
                       Text(
-                        'Sign in with Google',
+                        'Iniciar sesión con Google',
+                        textAlign: TextAlign.center, // Centra el texto dentro del Row
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF0D0D55),
                         ),
+                        overflow: TextOverflow.ellipsis, // Muestra "..." si el texto es demasiado largo
                       ),
                     ],
                   ),
@@ -263,8 +316,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     Navigator.pushReplacementNamed(context, '/register');
                   },
                   style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(Colors.transparent),
-                    foregroundColor: MaterialStateProperty.all<Color>(Color(0xFFD9F103)),
+                    backgroundColor:
+                        MaterialStateProperty.all(Colors.transparent),
                   ),
                   child: RichText(
                     text: TextSpan(
@@ -274,23 +327,25 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       children: [
                         TextSpan(
-                          text: "Don't have an account? ",
+                          text: '¿Aún no tienes cuenta? ',
                           style: TextStyle(
-                            fontSize: 16,
                             color: Color(0xFF0D0D55),
+                            fontSize: 16,
                           ),
                         ),
                         TextSpan(
-                          text: "Register",
+                          text: 'Registrarse',
                           style: TextStyle(
+                            color: Color(0xFF0D0D55),
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.none,
                           ),
                         ),
                       ],
                     ),
                   ),
-                )
-
+                ),
               ],
             ),
           ),

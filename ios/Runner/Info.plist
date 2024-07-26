@@ -14,6 +14,18 @@
     <string>Se necesita acceso a los contactos para seleccionar contactos.</string>
 
 
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Se requiere acceso a la ubicación para mostrar tu posición en el mapa.</string>
+    <key>GMSApiKey</key>
+    <string>AIzaSyBoKy2M2XN4rWEi5xWow0XBII-FbLGNUA4</string>
+
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Necesitamos tu permiso para grabar audio</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Necesitamos acceso a tu biblioteca de fotos</string>
+
+
+
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

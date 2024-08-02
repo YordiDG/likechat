@@ -1,14 +1,16 @@
-
 import 'package:LikeChat/app/home/perfil/photoPerfil/detail/ImageDetailDialog.dart';
 import 'package:LikeChat/app/home/perfil/photoPerfil/detail/ImagePreviewScreen.dart';
 import 'package:LikeChat/app/home/perfil/snippets/DetailSnipptes/SnippetsDetailScreen.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../estadoDark-White/DarkModeProvider.dart';
 import 'configuration/MenuConfiguration.dart';
 import 'editProfile/EditProfile.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-
-
+import 'package:provider/provider.dart';
 import 'gallery/ImageDetail/ImageDetailDialog.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -28,6 +30,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   String username = 'Yordi Gonzales';
   String description = 'Añade una breve descripción';
+  String socialLink = '';
+
+  String? socialPlatform;
 
   @override
   void initState() {
@@ -50,25 +55,133 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ];
   }
 
-  void _updateProfile(String newUsername, String newDescription) {
+  void _updateProfile(
+      String newUsername, String newDescription, String newLinkSocial) {
     setState(() {
       username = newUsername;
       description = newDescription;
+      socialLink = newLinkSocial;
     });
+  }
+
+  IconData _getSocialIcon(String url) {
+    if (url.contains("facebook.com")) {
+      return FontAwesomeIcons.facebook;
+    } else if (url.contains("twitter.com")) {
+      return FontAwesomeIcons.twitter;
+    } else if (url.contains("instagram.com")) {
+      return FontAwesomeIcons.instagram;
+    } else if (url.contains("linkedin.com")) {
+      return FontAwesomeIcons.linkedin;
+    } else if (url.contains("tiktok.com")) {
+      return FontAwesomeIcons.tiktok;
+    } else if (url.contains("youtube.com")) {
+      return FontAwesomeIcons.youtube;
+    } else if (url.contains("wa.me")) {
+      return FontAwesomeIcons.whatsapp;
+    } else {
+      return Icons.link; // Ícono predeterminado para otros URLs
+    }
+  }
+
+  Color _getSocialIconColor(String url) {
+    if (url.contains("facebook.com")) {
+      return Colors.blue;
+    } else if (url.contains("twitter.com")) {
+      return Colors.lightBlue;
+    } else if (url.contains("instagram.com")) {
+      return Colors.pink;
+    } else if (url.contains("linkedin.com")) {
+      return Colors.blueAccent;
+    } else if (url.contains("tiktok.com")) {
+      return Colors.black;
+    } else if (url.contains("youtube.com")) {
+      return Colors.red;
+    } else if (url.contains("wa.me")) {
+      return Colors.green;
+    } else {
+      return Colors.grey;
+    }
+  }
+
+  Widget buildIcon(String url) {
+    return Icon(
+      _getSocialIcon(url),
+      color: _getSocialIconColor(url),
+    );
+  }
+
+  void _openLink(String url) async {
+    if (url.isEmpty) {
+      _showSnackbar('La URL no puede estar vacía.');
+      return;
+    }
+
+    if (url.length < 5) {
+      _showSnackbar('La URL parece ser demasiado corta para ser válida.');
+      return;
+    }
+
+    final Uri? uri = Uri.tryParse(url);
+
+    if (uri == null) {
+      _showSnackbar('La URL proporcionada no es válida.');
+      return;
+    }
+
+    if (!uri.hasScheme || (!uri.isScheme('http') && !uri.isScheme('https'))) {
+      _showSnackbar('La URL debe comenzar con http:// o https://');
+      return;
+    }
+
+    try {
+      if (await canLaunch(url)) {
+        await launch(url);
+      } else {
+        _showSnackbar('No se puede abrir la URL: $url');
+      }
+    } catch (e) {
+      _showSnackbar('Ocurrió un error al intentar abrir la URL: $e');
+    }
+  }
+
+  void _showSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+    final iconColor = darkModeProvider.iconColor;
+    final backgroundColor = darkModeProvider.backgroundColor;
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: backgroundColor,
         title: Text(
           'Perfil',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.menu, color: Colors.white),
+            icon: Icon(Icons.menu_sharp, color: iconColor),
             onPressed: () {
               Navigator.push(
                 context,
@@ -77,10 +190,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             },
           ),
         ],
-
       ),
       body: Container(
-        color: Colors.black, // Fondo negro
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -97,7 +208,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => ProfileDetailScreen(
-                                  imagePath: _tempProfileImage ?? 'lib/assets/placeholder_user.jpg',
+                                  imagePath: _tempProfileImage ??
+                                      'lib/assets/placeholder_user.jpg',
                                 ),
                               ),
                             );
@@ -105,29 +217,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: Stack(
                             children: [
                               CircleAvatar(
-                                radius: 56,
-                                backgroundImage: _tempProfileImage != null
-                                    ? FileImage(File(_tempProfileImage!)) as ImageProvider<Object>?
-                                    : AssetImage('lib/assets/placeholder_user.jpg'),
+                                radius: 52, // Ajuste del tamaño del avatar
+                                backgroundColor: Colors.grey[300],
+                                child: CircleAvatar(
+                                  radius: 52,
+                                  // Tamaño del avatar más pequeño para el borde
+                                  backgroundImage: _tempProfileImage != null
+                                      ? FileImage(File(_tempProfileImage!))
+                                          as ImageProvider<Object>?
+                                      : AssetImage(
+                                          'lib/assets/placeholder_user.jpg'),
+                                ),
                               ),
                               Positioned(
                                 bottom: 0,
-                                right: 67,
+                                right: 2,
                                 child: GestureDetector(
                                   onTap: () {
-                                    openImagePicker(context, ImageSource.gallery);
+                                    openImagePicker(
+                                        context, ImageSource.gallery);
                                   },
                                   child: Container(
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      color: Colors.cyan,
-                                      border: Border.all(color: Colors.white, width: 2.5),
+                                      color: isDarkMode
+                                          ? Colors.cyan
+                                          : Colors.cyan,
+                                      border: Border.all(
+                                          color: isDarkMode
+                                              ? Colors.black
+                                              : Colors.white,
+                                          width: 2.0),
                                     ),
                                     child: Padding(
                                       padding: const EdgeInsets.all(4.0),
                                       child: Icon(
                                         Icons.camera_alt,
                                         color: Colors.white,
+                                        size: 24,
                                       ),
                                     ),
                                   ),
@@ -138,13 +265,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 12),
+                    SizedBox(height: 8),
                     Text(
                       username,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white, // Cambiado a blanco
+                        color: isDarkMode
+                            ? Colors.white
+                            : Colors.black, // Cambiado a blanco
                       ),
                     ),
                     SizedBox(height: 12),
@@ -156,17 +285,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Text(
                               '100',
                               style: TextStyle(
-                                fontSize: 17,
-                                color: Colors.white,
+                                fontSize: 18,
+                                color: isDarkMode ? Colors.white : Colors.black,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-
                             Text(
                               'Seguidos',
                               style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.white,
+                                fontSize: 12,
+                                color: isDarkMode ? Colors.white : Colors.black,
                               ),
                             ),
                           ],
@@ -177,17 +305,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Text(
                               '200',
                               style: TextStyle(
-                                fontSize: 17, // Asegúrate de que el tamaño de la fuente sea consistente
-                                color: Colors.white, // Cambiado a blanco
+                                fontSize: 18,
+                                color: isDarkMode ? Colors.white : Colors.black,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             Text(
                               'Seguidores',
                               style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.white,
-
+                                fontSize: 12,
+                                color: isDarkMode ? Colors.white : Colors.black,
                               ),
                             ),
                           ],
@@ -198,17 +325,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Text(
                               '500',
                               style: TextStyle(
-                                fontSize: 17,
-                                color: Colors.white,
+                                fontSize: 18,
+                                color: isDarkMode ? Colors.white : Colors.black,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             Text(
                               'Likes',
                               style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.white,
-
+                                fontSize: 12,
+                                color: isDarkMode ? Colors.white : Colors.black,
                               ),
                             ),
                           ],
@@ -227,26 +353,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 builder: (context) => EditProfileScreen(
                                   username: username,
                                   description: description,
+                                  socialLink: socialLink,
                                   onSave: _updateProfile,
                                 ),
                               ),
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            foregroundColor: Colors.black, backgroundColor: Colors.white // Texto blanco
+                            foregroundColor: Colors.white,
+                            backgroundColor: Colors.cyan,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                  12), // Borde más redondeado
+                            ),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 10),
                           ),
-                          child: Text('Editar Perfil'),
+                          child: Text(
+                            'Editar Perfil',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                         SizedBox(width: 16),
                         ElevatedButton(
                           onPressed: () {
-                            // Acción para Compartir
+                            final String shareText =
+                                'Mira mi perfil en LikeChat!';
+                            final String shareLink =
+                                'https://www.likechat.com/yordigonzales';
+
+                            // Usar el paquete share_plus para compartir
+                            Share.share('$shareText\n$shareLink');
                           },
                           style: ElevatedButton.styleFrom(
-                            foregroundColor: Colors.black, backgroundColor: Colors.white, // Texto blanco
+                            foregroundColor: Colors.white,
+                            backgroundColor: Colors.cyan,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 10),
                           ),
-                          child: Text('Compartir'),
-                        ),
+                          child: Text(
+                            'Compartir',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        )
                       ],
                     ),
                     SizedBox(height: 12),
@@ -257,10 +415,63 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         description,
                         style: TextStyle(
                           fontSize: 16,
-                          color: Colors.white, // Cambiado a blanco
+                          color: isDarkMode ? Colors.white : Colors.black,
                         ),
                       ),
                     ),
+                    SizedBox(height: 1),
+                    GestureDetector(
+                      onTap: () {
+                        if (socialLink.isNotEmpty &&
+                            Uri.tryParse(socialLink)?.hasAbsolutePath == true) {
+                          _openLink(socialLink);
+                        } else {
+                          // Manejar la URL inválida aquí, por ejemplo, mostrando un Snackbar
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('URL no válida: $socialLink'),
+                            ),
+                          );
+                        }
+                      },
+                      child: socialLink.isNotEmpty
+                          ? Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.all(12),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    _getSocialIcon(socialLink),
+                                    color: _getSocialIconColor(
+                                        socialLink), // Llama al método para obtener el color
+                                  ),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        _openLink(socialLink);
+                                      },
+                                      child: Text(
+                                        socialLink,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: isDarkMode
+                                              ? Colors.white
+                                              : Colors.black,
+                                          decoration: TextDecoration.underline,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        // Muestra puntos suspensivos si el texto es muy largo
+                                        maxLines:
+                                            1, // Asegura que el texto no se divida en varias líneas
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : SizedBox.shrink(),
+                    )
                   ],
                 ),
               ),
@@ -275,32 +486,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildButtonsSection() {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 7.0),
       decoration: BoxDecoration(
-        color: Colors.black,
+        color: isDarkMode ? Colors.black : Colors.white,
+        // Ajustar el color del contenedor según el modo
         borderRadius: BorderRadius.circular(10.0),
       ),
       child: Column(
         children: [
           Container(
-            height: 0.3,
-            color: Colors.grey[800],
+            height: 0.2,
+            color: isDarkMode
+                ? Colors.grey[800]
+                : Colors.grey[400], // Color de la línea según el modo
           ),
-          SizedBox(height: 4.0), // Espacio
+          SizedBox(height: 4.0),
+          // Espacio
 
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               Expanded(
                 child: Column(
-
                   children: [
                     _buildIconButton(
                       Icons.image,
                       'Galería',
-                          () {
+                      () {
                         setState(() {
                           _showGallery = true;
                           _showVideo = false;
@@ -308,12 +525,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         });
                       },
                       _showGallery,
+                      isDarkMode: isDarkMode,
                     ),
                     if (_showGallery)
                       Container(
                         height: 2.0,
                         width: 80.0,
-                        color: Colors.white,
+                        color: isDarkMode
+                            ? Colors.cyan
+                            : Colors.black, // Línea de selección según el modo
                       ),
                   ],
                 ),
@@ -324,7 +544,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildIconButton(
                       Icons.video_library,
                       'Snippets',
-                          () {
+                      () {
                         setState(() {
                           _showGallery = false;
                           _showVideo = true;
@@ -332,12 +552,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         });
                       },
                       _showVideo,
+                      isDarkMode: isDarkMode,
                     ),
                     if (_showVideo)
                       Container(
                         height: 2.0,
                         width: 80.0,
-                        color: Colors.white,
+                        color: isDarkMode
+                            ? Colors.cyan
+                            : Colors.black, // Línea de selección según el modo
                       ),
                   ],
                 ),
@@ -348,7 +571,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildIconButton(
                       Icons.history_outlined,
                       'Historias',
-                          () {
+                      () {
                         setState(() {
                           _showGallery = false;
                           _showVideo = false;
@@ -356,22 +579,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         });
                       },
                       _showStories,
+                      isDarkMode: isDarkMode,
                     ),
                     if (_showStories)
                       Container(
                         height: 2.0, // Ajusta el grosor de la línea
                         width: 80.0,
-                        color: Colors.white,
+                        color: isDarkMode
+                            ? Colors.cyan
+                            : Colors.black, // Línea de selección según el modo
                       ),
                   ],
                 ),
               ),
             ],
           ),
-          SizedBox(height: 8.0), // Espacio entre la línea de los botones y el borde inferior
+          SizedBox(height: 8.0),
+          // Espacio entre la línea de los botones y el borde inferior
           Container(
-            height: 0.4,
-            color: Colors.grey[800],
+            height: 0.1,
+            color: isDarkMode
+                ? Colors.grey[400]
+                : Colors.grey[400], // Color de la línea según el modo
           ),
         ],
       ),
@@ -379,22 +608,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildIconButton(
-      IconData icon, String label, VoidCallback onPressed, bool isSelected) {
+      IconData icon, String label, VoidCallback onPressed, bool isSelected,
+      {required bool isDarkMode}) {
     return GestureDetector(
       onTap: onPressed,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: EdgeInsets.all(12.0), // Espacio interior alrededor del icono
+            padding: EdgeInsets.all(12.0),
+            // Espacio interior alrededor del icono
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: isSelected ? Colors.cyan.withOpacity(0.3) : Colors.transparent,
+              color: isSelected
+                  ? Colors.cyan.withOpacity(0.3)
+                  : Colors.transparent,
             ),
             child: Icon(
               icon,
-              size: 26, // Tamaño del icono
-              color: isSelected ? Colors.cyan : Colors.white,
+              size: 26,
+              color: isSelected
+                  ? (isDarkMode ? Colors.cyan : Colors.cyan)
+                  : (isDarkMode
+                      ? Colors.white
+                      : Colors.black), // Ajustar color del ícono
             ),
           ),
           SizedBox(height: 2),
@@ -402,7 +639,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             label,
             style: TextStyle(
               fontSize: 14,
-              color: isSelected ? Colors.cyan : Colors.white,
+              color: isSelected
+                  ? Colors.cyan
+                  : (isDarkMode
+                      ? Colors.white
+                      : Colors.black), // Ajustar color del texto
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -429,15 +670,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            SizedBox(height: 30.0),
             Icon(
               Icons.photo,
-              size: 100,
+              size: 70,
               color: Colors.grey,
             ),
-            SizedBox(height: 16),
+            SizedBox(height: 10),
             Text(
               'No hay fotos disponibles',
-              style: TextStyle(fontSize: 18, color: Colors.white),
+              style: TextStyle(fontSize: 14, color: Colors.grey[500], ),
             ),
           ],
         ),
@@ -449,8 +691,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       physics: NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
-        mainAxisSpacing: 2.0, // Espacio vertical entre los elementos
-        crossAxisSpacing: 2.0, // Espacio horizontal entre los elementos
+        mainAxisSpacing: 0.5, // Espacio vertical entre los elementos
+        crossAxisSpacing: 0.5, // Espacio horizontal entre los elementos
       ),
       itemCount: images.length,
       itemBuilder: (context, index) {
@@ -469,7 +711,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(2.0),
-              border: Border.all(color: Colors.white, width: 1.0), // Borde blanco delgado
+              border: Border.all(color: Colors.white, width: 1.0),
+              // Borde blanco delgado
               image: DecorationImage(
                 image: AssetImage(images[index]),
                 fit: BoxFit.cover,
@@ -477,9 +720,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
         );
-
       },
-
     );
   }
 
@@ -489,15 +730,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            SizedBox(height: 30.0),
             Icon(
               Icons.videocam_off_rounded,
-              size: 100,
-              color: Colors.white,
+              size: 70,
+              color: Colors.black,
             ),
-            SizedBox(height: 16),
+            SizedBox(height: 10),
             Text(
               'No hay Snippets disponibles',
-              style: TextStyle(fontSize: 18, color: Colors.white),
+              style: TextStyle(fontSize: 14, color: Colors.grey[500],),
             ),
           ],
         ),
@@ -544,70 +786,75 @@ class _ProfileScreenState extends State<ProfileScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => SnippetsDetailScreen(imageUrls: [], initialIndex: 1,),
+        builder: (context) => SnippetsDetailScreen(
+          imageUrls: [],
+          initialIndex: 1,
+        ),
       ),
     );
   }
 
   Widget _buildStoriesContent() {
     return Container(
-      color: Colors.black, // Establece el fondo negro
       child: history.isEmpty
           ? Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.timer_off_outlined,
-              size: 100,
-              color: Colors.grey,
-            ),
-            SizedBox(height: 16),
-            Text(
-              'No hay Historias disponibles',
-              style: TextStyle(fontSize: 18, color: Colors.white),
-            ),
-          ],
-        ),
-      )
-          : GridView.builder(
-        shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          mainAxisSpacing: 1.0, // Espacio vertical entre los elementos
-          crossAxisSpacing: 1.0, // Espacio horizontal entre los elementos
-        ),
-        itemCount: history.length,
-        itemBuilder: (context, index) {
-          return GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ImageDetailScreen(
-                    imageUrls: history,
-                    initialIndex: index,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(height: 30.0),
+                  Icon(
+                    Icons.timer_off_outlined,
+                    size: 70,
+                    color: Colors.grey,
                   ),
-                ),
-              );
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(5.0),
-                border: Border.all(color: Colors.white, width: 1.0),
-                image: DecorationImage(
-                  image: AssetImage(history[index]),
-                  fit: BoxFit.cover,
-                ),
+                  SizedBox(height: 10),
+                  Text(
+                    'No hay Historias disponibles',
+                    style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.grey[500],
+                        fontWeight: FontWeight.bold),
+                  ),
+                ],
               ),
+            )
+          : GridView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                mainAxisSpacing: 1.0, // Espacio vertical entre los elementos
+                crossAxisSpacing: 1.0, // Espacio horizontal entre los elementos
+              ),
+              itemCount: history.length,
+              itemBuilder: (context, index) {
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ImageDetailScreen(
+                          imageUrls: history,
+                          initialIndex: index,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(5.0),
+                      border: Border.all(color: Colors.white, width: 1.0),
+                      image: DecorationImage(
+                        image: AssetImage(history[index]),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
-          );
-        },
-      ),
     );
   }
-
 
   Future<void> openImagePicker(BuildContext context, ImageSource source) async {
     final ImagePicker _picker = ImagePicker();
@@ -630,12 +877,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-
   void updateProfileImage(String newImagePath) {
     setState(() {
       _tempProfileImage = newImagePath;
     });
   }
 }
-
-

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../app/estadoDark-White/DarkModeProvider.dart';
+import '../app/estadoDark-White/Fuentes/FontSizeProvider.dart';
 import '../app/home/chats/ChatsScreen.dart';
 import '../app/home/chats/storys/LikeChatScreen.dart';
 import '../app/home/friends/FriendsScreen.dart';
 import '../app/home/notificaction/NotificationsScreen.dart';
 import '../app/home/perfil/ProfileScreen.dart';
 import '../app/home/shortVideos/ShortVideosScreen.dart';
-
-
-
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -34,6 +34,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final fontSizeProvider = Provider.of<FontSizeProvider>(context);
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+    final iconColor = darkModeProvider.iconColor;
+    final backgroundColor = darkModeProvider.backgroundColor;
+
     return Scaffold(
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -47,41 +54,42 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: Color(0xFF464545), width: 1.0)), // Borde gris en la parte superior
+          border: Border(top: BorderSide(color: Colors.grey, width: 0.1)), // Borde gris en la parte superior
         ),
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
           items: <BottomNavigationBarItem>[
             BottomNavigationBarItem(
-              icon: Icon(Icons.chat, color: _selectedIndex == 0 ? Colors.cyan : Colors.grey), // Ícono azul turquesa cuando seleccionado, gris cuando no
+              icon: Icon(Icons.chat, color: _selectedIndex == 0 ? Colors.cyan : Colors.grey),
               label: 'Chats',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.group, color: _selectedIndex == 1 ? Colors.cyan : Colors.grey), // Ícono azul turquesa cuando seleccionado, gris cuando no
+              icon: Icon(Icons.group, color: _selectedIndex == 1 ? Colors.cyan : Colors.grey),
               label: 'Amigos',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.video_collection_rounded, color: _selectedIndex == 2 ? Colors.cyan : Colors.grey), // Ícono azul turquesa cuando seleccionado, gris cuando no
+              icon: Icon(Icons.video_collection_rounded, color: _selectedIndex == 2 ? Colors.cyan : Colors.grey),
               label: 'Snippets',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.notifications, color: _selectedIndex == 3 ? Colors.cyan : Colors.grey), // Ícono azul turquesa cuando seleccionado, gris cuando no
-              label: 'Notification',
+              icon: Icon(Icons.notifications, color: _selectedIndex == 3 ? Colors.cyan : Colors.grey),
+              label: 'Avisos',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person, color: _selectedIndex == 4 ? Colors.cyan : Colors.grey), // Ícono azul turquesa cuando seleccionado, gris cuando no
+              icon: Icon(Icons.person, color: _selectedIndex == 4 ? Colors.cyan : Colors.grey),
               label: 'Perfil',
             ),
           ],
           currentIndex: _selectedIndex,
-          selectedItemColor: Colors.cyan, // Color azul turquesa para ícono seleccionado (relleno y texto)
-          unselectedItemColor: Colors.grey, // Color de ícono no seleccionado (gris sin relleno)
-          backgroundColor: Colors.black, // Color de fondo del BottomNavigationBar (blanco)
-          iconSize: 30.0,
+          selectedItemColor: Colors.cyan,
+          unselectedItemColor: Colors.grey,
+          backgroundColor: backgroundColor,
+          iconSize: 28.0,
           onTap: _onItemTapped,
+          selectedLabelStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.bold), // Usa el tamaño de fuente global
+                 //fontSize: fontSizeProvider.fontSize,
         ),
       ),
     );
   }
-
 }

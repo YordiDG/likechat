@@ -251,14 +251,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Text(
                       'Iniciar sesión',
                       style: TextStyle(
-                        fontSize: 25,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFFD9F103),
                       ),
                     ),
                   ),
                 ),
-                SizedBox(height: 10),
+                SizedBox(height: 1),
                 TextButton(
                   onPressed: () {
                     Navigator.push(
@@ -271,12 +271,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     '¿Olvidaste tu contraseña?',
                     style: TextStyle(
                       color: Color(0xFF99A804),
-                      fontSize: 17,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                SizedBox(height: 25),
+                SizedBox(height: 15),
                 ElevatedButton(
                   onPressed: _loginWithGoogle,
                   style: ElevatedButton.styleFrom(

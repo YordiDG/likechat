@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../estadoDark-White/DarkModeProvider.dart';
 import 'OpenCamara/preview/PreviewScreen.dart';
+import 'package:provider/provider.dart';
 
 class PostClass extends StatefulWidget {
   @override
@@ -34,34 +36,39 @@ class _PostClassState extends State<PostClass> {
 
   @override
   Widget build(BuildContext context) {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+    final iconColor = darkModeProvider.iconColor;
+    final backgroundColor = darkModeProvider.backgroundColor;
+
     return Scaffold(
-      backgroundColor: Colors.black,
       body: Stack(
         children: [
           Column(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 10.0),
+                padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
                 child: Container(
-                  color: Colors.grey[850],
+                  color: Colors.transparent,
                   height: 38.0,
                   child: TextField(
                     controller: _searchController,
                     cursorColor: Colors.cyan,
                     decoration: InputDecoration(
                       hintText: 'Buscar amigo',
-                      hintStyle: TextStyle(color: Colors.grey[500], fontSize: 16.0),
+                      hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14.0),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10.0),
-                        borderSide: BorderSide(color: Colors.white, width: 0.6),
+                        borderSide: BorderSide(color: Colors.white, width: 0.8),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10.0),
-                        borderSide: BorderSide(color: Colors.grey, width: 0.6),
+                        borderSide: BorderSide(color: Colors.grey, width: 0.8),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10.0),
-                        borderSide: BorderSide(color: Colors.white, width: 0.6),
+                        borderSide: BorderSide(color: Colors.grey, width: 0.8),
                       ),
                       filled: true,
                       fillColor: Colors.transparent,
@@ -122,19 +129,12 @@ class _PostClassState extends State<PostClass> {
             bottom: 38.0,
             right: 18.0,
             child: Container(
-              width: 60.0,
-              height: 60.0,
+              width: 55.0,
+              height: 55.0,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.white.withOpacity(0.5),
-                    spreadRadius: 2,
-                    blurRadius: 5,
-                    offset: Offset(0, 2),
-                  ),
-                ],
+                color: Colors.cyan,
+
               ),
               child: FloatingActionButton(
                 onPressed: () {
@@ -144,7 +144,7 @@ class _PostClassState extends State<PostClass> {
                 elevation: 0,
                 child: Icon(
                   Icons.camera_alt,
-                  color: Colors.cyan,
+                  color: Colors.white,
                   size: 35.0,
                 ),
               ),

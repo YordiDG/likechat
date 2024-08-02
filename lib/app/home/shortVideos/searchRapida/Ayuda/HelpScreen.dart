@@ -24,7 +24,7 @@ class _HelpScreenState extends State<HelpScreen> {
           'Preguntas frecuentes',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
         ),
-        backgroundColor: Colors.deepPurple[600],
+        backgroundColor: Colors.black,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
@@ -102,7 +102,7 @@ class _HelpScreenState extends State<HelpScreen> {
               }
                   : null,
               style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all<Color>(Colors.deepPurple),
+                backgroundColor: MaterialStateProperty.all<Color>(Colors.cyan),
                 textStyle: MaterialStateProperty.all<TextStyle>(TextStyle(color: Colors.white)),
                 padding: MaterialStateProperty.all<EdgeInsetsGeometry>(EdgeInsets.all(16)),
                 shape: MaterialStateProperty.all<RoundedRectangleBorder>(
@@ -161,7 +161,7 @@ class _HelpScreenState extends State<HelpScreen> {
                       Navigator.of(context).pop(); // Cerrar el diálogo
                     },
                     style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all<Color>(Colors.deepPurple),
+                      backgroundColor: MaterialStateProperty.all<Color>(Colors.cyan),
                       textStyle: MaterialStateProperty.all<TextStyle>(TextStyle(color: Colors.white)),
                       padding: MaterialStateProperty.all<EdgeInsetsGeometry>(EdgeInsets.all(12)),
                       shape: MaterialStateProperty.all<RoundedRectangleBorder>(

@@ -10,12 +10,13 @@ import 'package:image_picker/image_picker.dart';
 import 'package:image/image.dart' as img;
 import 'package:volume_controller/volume_controller.dart';
 import '../../camera/UserAvatar.dart';
+import '../../estadoDark-White/DarkModeProvider.dart';
 import 'LikeButton.dart';
 import 'Posts/PostClass.dart';
 import 'PreviewVideo/VideoPreviewScreen.dart';
-import 'package:animations/animations.dart';
 import 'package:vibration/vibration.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
 
 class ShortVideosScreen extends StatefulWidget {
   @override
@@ -101,32 +102,39 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+    final iconColor = darkModeProvider.iconColor;
+    final backgroundColor = darkModeProvider.backgroundColor;
+
     return Scaffold(
-      backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: backgroundColor,
         elevation: 0,
+        toolbarHeight: 80.0, // Ajusta la altura según sea necesario
         leading: _selectedIndex == 0
             ? Container(
-          width: 70, // Ajusta el ancho según sea necesario
+          width: 70,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SizedBox(height: 8.0),
               Flexible(
                 child: IconButton(
-                  icon: Icon(Icons.live_tv, color: Colors.white, size: 30), // Tamaño del ícono ajustado
+                  icon: Icon(Icons.live_tv, color: isDarkMode ? Colors.white : Colors.cyan, size: 30),
                   onPressed: () {},
                 ),
               ),
-              SizedBox(height: 22.0),
+              SizedBox(height: 12.0),
               Flexible(
                 child: Text(
                   'LIVE',
                   style: TextStyle(
                     color: Colors.red,
                     fontWeight: FontWeight.bold,
-                    fontSize: 11,
+                    fontSize: 12,
                   ),
                 ),
               ),
@@ -148,7 +156,9 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
                   child: Text(
                     'Snippets',
                     style: TextStyle(
-                      color: _selectedIndex == 0 ? Colors.white : Colors.grey,
+                      color: _selectedIndex == 0
+                          ? (isDarkMode ? Colors.white : Colors.black)
+                          : Colors.grey,
                       fontSize: 18,
                       fontWeight: _selectedIndex == 0 ? FontWeight.bold : FontWeight.normal,
                     ),
@@ -157,7 +167,7 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
                 Container(
                   height: 3.0,
                   width: 50,
-                  color: _selectedIndex == 0 ? Colors.white : Colors.transparent,
+                  color: _selectedIndex == 0 ? Colors.cyan : Colors.transparent,
                 ),
               ],
             ),
@@ -173,7 +183,9 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
                   child: Text(
                     'Posts',
                     style: TextStyle(
-                      color: _selectedIndex == 1 ? Colors.white : Colors.grey,
+                      color: _selectedIndex == 1
+                          ? (isDarkMode ? Colors.white : Colors.black)
+                          : Colors.grey,
                       fontSize: 18,
                       fontWeight: _selectedIndex == 1 ? FontWeight.bold : FontWeight.normal,
                     ),
@@ -182,7 +194,7 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
                 Container(
                   height: 3.0,
                   width: 40,
-                  color: _selectedIndex == 1 ? Colors.white : Colors.transparent,
+                  color: _selectedIndex == 1 ? Colors.cyan : Colors.transparent,
                 ),
               ],
             ),
@@ -190,7 +202,7 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.search, color: Colors.white, size: 30),
+            icon: Icon(Icons.search, color: iconColor, size: 30),
             onPressed: () {
               Navigator.push(
                 context,
@@ -200,7 +212,6 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
           ),
         ],
       ),
-
       body: PageView(
         controller: _pageController,
         onPageChanged: (index) {
@@ -289,21 +300,21 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.3),
-                spreadRadius: 2,
-                blurRadius: 9,
-                offset: Offset(0, 2),
+                spreadRadius: 1,
+                blurRadius: 5,
+                offset: Offset(0,1),
               ),
             ],
           ),
           child: FloatingActionButton(
-            backgroundColor: Colors.white,
+            backgroundColor: Colors.cyan,
             onPressed: () {
               _showVideoOptions(context);
             },
             child: Icon(
               Icons.video_camera_back,
               size: 33,
-              color: Colors.cyan,
+              color: Colors.white,
             ),
           ),
         ),

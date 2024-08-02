@@ -107,7 +107,7 @@ class ImageDetailScreen extends StatelessWidget {
                         ),
                       ),
                       IconButton(
-                        icon: Icon(Icons.send, color: Colors.black),
+                        icon: Icon(Icons.send, color: Colors.cyan),
                         onPressed: () {
                           // Lógica para enviar un nuevo comentario
                         },
@@ -199,7 +199,7 @@ class ImageDetailScreen extends StatelessWidget {
             pinned: true,
             floating: true,
             snap: true,
-            backgroundColor: Colors.deepPurpleAccent,
+            backgroundColor: Colors.black,
             elevation: 0,
           ),
           SliverToBoxAdapter(
@@ -218,10 +218,11 @@ class ImageDetailScreen extends StatelessWidget {
                 itemCount: imageUrls.length,
                 itemBuilder: (context, index) {
                   return Card(
-                    margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    color: Colors.white,
+                    margin: EdgeInsets.symmetric(vertical: 1, horizontal: 2),
                     elevation: 4,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
+                      borderRadius: BorderRadius.circular(1),
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
@@ -248,9 +249,10 @@ class ImageDetailScreen extends StatelessWidget {
                                           color: Colors.black,
                                         ),
                                       ),
-                                      SizedBox(width: 88), // Espacio ajustable según necesites
+                                      SizedBox(width: 110), // Espacio ajustable según necesites
                                       Container(
                                         child: PopupMenuButton<String>(
+                                          color: Colors.white,
                                           icon: Icon(Icons.more_vert, color: Colors.black),
                                           itemBuilder: (context) => [
                                             PopupMenuItem<String>(
@@ -318,7 +320,6 @@ class ImageDetailScreen extends StatelessWidget {
                                       ),
                                     ],
                                   ),
-                                  SizedBox(height: 4),
                                   Row(
                                     crossAxisAlignment: CrossAxisAlignment.center,
                                     children: [
@@ -350,7 +351,7 @@ class ImageDetailScreen extends StatelessWidget {
                               children: [
                                 GestureDetector(
                                   onTap: () => _showLikeOptions(context),
-                                  child: Icon(Icons.favorite_border),
+                                  child: Icon(Icons.favorite, color: Colors.red, size: 30,),
                                 ),
                                 SizedBox(width: 4),
                                 Text('100', style: TextStyle(color: Colors.black)),
@@ -359,19 +360,19 @@ class ImageDetailScreen extends StatelessWidget {
                                   onTap: () => _showComments(context),
                                   child: SvgPicture.asset(
                                     'lib/assets/mesage.svg',
-                                    height: 24,
-                                    width: 24,
+                                    height: 30,
+                                    width: 30,
                                     color: Colors.black,
                                   ),
                                 ),
                                 SizedBox(width: 4),
                                 Text('50', style: TextStyle(color: Colors.black)),
                                 SizedBox(width: 16),
-                                Icon(Icons.send),
+                                Icon(Icons.send, color: Colors.cyan,),
                                 SizedBox(width: 4),
                                 Text('20', style: TextStyle(color: Colors.black)),
                                 Spacer(),
-                                Icon(Icons.bookmark_border),
+                                Icon(Icons.bookmark_border, color: Colors.orange,),
                               ],
                             ),
                           ),
@@ -383,7 +384,7 @@ class ImageDetailScreen extends StatelessWidget {
                               style: TextStyle(fontSize: 14, color: Colors.black),
                             ),
                           ),
-                          SizedBox(height: 16),
+                          SizedBox(height: 10),
                         ],
                       ),
                     ),
@@ -402,7 +403,8 @@ class ImageDetailScreen extends StatelessWidget {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: Text('Editar Publicación'),
+          backgroundColor: Colors.white,
+          title: Text('Editar Publicación', style: TextStyle(fontWeight: FontWeight.bold),),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -423,7 +425,7 @@ class ImageDetailScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.of(dialogContext).pop();
               },
-              child: Text('Cancelar'),
+              child: Text('Cancelar', style: TextStyle(color: Colors.black),),
             ),
             ElevatedButton(
               onPressed: () {
@@ -433,7 +435,7 @@ class ImageDetailScreen extends StatelessWidget {
               },
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
-                backgroundColor: Colors.deepPurple,
+                backgroundColor: Colors.cyan,
               ),
               child: Text('Guardar'),
             ),
@@ -448,14 +450,15 @@ class ImageDetailScreen extends StatelessWidget {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: Text('Eliminar Publicación'),
+          backgroundColor: Colors.white,
+          title: Text('Eliminar Publicación', style: TextStyle(fontWeight: FontWeight.bold),),
           content: Text('¿Estás seguro de que deseas eliminar esta publicación?'),
           actions: <Widget>[
             TextButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop();
               },
-              child: Text('Cancelar'),
+              child: Text('Cancelar', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
             ),
             ElevatedButton(
               onPressed: () {
@@ -481,14 +484,15 @@ class ImageDetailScreen extends StatelessWidget {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: Text('Cambiar a Privado'),
+          backgroundColor: Colors.white,
+          title: Text('Cambiar a Privado', style: TextStyle(fontWeight: FontWeight.bold)),
           content: Text('¿Estás seguro de cambiar esta publicación a privada?'),
           actions: <Widget>[
             TextButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop();
               },
-              child: Text('Cancelar'),
+              child: Text('Cancelar', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold) ),
             ),
             ElevatedButton(
               onPressed: () {
@@ -498,9 +502,9 @@ class ImageDetailScreen extends StatelessWidget {
                 Navigator.of(dialogContext).pop();
               },
               style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white, backgroundColor: Colors.blue,
+                foregroundColor: Colors.white, backgroundColor: Colors.cyan,
               ),
-              child: Text('Cambiar'),
+              child: Text('Cambiar', style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold)),
             ),
           ],
         );
@@ -513,14 +517,15 @@ class ImageDetailScreen extends StatelessWidget {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: Text('Cambiar a Público'),
+          backgroundColor: Colors.white,
+          title: Text('Cambiar a Público', style: TextStyle(fontWeight: FontWeight.bold)),
           content: Text('¿Estás seguro de cambiar esta publicación a pública?'),
           actions: <Widget>[
             TextButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop();
               },
-              child: Text('Cancelar'),
+              child: Text('Cancelar', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
             ),
             ElevatedButton(
               onPressed: () {
@@ -530,9 +535,9 @@ class ImageDetailScreen extends StatelessWidget {
                 Navigator.of(dialogContext).pop();
               },
               style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white, backgroundColor: Colors.blue,
+                foregroundColor: Colors.white, backgroundColor: Colors.cyan,
               ),
-              child: Text('Cambiar'),
+              child: Text('Cambiar', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         );

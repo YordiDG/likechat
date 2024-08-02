@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-
+import 'package:provider/provider.dart';
+import '../../estadoDark-White/DarkModeProvider.dart';
 import 'list Amigos/FollowersScreen.dart';
 
 
@@ -68,15 +69,23 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+    final iconColor = darkModeProvider.iconColor;
+    final backgroundColor = darkModeProvider.backgroundColor;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Amigos', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.black,
+        backgroundColor: backgroundColor ,
+        title: Text('Amigos',
+            style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 10.0),
             child: IconButton(
-              icon: Icon(Icons.group_add, size: 27, color: Colors.white),
+              icon: Icon(Icons.group_add, size: 27, color: isDarkMode ? Colors.white : Colors.black,),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -88,7 +97,6 @@ class _FriendsScreenState extends State<FriendsScreen> {
         ],
       ),
       body: Container(
-        color: Colors.black, // Background color for the entire container
         child: Column(
           children: [
             Expanded(
@@ -106,9 +114,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
                               decoration: InputDecoration(
                                 hintText: 'Buscar',
                                 hintStyle: TextStyle(
-                                    color: Colors.white, fontSize: 15),
+                                    color: isDarkMode ? Colors.white : Colors.black, fontSize: 15),
                                 prefixIcon: Icon(Icons.search,
-                                    color: Colors.white, size: 21),
+                                    color: isDarkMode ? Colors.white : Colors.black, size: 21),
                                 suffixIcon: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
@@ -145,9 +153,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
                                 filled: true,
                                 fillColor: Colors.transparent,
                                 contentPadding: EdgeInsets.symmetric(
-                                    vertical: 5.0, horizontal: 10.0),
+                                    vertical: 4.0, horizontal: 10.0),
                               ),
-                              style: TextStyle(color: Colors.white),
+                              style: TextStyle(color: isDarkMode ? Colors.white : Colors.black,),
                             ),
                           ),
                         ],
@@ -170,7 +178,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                                 'Juan V.',
                                 style: TextStyle(
                                     fontSize: 18,
-                                    color: Colors.white,
+                                    color: isDarkMode ? Colors.white : Colors.black,
                                     fontWeight: FontWeight.bold),
                               ),
                             ],
@@ -190,7 +198,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                                     // Lógica para cancelar
                                   },
                                   child: Text('Cancelar',
-                                      style: TextStyle(fontSize: 12,  color: Colors.white)),
+                                      style: TextStyle(fontSize: 12,  color: Colors.white,)),
                                 ),
                               ),
                               SizedBox(width: 8),
@@ -221,7 +229,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                         style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white),
+                          color: isDarkMode ? Colors.white : Colors.black,),
                       ),
                     ),
                     GridView.builder(
@@ -239,7 +247,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                         return GridTile(
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Colors.grey[800],
+                              color: Colors.grey[600],
                               borderRadius: BorderRadius.circular(8),
                             ),
                             padding: EdgeInsets.all(8),

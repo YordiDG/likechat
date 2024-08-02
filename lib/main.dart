@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'LikePrincipal/LikeChatApp.dart';
 import 'app/estadoDark-White/DarkModeProvider.dart';
+import 'app/estadoDark-White/Fuentes/FontSizeProvider.dart';
 import 'app/registros/providers/AuthProvider.dart';
+
 
 void main() {
   runApp(
@@ -10,6 +12,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (context) => AuthProvider()),
         ChangeNotifierProvider(create: (context) => DarkModeProvider()),
+        ChangeNotifierProvider(create: (context) => FontSizeProvider()),
       ],
       child: LikeChatApp(),
     ),

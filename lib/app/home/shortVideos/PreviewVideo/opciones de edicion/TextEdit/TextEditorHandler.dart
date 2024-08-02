@@ -26,11 +26,7 @@ class TextEditorHandler {
             child: Stack(
               children: [
                 // Aquí colocamos el video u otro contenido en el fondo
-                Positioned.fill(
-                  child: Center(
-                    child: Text('Aquí va el video'),
-                  ),
-                ),
+
                 DraggableTextEditor(
                   fonts: fonts,
                   initialTextStyle: initialTextStyle,

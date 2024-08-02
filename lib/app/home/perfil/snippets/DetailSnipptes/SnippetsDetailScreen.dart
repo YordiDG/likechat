@@ -164,7 +164,7 @@ class SnippetsDetailScreen extends StatelessWidget {
       body: CustomScrollView(
         slivers: <Widget>[
           SliverAppBar(
-            title: Text('Publicaciones'),
+            title: Text('Publicaciones', style: TextStyle(fontWeight: FontWeight.bold),),
             leading: IconButton(
               icon: Icon(Icons.arrow_back),
               onPressed: () {

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../../estadoDark-White/DarkModeProvider.dart';
 
 class FollowersScreen extends StatefulWidget {
   @override
@@ -68,19 +71,25 @@ class _FollowersScreenState extends State<FollowersScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+    final iconColor = darkModeProvider.iconColor;
+    final backgroundColor = darkModeProvider.backgroundColor;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Seguidores', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.black,
+        title: Text('Seguidores', style: TextStyle(
+            color: isDarkMode ? Colors.white : Colors.black)),
+        backgroundColor: backgroundColor,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back, color: iconColor),
           onPressed: () {
             Navigator.pop(context); // Navegación de regreso
           },
         ),
       ),
       body: Container(
-        color: Colors.black,
         child: ListView.builder(
           itemCount: followers.length,
           itemBuilder: (context, index) {
@@ -102,7 +111,8 @@ class _FollowersScreenState extends State<FollowersScreen> {
                       children: [
                         Text(
                           follower['name']!,
-                          style: TextStyle(color: Colors.white, fontSize: 18),
+                          style: TextStyle(
+                              color: isDarkMode ? Colors.white : Colors.black, fontSize: 18),
                         ),
                         Text(
                           'Te sigue',
@@ -127,7 +137,7 @@ class _FollowersScreenState extends State<FollowersScreen> {
                           ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: isFollowing ? Colors.transparent : Colors.pink,
-                            padding: EdgeInsets.symmetric(vertical: 5),
+                            padding: EdgeInsets.symmetric(vertical: 5,),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(6),
                               side: isFollowing

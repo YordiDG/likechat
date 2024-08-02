@@ -63,6 +63,7 @@ dependencies:
   flutter_sound: ^9.6.0
   flutter_riverpod: ^2.5.1
   ffmpeg_kit_flutter: ^5.1.0-LTS
+  multiple_images_picker: ^1.0.1
   #geolocator: ^12.0.0
 
   #flutter_localizations:
@@ -107,6 +108,10 @@ flutter:
     - lib/assets/ultima.json
 
     - lib/assets/LikeChat.gif
+    - lib/assets/download.json
+    - lib/assets/download1.json
+    - lib/assets/downloadel.json
+    - lib/assets/descargavideo.json
 
 
   fonts:

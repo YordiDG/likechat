@@ -6,10 +6,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:lottie/lottie.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:provider/provider.dart';
 import 'dart:io';
 
 
+import '../../estadoDark-White/DarkModeProvider.dart';
 import 'call/CallScreen.dart';
 import 'call/VideoCall.dart';
 import 'contactatos/ContactSelectionScreen.dart';
@@ -17,10 +18,18 @@ import 'encuestas/EncuestaDialog.dart';
 import 'mesaage/MessageBubble.dart';
 
 class ChatsScreen extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
+
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+    final iconColor = darkModeProvider.iconColor;
+    final backgroundColor = darkModeProvider.backgroundColor;
+
     return Scaffold(
-      backgroundColor: Color(0xFF232323),
+      //backgroundColor: Colors.white,
       body: ListView.builder(
         padding: EdgeInsets.zero, // Elimina el padding superior
         itemCount: 10, // Ejemplo de cantidad de chats
@@ -34,9 +43,11 @@ class ChatsScreen extends StatelessWidget {
               ),
             ),
             title:
-                Text('Contacto $index', style: TextStyle(color: Colors.white)),
+                Text('Contacto $index', style: TextStyle(
+                    color: isDarkMode ? Colors.white : Colors.black, fontSize: 17, fontWeight: FontWeight.bold)),
             subtitle: Text('Último mensaje',
-                style: TextStyle(color: Colors.grey[500])),
+                style: TextStyle(
+                    color: Colors.grey[500], fontSize: 12)),
             onTap: () {
               Navigator.push(
                 context,
@@ -72,7 +83,7 @@ class ChatsScreen extends StatelessWidget {
             );
           }
         },
-        child: Icon(Icons.message, color: Colors.white),
+        child: Icon(Icons.message, size: 30, color: Colors.white),
         backgroundColor: Colors.cyan, // Verde WhatsApp
       ),
       floatingActionButtonLocation:
@@ -115,7 +126,8 @@ class SelectContactsScreen extends StatelessWidget {
           },
         ),
       ),
-      backgroundColor: Color(0xFF232323),
+      //backgroundColor: Color(0xFF232323),
+      backgroundColor: Colors.white,
       body: ListView.builder(
         itemCount: appContacts.length,
         itemBuilder: (context, index) {
@@ -135,13 +147,14 @@ class SelectContactsScreen extends StatelessWidget {
                   margin: EdgeInsets.symmetric(horizontal: 9.0),
                   padding: EdgeInsets.all(12.0),
                   decoration: BoxDecoration(
-                    color: Color(0xFF1F1F1F),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(20.0),
                   ),
                   child: Row(
                     children: [
                       CircleAvatar(
-                        backgroundColor: Color(0xFF25D366), // Verde WhatsApp
+                        //backgroundColor: Color(0xFF25D366), // Verde WhatsApp
+                        backgroundColor: Colors.cyan,
                         child: Text(
                           'A', // Iniciales o icono de amigo
                           style: TextStyle(color: Colors.white),
@@ -151,7 +164,7 @@ class SelectContactsScreen extends StatelessWidget {
                       Expanded(
                         child: Text(
                           appContacts[index],
-                          style: TextStyle(color: Colors.white, fontSize: 18.0),
+                          style: TextStyle(color: Colors.black, fontSize: 18.0),
                         ),
                       ),
                       Container(
@@ -179,7 +192,7 @@ class SelectContactsScreen extends StatelessWidget {
                 ),
               ),
               if (index < appContacts.length - 1)
-                Divider(color: Colors.grey[850], height: 1.0),
+                Divider(color: Colors.grey[300], height: 0.1),
             ],
           );
         },
@@ -273,16 +286,17 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFF1F1F1F),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         title: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(2.0),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.blue, width: 2.0),
-              ),
               child: CircleAvatar(
-                radius: 16,
+                radius: 22,
                 backgroundColor: Colors.cyan,
                 child: Text(
                   widget.chatTitle[0],
@@ -306,15 +320,9 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ],
         ),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
         actions: [
           IconButton(
-            icon: Icon(Icons.videocam, color: Colors.white),
+            icon: Icon(Icons.videocam, color: Colors.white, size: 28,),
             onPressed: () {
               Navigator.push(
                 context,
@@ -344,7 +352,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       ),
       body: Container(
-        color: Colors.black,
+      color: Color(0xFF2C2A2A),
         child: Stack(
           children: [
             Column(
@@ -406,17 +414,17 @@ class _ChatScreenState extends State<ChatScreen> {
                                         FocusScope.of(context).requestFocus(_focusNode);
                                       },
                                       child: Container(
-                                        color: Colors.black,
+                                        color: Color(0xFF2C2A2A),
                                         child: Theme(
-                                          data: ThemeData(hintColor: Colors.grey[100]),
+                                          data: ThemeData(hintColor: Colors.grey[700]),
                                           child: TextField(
                                             focusNode: _focusNode,
                                             controller: _textController,
                                             maxLines: null,
-                                            style: TextStyle(color: Colors.white),
+                                            style: TextStyle(color: Colors.black),
                                             decoration: InputDecoration(
                                               hintText: 'Mensaje...',
-                                              hintStyle: TextStyle(color: Colors.grey[100]),
+                                              hintStyle: TextStyle(color: Colors.grey[600]),
                                               border: InputBorder.none,
                                               contentPadding: EdgeInsets.symmetric(vertical: 10),
                                             ),
@@ -442,6 +450,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                       }
                                     },
                                   ),
+
                                 ],
                               ),
                             ),
@@ -484,46 +493,98 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _showAttachmentOptions() {
+    // Verifica si el teclado está activo
+    bool isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom != 0;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.grey[850],
+      isScrollControlled: isKeyboardOpen, // Permite que el modal ajuste su tamaño
       builder: (context) {
         return Container(
           padding: EdgeInsets.all(16),
-          height: 150,
-          child: GridView.count(
-            crossAxisCount: 3,
-            children: [
-              _buildAttachmentOption(Icons.camera_alt, 'Cámara', Colors.green, () {
-                _openCamera();
-                Navigator.of(context).pop();
-              }),
-              _buildAttachmentOption(Icons.image, 'Imágenes', Colors.blue, () {
-                _openGallery();
-                Navigator.of(context).pop();
-              }),
-              _buildAttachmentOption(Icons.videocam, 'Videos', Colors.orange, () {
-                _openVideoPicker();
-                Navigator.of(context).pop();
-              }),
-              _buildAttachmentOption(Icons.insert_drive_file, 'Archivos', Colors.purple, () {
-                _openFilePicker();
-                Navigator.of(context).pop();
-              }),
-              _buildAttachmentOption(Icons.contacts, 'Contactos', Colors.red, () {
-                _openContacts();
-                Navigator.of(context).pop();
-              }),
-              _buildAttachmentOption(Icons.poll, 'Encuestas', Colors.brown, () {
-                _openEncuestas();
-                // Eliminar Navigator.of(context).pop() aquí
-              }),
-            ],
+          margin: isKeyboardOpen ? EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom) : null,
+          height: 120, // Ajusta la altura según sea necesario
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildAttachmentOption(Icons.camera_alt, 'Cámara', Colors.green, () {
+                  _openCamera();
+                  Navigator.of(context).pop();
+                }),
+                _buildSpacer(), // Añade espacio entre los ítems
+                _buildAttachmentOption(Icons.image, 'Imágenes', Colors.blue, () {
+                  _openGallery();
+                  Navigator.of(context).pop();
+                }),
+                _buildSpacer(), // Añade espacio entre los ítems
+                _buildAttachmentOption(Icons.videocam, 'Videos', Colors.orange, () {
+                  _openVideoPicker();
+                  Navigator.of(context).pop();
+                }),
+                _buildSpacer(), // Añade espacio entre los ítems
+                _buildAttachmentOption(Icons.insert_drive_file, 'Archivos', Colors.purple, () {
+                  _openFilePicker();
+                  Navigator.of(context).pop();
+                }),
+                _buildSpacer(), // Añade espacio entre los ítems
+                _buildAttachmentOption(Icons.contacts, 'Contactos', Colors.red, () {
+                  _openContacts();
+                  Navigator.of(context).pop();
+                }),
+                _buildSpacer(), // Añade espacio entre los ítems
+                _buildAttachmentOption(Icons.poll, 'Encuestas', Colors.brown, () {
+                  _openEncuestas();
+                  Navigator.of(context).pop();
+                }),
+                _buildSpacer(), // Añade espacio entre los ítems
+                _buildAttachmentOption(Icons.emoji_emotions, 'Stickers', Colors.yellow, () {
+                  _openStickers();
+                  Navigator.of(context).pop();
+                }),
+              ],
+            ),
           ),
         );
       },
     );
   }
+
+  Widget _buildAttachmentOption(IconData icon, String label, Color color, VoidCallback onPressed) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+          padding: EdgeInsets.all(12),
+          child: Icon(icon, color: Colors.white, size: 30),
+        ),
+        SizedBox(height: 8),
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSpacer() {
+    return SizedBox(width: 24); // Ajusta este valor para más o menos espacio
+  }
+
+  void _openStickers() {
+    // Implementa la lógica para abrir la sección de stickers
+  }
+
 
   void _openEncuestas() {
     print("Abriendo diálogo de Encuestas");
@@ -537,32 +598,6 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Widget _buildAttachmentOption(IconData icon, String label, Color color, VoidCallback onPressed) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
-            padding: EdgeInsets.all(8),
-            child: Icon(icon, color: Colors.white, size: 28),
-          ),
-          SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold, // Texto en negrita
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _openGallery() async {
     final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);

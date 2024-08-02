@@ -1,10 +1,13 @@
 import 'dart:io';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image/image.dart' as img;
+import 'dart:ui' as ui;
 
+import '../../../shortVideos/PreviewVideo/opciones de edicion/TextEdit/TextEditorHandler.dart';
 import '../filterPhoto/ImageFilterService.dart';
-
 
 class ImagePreviewScreen extends StatefulWidget {
   final String imagePath;
@@ -21,52 +24,122 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
   int _selectedIndex = -1;
   final ImagePicker _picker = ImagePicker();
   final PreviewPage _filterService = PreviewPage(imagePath: '',);
+  late img.Image _image;
+  bool _isImageLargeEnough = false;
+
+  String _displayText = '';
+  TextStyle _textStyle = TextStyle(
+      fontSize: 30, color: Colors.white, fontFamily: 'OpenSans'
+  );
+  TextAlign _textAlign = TextAlign.center;
+  Offset _textPosition = Offset(0, 0); // Posición inicial del texto
+
+  @override
+  void initState() {
+    super.initState();
+    _loadImage();
+  }
+
+  Future<void> _loadImage() async {
+    try {
+      final file = File(widget.imagePath);
+      final image = img.decodeImage(file.readAsBytesSync());
+      if (image != null) {
+        const minWidth = 1280;
+        const minHeight = 720;
+
+        setState(() {
+          _image = image;
+          _isImageLargeEnough = image.width >= minWidth && image.height >= minHeight;
+        });
+      }
+    } catch (e) {
+      print('Error loading image: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Text('Previsualización',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.delete, color: Colors.red,),
-            onPressed: _handleDeleteImage
-
-          ),
-          IconButton(
-            icon: Icon(Icons.check, color: Colors.white),
-            onPressed: () {
-              Navigator.pop(context, _editedImage?.path ?? widget.imagePath);
-            },
-          ),
-        ],
-      ),
-      body: Column(
+      body: Stack(
         children: <Widget>[
-          Expanded(
-            child: Center(
-              child: _editedImage == null
-                  ? Image.file(
-                File(widget.imagePath),
-                fit: BoxFit.contain,
-              )
-                  : PreviewPage(imagePath: _editedImage!.path),
+          Positioned.fill(
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: Image.file(
+                    File(widget.imagePath),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                if (_displayText.isNotEmpty)
+                  Positioned(
+                    left: _textPosition.dx,
+                    top: _textPosition.dy,
+                    child: Draggable(
+                      feedback: _buildTextContainer(),
+                      child: _buildTextContainer(),
+                      onDragEnd: (details) {
+                        setState(() {
+                          _textPosition = details.offset;
+                        });
+                      },
+                    ),
+                  ),
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: Container(
+                    height: MediaQuery.of(context).size.height * 0.2,
+                    child: BackdropFilter(
+                      filter: ui.ImageFilter.blur(
+                        sigmaX: 5.0,
+                        sigmaY: 5.0,
+                      ),
+                      child: Container(
+                        color: Colors.teal.withOpacity(0.3),
+                      ),
+                    ),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    height: MediaQuery.of(context).size.height * 0.2,
+                    child: BackdropFilter(
+                      filter: ui.ImageFilter.blur(
+                        sigmaX: 50.0,
+                        sigmaY: 50.0,
+                      ),
+                      child: Container(
+                        color: Colors.teal.withOpacity(0.3),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          Container(
-            color: Color(0xFF0D0D55), // Color de fondo para resaltar las opciones
-            padding: EdgeInsets.symmetric(vertical: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
+          Center(
+            child: _editedImage == null
+                ? Image.file(
+              File(widget.imagePath),
+              fit: BoxFit.contain,
+            )
+                : PreviewPage(imagePath: _editedImage!.path),
+          ),
+          Positioned(
+            bottom: 10.0,
+            left: 0,
+            right: 0,
+            child: CarouselSlider(
+              options: CarouselOptions(
+                height: 60.0,
+                viewportFraction: 0.15,
+                enableInfiniteScroll: false,
+                scrollDirection: Axis.horizontal,
+                initialPage: 0,
+              ),
+              items: [
                 _buildFooterButton(
                   icon: Icons.crop,
                   index: 0,
@@ -95,22 +168,78 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
               ],
             ),
           ),
+          Positioned(
+            top: 30.0,
+            left: 10.0,
+            right: 10.0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: Container(
+                    padding: EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.5),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.arrow_back,
+                      color: Colors.white,
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.pink,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context, _editedImage?.path ?? widget.imagePath);
+                  },
+                  child: Text('Publicar'),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
+  Widget _buildTextContainer() {
+    return Container(
+      color: Colors.black.withOpacity(0.3), // Fondo semitransparente
+      padding: EdgeInsets.all(8.0),
+      child: Text(
+        _displayText,
+        style: _textStyle,
+        textAlign: _textAlign,
+      ),
+    );
+  }
+
   Widget _buildFooterButton({required IconData icon, required int index, required VoidCallback onPressed}) {
-    return IconButton(
-      icon: Icon(icon),
-      onPressed: () {
-        setState(() {
-          _selectedIndex = index;
-        });
-        onPressed();
-      },
-      color: _selectedIndex == index ? Colors.blue : Colors.white, // Cambia el color según el botón seleccionado
-      iconSize: 28.0,
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.black.withOpacity(0.5),
+      ),
+      child: IconButton(
+        icon: Icon(icon, color: _selectedIndex == index ? Colors.pink : Colors.white),
+        onPressed: () {
+          setState(() {
+            _selectedIndex = index;
+          });
+          onPressed();
+        },
+        iconSize: 28.0,
+      ),
     );
   }
 
@@ -123,50 +252,32 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
       if (croppedFile != null) {
         setState(() {
           _editedImage = File(croppedFile.path);
-          _selectedIndex = 0; // Actualiza el índice del botón seleccionado
+          _selectedIndex = 0;
         });
       }
     } catch (e) {
       print('Error cropping image: $e');
-      // Manejar el error según sea necesario
     }
   }
 
   void _addTextToImage() {
-    // Implementa la funcionalidad para añadir texto a la imagen
-    // Por ejemplo, mostrar un diálogo para introducir el texto
-    showDialog(
-      context: context,
-      builder: (context) {
-        String? inputText;
-        return AlertDialog(
-          title: Text('Agregar texto'),
-          content: TextField(
-            onChanged: (text) {
-              inputText = text;
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () {
-                // Implementa la lógica para añadir texto a la imagen aquí
-                Navigator.of(context).pop();
-              },
-              child: Text('Aceptar'),
-            ),
-          ],
-        );
+    TextEditorHandler().openTextEditor(
+      context,
+          (String text, TextStyle style, TextAlign align) {
+        _setText(text, style, align);
       },
-    ).then((_) {
-      setState(() {
-        _selectedIndex = 1; // Actualiza el índice del botón seleccionado
-      });
+    );
+  }
+
+  void _setText(String text, TextStyle style, TextAlign align) {
+    setState(() {
+      _displayText = text;
+      _textStyle = style;
+      _textAlign = align;
+      _textPosition = Offset(
+        MediaQuery.of(context).size.width / 2,
+        MediaQuery.of(context).size.height / 2,
+      ); // Posición inicial en el centro
     });
   }
 
@@ -177,12 +288,11 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
       if (pickedFile != null) {
         setState(() {
           _editedImage = File(pickedFile.path);
-          _selectedIndex = 2; // Actualiza el índice del botón seleccionado
+          _selectedIndex = 2;
         });
       }
     } catch (e) {
       print('Error taking photo: $e');
-      // Manejar el error según sea necesario
     }
   }
 
@@ -193,27 +303,15 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
       if (pickedFile != null) {
         setState(() {
           _editedImage = File(pickedFile.path);
-          _selectedIndex = 3; // Actualiza el índice del botón seleccionado
+          _selectedIndex = 3;
         });
       }
     } catch (e) {
       print('Error selecting image from gallery: $e');
-      // Manejar el error según sea necesario
-    }
-  }
-
-  void _handleDeleteImage() {
-    if (_editedImage != null) {
-      setState(() {
-        _editedImage = null;
-      });
-    } else {
-      Navigator.pop(context, widget.imagePath); // Regresa a la imagen anterior si no hay imagen editada
     }
   }
 
   void _applyFilter() {
     // Implementa la lógica para aplicar filtros utilizando ImageFilterService
-    // y actualizar la imagen editada (_editedImage)
   }
 }

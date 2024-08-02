@@ -129,7 +129,7 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
       body: Container(
         height: MediaQuery.of(context).size.height, // Ajusta la altura al tamaño de la pantalla
-        color: Colors.black, // Fondo negro para todo el cuerpo
+        color: Colors.white,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -137,7 +137,7 @@ class _SearchScreenState extends State<SearchScreen> {
               SizedBox(height: 12),
               if (_trendingSearches.isNotEmpty)
                 Container(
-                  color: Colors.black, // Color de fondo para las palabras tendencia
+                  color: Colors.white, // Color de fondo para las palabras tendencia
                   padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,7 +145,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       Text(
                         'Tendencias',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Colors.black,
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                         ),
@@ -184,7 +184,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                 ),
               Container(
-                color: Colors.black, // Fondo negro para los resultados de búsqueda
+                color: Colors.white, // Fondo negro para los resultados de búsqueda
                 child: _buildSearchResults(),
               ),
               SizedBox(height: 80),
@@ -324,7 +324,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     Expanded(
                       child: Padding(
                         padding: EdgeInsets.symmetric(horizontal: 5),
-                        child: Text(_searchResults[index], style: TextStyle(color: Colors.white),),
+                        child: Text(_searchResults[index], style: TextStyle(color: Colors.black),),
                       ),
                     ),
                     GestureDetector(

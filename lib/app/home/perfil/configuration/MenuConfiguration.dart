@@ -3,6 +3,13 @@ import 'package:provider/provider.dart';
 
 import '../../../estadoDark-White/DarkModeProvider.dart';
 import '../../../estadoDark-White/Fuentes/FontSizeProvider.dart';
+import 'clasesImpl/Bloqueados/BlockScreen.dart';
+import 'clasesImpl/Cuenta.dart';
+import 'clasesImpl/Monetization/MonetizationScreen.dart';
+import 'clasesImpl/Permisos/PermissionsSettings.dart';
+import 'clasesImpl/Privacidad/PrivacySettings.dart';
+import 'clasesImpl/SharePerfil/ShareProfileScreen.dart';
+import 'clasesImpl/security/SecuritySettings.dart';
 
 class MenuConfiguration extends StatefulWidget {
   @override
@@ -47,13 +54,157 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
             padding: EdgeInsets.zero,
             children: <Widget>[
               SectionHeader(title: 'Ajustes y Privacidad', backgroundColor: sectionHeaderColor, textColor: textColor, fontSize: fontSize),
-              MenuTile(icon: Icons.account_circle, title: 'Cuenta', tileColor: tileColor, textColor: textColor, fontSize: fontSize),
-              MenuTile(icon: Icons.lock, title: 'Privacidad', tileColor: tileColor, textColor: textColor, fontSize: fontSize),
-              MenuTile(icon: Icons.security, title: 'Seguridad', tileColor: tileColor, textColor: textColor, fontSize: fontSize),
-              MenuTile(icon: Icons.lock_open, title: 'Permisos', tileColor: tileColor, textColor: textColor, fontSize: fontSize),
-              MenuTile(icon: Icons.monetization_on, title: 'Saldo', tileColor: tileColor, textColor: textColor, fontSize: fontSize),
-              MenuTile(icon: Icons.share, title: 'Compartir perfil', tileColor: tileColor, textColor: textColor, fontSize: fontSize),
-              MenuTile(icon: Icons.block, title: 'Bloqueos', tileColor: tileColor, textColor: textColor, fontSize: fontSize),
+              MenuTile(
+                icon: Icons.account_circle,
+                title: 'Cuenta',
+                tileColor: tileColor,
+                textColor: textColor,
+                fontSize: fontSize,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => Cuenta(tileColor: tileColor, textColor: textColor, fontSize: fontSize)),
+                  );
+                },
+              ),
+              MenuTile(
+                icon: Icons.lock,
+                title: 'Privacidad',
+                tileColor: tileColor,
+                textColor: textColor,
+                fontSize: fontSize,
+                onTap: () {
+                  // Navegar a la pantalla de configuración de privacidad
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Scaffold(
+                        appBar: AppBar(
+                          title: Text('Privacidad', style: TextStyle(color: textColor)),
+                          backgroundColor: tileColor,
+                        ),
+                        body: PrivacySettings(
+                          switchActiveColor: Colors.cyan,
+                          titleColor: textColor,
+                          sectionTitleColor: Colors.grey.shade600,
+                          descriptionColor: Colors.grey,
+                          sectionBackgroundColor: isDarkMode ? Colors.black : Colors.grey.shade100 ,
+                          titleFontSize: 14.0, // Letras más pequeñas
+                          sectionTitleFontSize: 16.0,
+                          descriptionFontSize: 11.0, // Descripción más pequeña
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              MenuTile(
+                icon: Icons.security,
+                title: 'Seguridad',
+                tileColor: tileColor,
+                textColor: textColor,
+                fontSize: fontSize,
+                onTap: () {
+                  // Navegar a la pantalla de configuración de seguridad
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Scaffold(
+                        appBar: AppBar(
+                          title: Text('Seguridad', style: TextStyle(color: textColor)),
+                          backgroundColor: tileColor,
+                        ),
+                        body: SecuritySettings(
+                          titleColor: textColor,
+                          sectionTitleColor: isDarkMode? Colors.white : Colors.grey.shade700,
+                          descriptionColor: Colors.grey,
+                          titleFontSize: 14.0,
+                          sectionTitleFontSize: 16.0,
+                          descriptionFontSize: 11.0,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              MenuTile(
+                icon: Icons.lock_open,
+                title: 'Permisos',
+                tileColor: tileColor,
+                textColor: textColor,
+                fontSize: fontSize,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PermissionsSettings(
+                        tileColor: textColor,
+                        textColor: textColor,
+                        sectionTitleColor: isDarkMode ? Colors.white : Colors.black,
+                        titleColor: isDarkMode ? Colors.white : Colors.black,
+                        descriptionColor: Colors.grey,
+                        titleFontSize: fontSize,
+                        sectionTitleFontSize: fontSize + 1,
+                        descriptionFontSize: fontSize - 4,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              MenuTile(
+                  icon: Icons.monetization_on,
+                  title: 'Saldo',
+                  tileColor: tileColor,
+                  textColor: textColor,
+                  fontSize: fontSize,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MonetizationScreen(
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              MenuTile(
+                icon: Icons.share,
+                title: 'Compartir perfil',
+                tileColor: tileColor,
+                textColor: textColor,
+                fontSize: fontSize,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ShareProfileScreen(
+                        tileColor: tileColor,
+                        textColor: textColor,
+                        fontSize: fontSize,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              MenuTile(
+                  icon: Icons.block, title: 'Bloqueos',
+                tileColor: tileColor,
+                textColor: textColor,
+                fontSize: fontSize,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => BlockScreen(
+                        tileColor: Colors.grey.shade200,
+                        textColor: Colors.black,
+                        fontSize: 16.0,
+                      ),
+                    ),
+                  );
+                },
+              ),
               MenuTile(icon: Icons.account_balance_wallet, title: 'Estado de cuenta', tileColor: tileColor, textColor: textColor, fontSize: fontSize),
               MenuTile(icon: Icons.video_camera_back_rounded, title: 'Snippets', tileColor: tileColor, textColor: textColor, fontSize: fontSize),
 
@@ -115,25 +266,43 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
                 },
               ),
               Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(10.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween, // Alinea el contenido a los extremos
                   children: [
-                    Text(
-                      'Modo oscuro',
-                      style: TextStyle(
-                        color: textColor,
-                        fontSize: fontSize, // Tamaño del texto ajustado
-                      ),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.wb_sunny, // Icono blanco
+                          color: Colors.white,
+                          size: 24.0,
+                        ),
+                        SizedBox(width: 8.0),
+                        Icon(
+                          Icons.nightlight_round, // Icono negro
+                          color: Colors.black,
+                          size: 24.0,
+                        ),
+                        SizedBox(width: 8.0),
+                        Text(
+                          'Modo oscuro',
+                          style: TextStyle(
+                            color: textColor,
+                          ),
+                        ),
+                      ],
                     ),
-                    Switch(
-                      value: isDarkMode,
-                      onChanged: (value) {
-                        darkModeProvider.setDarkMode(value);
-                      },
-                      activeColor: isDarkMode ? Colors.cyan : Colors.blue, // Cambiar el color activo del switch
-                      inactiveTrackColor: Colors.grey[400], // Color del track cuando está desactivado
-                      inactiveThumbColor: Colors.grey[600], // Color del thumb cuando está desactivado
+                    Transform.scale(
+                      scale: 0.9,
+                      child: Switch(
+                        value: isDarkMode,
+                        onChanged: (value) {
+                          darkModeProvider.setDarkMode(value);
+                        },
+                        activeColor: isDarkMode ? Colors.cyan : Colors.blue,
+                        inactiveTrackColor: Colors.grey[400],
+                        inactiveThumbColor: Colors.grey[600],
+                      ),
                     ),
                   ],
                 ),

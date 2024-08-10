@@ -8,8 +8,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
-
-
 import '../../estadoDark-White/DarkModeProvider.dart';
 import 'call/CallScreen.dart';
 import 'call/VideoCall.dart';

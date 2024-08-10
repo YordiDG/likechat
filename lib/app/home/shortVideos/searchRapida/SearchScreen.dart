@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../estadoDark-White/DarkModeProvider.dart';
 import 'Ayuda/HelpScreen.dart';
+import 'package:provider/provider.dart';
+
 
 class SearchScreen extends StatefulWidget {
   @override
@@ -29,11 +32,18 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+    final iconColor = darkModeProvider.iconColor;
+    final backgroundColor = darkModeProvider.backgroundColor;
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(70.0),
         child: AppBar(
-          backgroundColor: Colors.black,
+          backgroundColor: backgroundColor,
           elevation: 0,
           titleSpacing: 0,
           title: Container(
@@ -41,13 +51,13 @@ class _SearchScreenState extends State<SearchScreen> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               color: Colors.transparent,
-              border: Border.all(color: Colors.white.withOpacity(0.9)),
+              border: Border.all(color: Colors.grey.withOpacity(0.6)),
             ),
             padding: EdgeInsets.symmetric(horizontal: 12),
             margin: EdgeInsets.only(right: 16),
             child: Row(
               children: [
-                Icon(Icons.search, color: Colors.white),
+                Icon(Icons.search, color: iconColor),
                 SizedBox(width: 8),
                 Expanded(
                   child: SingleChildScrollView(
@@ -60,6 +70,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                       child: TextField(
                         controller: _searchController,
+                        cursorColor: Colors.cyan,
                         maxLines: 1,
                         textInputAction: TextInputAction.search,
                         onChanged: (value) {
@@ -77,7 +88,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           fillColor: Colors.transparent, // Fondo del TextField transparente
                           filled: true,
                         ),
-                        style: TextStyle(color: Colors.white), // Color del texto blanco
+                        style: TextStyle(color: textColor), // Color del texto blanco
                       ),
                     ),
 
@@ -106,7 +117,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     : IconButton(
                   icon: _searchQuery.toLowerCase() == 'tendencia'
                       ? Icon(Icons.candlestick_chart, color: Colors.orange) // Icono de candelas
-                      : Icon(Icons.mic, color: Colors.white), // Icono de micrófono
+                      : Icon(Icons.mic, color: iconColor), // Icono de micrófono
                   onPressed: () {
                     if (_searchQuery.toLowerCase() == 'tendencia') {
                       _searchController.text = 'tendencia';
@@ -120,7 +131,7 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
           leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.white),
+            icon: Icon(Icons.arrow_back, color: iconColor),
             onPressed: () {
               Navigator.pop(context);
             },
@@ -129,7 +140,7 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
       body: Container(
         height: MediaQuery.of(context).size.height, // Ajusta la altura al tamaño de la pantalla
-        color: Colors.white,
+        color: backgroundColor,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -137,7 +148,7 @@ class _SearchScreenState extends State<SearchScreen> {
               SizedBox(height: 12),
               if (_trendingSearches.isNotEmpty)
                 Container(
-                  color: Colors.white, // Color de fondo para las palabras tendencia
+                  color: backgroundColor, // Color de fondo para las palabras tendencia
                   padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,14 +156,14 @@ class _SearchScreenState extends State<SearchScreen> {
                       Text(
                         'Tendencias',
                         style: TextStyle(
-                          color: Colors.black,
+                          color: textColor,
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                         ),
                       ),
                       SizedBox(height: 8),
                       Container(
-                        height: 40, // Altura deseada para el carrusel de palabras tendencia
+                        height: 40,
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
                           itemCount: _trendingSearches.length,
@@ -184,7 +195,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                 ),
               Container(
-                color: Colors.white, // Fondo negro para los resultados de búsqueda
+                color: backgroundColor, // Fondo negro para los resultados de búsqueda
                 child: _buildSearchResults(),
               ),
               SizedBox(height: 80),
@@ -201,14 +212,14 @@ class _SearchScreenState extends State<SearchScreen> {
                     padding: EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(6),
-                      color: Colors.grey.withOpacity(0.6),
+                      color: Colors.grey.withOpacity(0.2),
                     ),
                     child: Text(
                       'Ayuda',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Colors.white, // Color de la letra blanca
-                        fontSize: 15,
+                        color: Colors.grey[400], // Color de la letra blanca
+                        fontSize: 14,
                         decoration: TextDecoration.none,
                         fontFamily: 'Poppins',
                         fontWeight: FontWeight.bold,
@@ -253,9 +264,20 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildSearchResults() {
+
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+    final iconColor = darkModeProvider.iconColor;
+    final backgroundColor = darkModeProvider.backgroundColor;
+
     return _searchResults.isEmpty
         ? Center(
-      child: Text('No hay resultados'),
+      child: Padding (
+        padding: const EdgeInsets.only(top: 70.0),
+        child: Text('No hay resultados',
+          style: TextStyle(fontSize: 20, color: Colors.grey[600]),),
+      ),
     )
         : Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -290,6 +312,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           color: Colors.grey[400],
                           fontWeight: FontWeight.bold,
                           fontFamily: 'Poppins',
+                          fontSize: 12
                         ),
                       ),
                     ],
@@ -324,7 +347,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     Expanded(
                       child: Padding(
                         padding: EdgeInsets.symmetric(horizontal: 5),
-                        child: Text(_searchResults[index], style: TextStyle(color: Colors.black),),
+                        child: Text(_searchResults[index], style: TextStyle(color: textColor),),
                       ),
                     ),
                     GestureDetector(
@@ -373,6 +396,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       color: Colors.grey[400],
                       fontWeight: FontWeight.bold,
                       fontFamily: 'Poppins',
+                      fontSize: 12
                     ),
                   ),
                 ],

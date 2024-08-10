@@ -30,7 +30,8 @@ class RecoverPasswordScreen extends StatelessWidget {
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Color(0xFFD9F103), width: 4.0),
+                    //border: Border.all(color: Color(0xFFD9F103), width: 4.0),
+                    border: Border.all(color: Colors.cyan, width: 4.0),
                   ),
                   child: TextField(
                     controller: _emailController,
@@ -71,7 +72,8 @@ class RecoverPasswordScreen extends StatelessWidget {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFFD9F103),
+                      //backgroundColor: Color(0xFFD9F103),
+                      backgroundColor: Colors.cyan,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),

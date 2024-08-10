@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../../../estadoDark-White/DarkModeProvider.dart';
 
 class HelpScreen extends StatefulWidget {
   @override
@@ -18,15 +21,23 @@ class _HelpScreenState extends State<HelpScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+    final iconColor = darkModeProvider.iconColor;
+    final backgroundColor = darkModeProvider.backgroundColor;
+
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'Preguntas frecuentes',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+          style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 20),
         ),
-        backgroundColor: Colors.black,
+        backgroundColor: backgroundColor,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back, color: iconColor),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -39,7 +50,7 @@ class _HelpScreenState extends State<HelpScreen> {
           children: [
             Text(
               '¿Con qué problema te encontraste?',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
             ),
             SizedBox(height: 16),
             Expanded(
@@ -62,23 +73,24 @@ class _HelpScreenState extends State<HelpScreen> {
                 children: [
                   Text(
                     'Describe tu problema',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
                   ),
                   SizedBox(height: 8),
                   TextField(
                     controller: _commentController,
                     decoration: InputDecoration(
-                      hintText: 'Escribe aquí tu comentario...',
+                      hintText: 'Escriba un comentario...',
+                      hintStyle: TextStyle(color: Colors.grey[700]),
                       border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.black), // Borde negro
+                        borderSide: BorderSide(color: Colors.cyan), // Borde negro
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.black), // Borde negro cuando está deshabilitado
+                        borderSide: BorderSide(color: Colors.cyan), // Borde negro cuando está deshabilitado
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.black), // Borde negro cuando está enfocado
+                        borderSide: BorderSide(color: Colors.cyan), // Borde negro cuando está enfocado
                       ),
-                      fillColor: Colors.grey[200],
+                      fillColor: Colors.grey[300],
                       filled: true,
                     ),
                     maxLines: 3,
@@ -153,7 +165,7 @@ class _HelpScreenState extends State<HelpScreen> {
                 children: [
                   Text(
                     'Comentario enviado correctamente',
-                    style: TextStyle(fontSize: 18, color: Colors.green, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 16, color: Colors.green, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 12),
                   ElevatedButton(
@@ -185,6 +197,12 @@ class _HelpScreenState extends State<HelpScreen> {
   }
 
   Widget _buildHelpOption(String option) {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+    final iconColor = darkModeProvider.iconColor;
+    final backgroundColor = darkModeProvider.backgroundColor;
+
     return InkWell(
       onTap: () {
         setState(() {
@@ -201,16 +219,23 @@ class _HelpScreenState extends State<HelpScreen> {
               height: 24,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: _selectedOption == option ? Colors.purple : Colors.blue),
-                color: _selectedOption == option ? Colors.deepPurple : Colors.transparent,
+                border: Border.all(
+                  color: _selectedOption == option ? Colors.cyan : Colors.cyan,
+                ),
+                color: _selectedOption == option ? Colors.cyan : Colors.transparent,
               ),
-              child: _selectedOption == option ? Icon(Icons.check, color: Colors.white, size: 18) : null,
+              child: _selectedOption == option
+                  ? Icon(Icons.check, color: Colors.white, size: 19)
+                  : null,
             ),
             SizedBox(width: 12),
             Flexible(
               child: Text(
                 option,
-                style: TextStyle(fontSize: 16, color: Colors.black),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: textColor,
+                ),
                 softWrap: true,
               ),
             ),
@@ -219,4 +244,5 @@ class _HelpScreenState extends State<HelpScreen> {
       ),
     );
   }
+
 }

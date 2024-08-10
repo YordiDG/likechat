@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../estadoDark-White/DarkModeProvider.dart';
 import '../providers/AuthProvider.dart';
 import 'ForgotPasswordScreen.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -38,6 +40,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final textColor = darkModeProvider.textColor;
+    final iconColor = darkModeProvider.iconColor;
+    final backgroundColor = darkModeProvider.backgroundColor;
+
+    final borderColor = darkModeProvider.isDarkMode ? Colors.cyan : Colors.black;
+    final fillColorEmail = darkModeProvider.isDarkMode ? Colors.black : Colors.white;
+    final fillColorPassword = darkModeProvider.isDarkMode ? Colors.white : Colors.cyan.withOpacity(0.1);
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Center(
@@ -53,33 +64,32 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 SizedBox(height: 20),
                 TextField(
+                  cursorColor: Colors.cyan,
                   controller: _emailController,
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: fillColorEmail,
                     labelText: 'Correo electrónico',
-                    prefixIcon: Icon(Icons.email, color: Colors.black),
-                    errorText: _showEmailError
-                        ? 'Correo inválido o no autenticado'
-                        : null,
+                    prefixIcon: Icon(Icons.email, color: iconColor),
+                    errorText: _showEmailError ? 'Correo inválido o no autenticado' : null,
                     errorStyle: TextStyle(color: Color(0xFFFF0E0E)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.black),
+                      borderSide: BorderSide(color: borderColor),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.black, width: 4.0),
+                      borderSide: BorderSide(color: borderColor, width: 2.0),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(
-                        color: _isEmailEmpty ? Color(0xFFFF0E0E) : Colors.black,
+                        color: _isEmailEmpty ? Color(0xFFFF0E0E) : borderColor,
                       ),
                     ),
                   ),
                   keyboardType: TextInputType.emailAddress,
-                  style: TextStyle(color: Colors.black),
+                  style: TextStyle(color: textColor),
                 ),
                 SizedBox(height: 22),
                 TextField(
@@ -87,13 +97,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   obscureText: _obscureText,
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: darkModeProvider.isDarkMode ? Colors.transparent : Colors.white,
                     labelText: 'Contraseña',
-                    prefixIcon: Icon(Icons.lock, color: Colors.black),
+                    prefixIcon: Icon(Icons.lock, color: iconColor),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscureText ? Icons.visibility : Icons.visibility_off,
-                        color: Colors.black,
+                        color: iconColor,
                       ),
                       onPressed: () {
                         setState(() {
@@ -101,28 +111,26 @@ class _LoginScreenState extends State<LoginScreen> {
                         });
                       },
                     ),
-                    errorText: _showPasswordError
-                        ? 'Contraseña incorrecta. Verifica e intenta nuevamente.'
-                        : null,
+                    errorText: _showPasswordError ? 'Contraseña incorrecta. Verifica e intenta nuevamente.' : null,
                     errorStyle: TextStyle(color: Color(0xFFFF0E0E)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.black),
+                      borderSide: BorderSide(color: borderColor),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.black, width: 4.0),
+                      borderSide: BorderSide(color: borderColor, width: 2.0),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(
-                        color:
-                            _isPasswordEmpty ? Color(0xFFFF0E0E) : Colors.black,
+                        color: _isPasswordEmpty ? Color(0xFFFF0E0E) : borderColor,
                       ),
                     ),
                   ),
-                  style: TextStyle(color: Colors.black),
+                  style: TextStyle(color: textColor),
                 ),
+
                 SizedBox(height: 40),
                 SizedBox(
                   width: double.infinity,
@@ -133,8 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         _showEmailError = false;
                         _showPasswordError = false;
                         _isEmailEmpty = _emailController.text.trim().isEmpty;
-                        _isPasswordEmpty =
-                            _passwordController.text.trim().isEmpty;
+                        _isPasswordEmpty = _passwordController.text.trim().isEmpty;
                       });
 
                       if (_isEmailEmpty || _isPasswordEmpty) {
@@ -146,8 +153,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       }
 
                       try {
-                        await Provider.of<AuthProvider>(context, listen: false)
-                            .login(
+                        await Provider.of<AuthProvider>(context, listen: false).login(
                           _emailController.text.trim(),
                           _passwordController.text.trim(),
                         );
@@ -157,16 +163,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (e.toString().contains('Unauthorized')) {
                             _showEmailError = true;
                             _showPasswordError = true;
-                          } else if (e
-                                  .toString()
-                                  .contains('Invalid email format') ||
-                              e
-                                  .toString()
-                                  .contains('Email not authenticated')) {
+                          } else if (e.toString().contains('Invalid email format') ||
+                              e.toString().contains('Email not authenticated')) {
                             _showEmailError = true;
-                          } else if (e
-                              .toString()
-                              .contains('Invalid password')) {
+                          } else if (e.toString().contains('Invalid password')) {
                             _showPasswordError = true;
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -178,11 +178,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         _loginAttempts += 1;
                         if (_loginAttempts >= 3) {
                           if (_lockoutEndTime == null) {
-                            _lockoutEndTime =
-                                DateTime.now().add(Duration(minutes: 10));
+                            _lockoutEndTime = DateTime.now().add(Duration(minutes: 10));
                           } else {
-                            _lockoutEndTime =
-                                DateTime.now().add(Duration(days: 5));
+                            _lockoutEndTime = DateTime.now().add(Duration(days: 5));
                           }
 
                           showDialog(
@@ -190,8 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             builder: (BuildContext context) {
                               return Center(
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 24.0),
+                                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
                                   child: Container(
                                     decoration: BoxDecoration(
                                       color: Colors.white,
@@ -204,7 +201,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         Text(
                                           'Cuenta bloqueada',
                                           style: TextStyle(
-                                            color: Colors.black,
+                                            color: textColor,
                                             fontSize: 20,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -213,9 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         SizedBox(height: 16),
                                         Text(
                                           'Debido a múltiples intentos fallidos, tu cuenta ha sido bloqueada temporalmente. Vuelve a intentar en 10 minutos.',
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 16),
+                                          style: TextStyle(color: textColor, fontSize: 16),
                                           textAlign: TextAlign.justify,
                                         ),
                                         SizedBox(height: 16),
@@ -226,8 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: Colors.red,
                                             shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
+                                              borderRadius: BorderRadius.circular(10),
                                             ),
                                           ),
                                           child: Text('OK'),
@@ -243,7 +237,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF0D0D55),
+                      backgroundColor: Colors.cyan,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
@@ -253,7 +247,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFFD9F103),
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -263,14 +257,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => RecoverPasswordScreen()),
+                      MaterialPageRoute(builder: (context) => RecoverPasswordScreen()),
                     );
                   },
                   child: Text(
                     '¿Olvidaste tu contraseña?',
                     style: TextStyle(
-                      color: Color(0xFF99A804),
+                      color: Colors.cyan,
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
@@ -316,30 +309,23 @@ class _LoginScreenState extends State<LoginScreen> {
                     Navigator.pushReplacementNamed(context, '/register');
                   },
                   style: ButtonStyle(
-                    backgroundColor:
-                        MaterialStateProperty.all(Colors.transparent),
+                    backgroundColor: MaterialStateProperty.all(Colors.transparent),
                   ),
                   child: RichText(
                     text: TextSpan(
+                      text: '¿No tienes una cuenta? ',
                       style: TextStyle(
-                        fontSize: 20,
-                        color: Color(0xFF0D0D55),
+                        color: textColor,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
                       ),
                       children: [
                         TextSpan(
-                          text: '¿Aún no tienes cuenta? ',
+                          text: 'Regístrate',
                           style: TextStyle(
-                            color: Color(0xFF0D0D55),
+                            color: Colors.cyan,
                             fontSize: 16,
-                          ),
-                        ),
-                        TextSpan(
-                          text: 'Registrarse',
-                          style: TextStyle(
-                            color: Color(0xFF0D0D55),
-                            fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            decoration: TextDecoration.none,
                           ),
                         ),
                       ],

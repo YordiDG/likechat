@@ -25,6 +25,7 @@ class _LikeChatScreenState extends State<LikeChatScreen> {
   final double _activeStorySize = 90.0;
 
   File? _image;
+  File? _video;
 
   @override
   void initState() {
@@ -77,7 +78,7 @@ class _LikeChatScreenState extends State<LikeChatScreen> {
                   IconButton(
                     icon: Icon(Icons.more_vert, color: iconColor, size: 28),
                     onPressed: () {
-                      // Otras funcionalidades
+                      showOptionsDialog(context);
                     },
                   ),
                 ],
@@ -212,19 +213,18 @@ class _LikeChatScreenState extends State<LikeChatScreen> {
                                     ),
                                   ),
                                   Positioned(
-                                    bottom: 1.0,
+                                    top: 50.0,
                                     left: 0.0,
                                     right: 0.0,
                                     child: Container(
                                       padding: EdgeInsets.symmetric(
-                                          horizontal: 8.0, vertical: 4.0),
+                                          horizontal: 8.0, vertical: 1.0),
                                       decoration: BoxDecoration(
                                         color: isDarkMode
                                             ? Colors.black54
                                             : Colors.black.withOpacity(0.4),
                                         // Fondo negro transparente
-                                        borderRadius: BorderRadius.circular(
-                                            10.0),
+                                        borderRadius: BorderRadius.circular(4.0),
                                         border: Border.all(
                                           color: isDarkMode
                                               ? Colors.white
@@ -300,6 +300,87 @@ class _LikeChatScreenState extends State<LikeChatScreen> {
     }
   }
 
+  void showOptionsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Opciones'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ListTile(
+                leading: Icon(Icons.message),
+                title: Text('Enviar mensaje'),
+                onTap: () {
+                  // Acción para enviar mensaje
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.call),
+                title: Text('Hacer llamada'),
+                onTap: () {
+                  // Acción para hacer llamada
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.photo),
+                title: Text('Enviar foto'),
+                onTap: () {
+                  // Acción para enviar foto
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.video_call),
+                title: Text('Iniciar videollamada'),
+                onTap: () {
+                  // Acción para iniciar videollamada
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.copy),
+                title: Text('Copiar texto'),
+                onTap: () {
+                  // Acción para copiar texto
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.report),
+                title: Text('Reportar'),
+                onTap: () {
+                  // Acción para reportar
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.block),
+                title: Text('Bloquear'),
+                onTap: () {
+                  // Acción para bloquear
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.settings),
+                title: Text('Configuración'),
+                onTap: () {
+                  // Acción para configuración
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+
   Future<void> _captureVideo() async {
     PermissionStatus cameraPermissionStatus = await Permission.camera.status;
     PermissionStatus microphonePermissionStatus = await Permission.microphone
@@ -350,23 +431,6 @@ class _LikeChatScreenState extends State<LikeChatScreen> {
   }
 
   Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(
-        source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      setState(() {
-        _image = File(pickedFile.path);
-      });
-      // Navegar a la pantalla de previsualización
-      _navigateToPreview(_image! as List<File>);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('No se seleccionó ninguna imagen.'),
-      ));
-    }
-  }
-
-  Future<void> _addStory() async {
     final picker = ImagePicker();
     var pickedFiles = await picker.pickMultiImage();
 
@@ -419,6 +483,95 @@ class _LikeChatScreenState extends State<LikeChatScreen> {
     }
   }
 
+  Future<void> _addStory() async {
+    _showMediaOptions();
+  }
+
+  void _showMediaOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Container(
+                width: 50,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.grey[400],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              SizedBox(height: 10),
+              Text(
+                'Seleccionar Archivo',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Divider(),
+              ListTile(
+                leading: Icon(Icons.image, size: 27, color: Colors.cyan),
+                title: Text('Seleccionar Imagen'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage();
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.video_library,size: 27, color: Colors.cyan),
+                title: Text('Seleccionar Video'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickVideo();
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.videocam, size: 27, color: Colors.cyan),
+                title: Text('Grabar Video'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _captureVideo();
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.camera_alt, size: 27, color: Colors.cyan),
+                title: Text('Capturar Imagen'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _captureImage();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickVideo() async {
+    final pickedFile = await ImagePicker().pickVideo(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _video = File(pickedFile.path);
+      });
+      // Aquí puedes manejar el archivo de video seleccionado
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('No se seleccionó ningún video.'),
+      ));
+    }
+  }
+
   void _navigateToPreview(List<File> images) {
     Navigator.push(
       context,
@@ -437,7 +590,6 @@ class _LikeChatScreenState extends State<LikeChatScreen> {
     });
   }
 
-
   void _postStory(File image) {
     setState(() {
       _stories.add(image.path);
@@ -446,8 +598,3 @@ class _LikeChatScreenState extends State<LikeChatScreen> {
   }
 
 }
-
-
-
-
-

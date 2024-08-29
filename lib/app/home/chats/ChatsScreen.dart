@@ -8,7 +8,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
-import '../../estadoDark-White/DarkModeProvider.dart';
+import '../../Globales/estadoDark-White/DarkModeProvider.dart';
 import 'call/CallScreen.dart';
 import 'call/VideoCall.dart';
 import 'contactatos/ContactSelectionScreen.dart';
@@ -550,28 +550,30 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildAttachmentOption(IconData icon, String label, Color color, VoidCallback onPressed) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
+    return GestureDetector(
+      onTap: onPressed,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+            ),
+            padding: EdgeInsets.all(12),
+            child: Icon(icon, color: Colors.white, size: 30),
           ),
-          padding: EdgeInsets.all(12),
-          child: Icon(icon, color: Colors.white, size: 30),
-        ),
-        SizedBox(height: 8),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 12,
+          SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 12),
+            textAlign: TextAlign.center,
           ),
-          textAlign: TextAlign.center,
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -595,7 +597,6 @@ class _ChatScreenState extends State<ChatScreen> {
       );
     }
   }
-
 
   void _openGallery() async {
     final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);

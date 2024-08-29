@@ -33,6 +33,8 @@
     <string>Necesitamos acceder a tu biblioteca para guardar el archivo.</string>
 
 
+     <key>NSCameraUsageDescription</key>
+     <string>Camera access is required to display AR content.</string>
 
 
 	<key>CFBundleDevelopmentRegion</key>

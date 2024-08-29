@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../estadoDark-White/DarkModeProvider.dart';
+import '../../../Globales/estadoDark-White/DarkModeProvider.dart';
 import 'OpenCamara/preview/PreviewScreen.dart';
 import 'package:provider/provider.dart';
 

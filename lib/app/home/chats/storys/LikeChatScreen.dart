@@ -6,7 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:ui' as ui;
 import 'dart:ui';
-import '../../../estadoDark-White/DarkModeProvider.dart';
+import '../../../Globales/estadoDark-White/DarkModeProvider.dart';
 import 'PreviewHistory.dart';
 import 'detail/FullScreenStoryViewer.dart';
 import 'package:provider/provider.dart';
@@ -46,7 +46,7 @@ class _LikeChatScreenState extends State<LikeChatScreen> {
       child: Padding(
         padding: EdgeInsets.only(top: 30.0),
         child: Container(
-          height: 130,
+          height: 140,
           color: backgroundColor,
           child: Stack(
             children: [

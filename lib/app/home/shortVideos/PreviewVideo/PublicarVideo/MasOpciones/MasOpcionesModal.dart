@@ -33,14 +33,14 @@ class _MasOpcionesModalState extends State<MasOpcionesModal>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.grey[600], // Fondo del AppBar gris claro
+        backgroundColor: Color(0xFF121212),// Fondo del AppBar gris claro
         centerTitle: true, // Centra el título
         title: Text(
           'Más opciones',
           style: TextStyle(
             fontWeight: FontWeight.w700,
             color: Colors.white,
-            fontSize: 21,
+            fontSize: 18,
           ),
         ),
         elevation: 0, // Elimina la línea de sombra debajo del AppBar
@@ -50,7 +50,7 @@ class _MasOpcionesModalState extends State<MasOpcionesModal>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Divider(height: 1.0, color: Colors.grey),
+            Divider(height: 0.1, color: Colors.grey),
             ListTile(
               leading: CircleAvatar(
                 backgroundColor: Colors.lightBlueAccent,

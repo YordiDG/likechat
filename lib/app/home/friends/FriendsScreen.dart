@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../estadoDark-White/DarkModeProvider.dart';
+import '../../Globales/estadoDark-White/DarkModeProvider.dart';
 import 'list Amigos/FollowersScreen.dart';
 
 

@@ -1,4 +1,3 @@
-
 import 'package:LikeChat/app/home/shortVideos/searchRapida/SearchScreen.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,16 +8,19 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image/image.dart' as img;
 import 'package:volume_controller/volume_controller.dart';
+import '../../Globales/estadoDark-White/DarkModeProvider.dart';
 import '../../camera/UserAvatar.dart';
-import '../../estadoDark-White/DarkModeProvider.dart';
 import 'LikeButton.dart';
 import 'Posts/PostClass.dart';
+import 'PreviewVideo/PublicarVideo/VideoPublishScreen.dart';
 import 'PreviewVideo/VideoPreviewScreen.dart';
 import 'package:vibration/vibration.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 
+
 class ShortVideosScreen extends StatefulWidget {
+
   @override
   _ShortVideosScreenState createState() => _ShortVideosScreenState();
 }
@@ -38,7 +40,8 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
   bool _isPlaying = true;
   bool _isVideoPaused = false;
   bool _isSnippetsTab = true;
-  bool _floatingActionButtonVisible = true;
+  bool _floatingActionButtonVisible = false;
+  bool _isSwitched = false;
 
   String? _videoPath;
   TextEditingController _descriptionController = TextEditingController();
@@ -50,6 +53,7 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
     super.initState();
     if (_videos.isNotEmpty) {
       _initializeVideoPlayer(_videos[_currentIndex]);
+      _updateFloatingActionButtonVisibility();
     }
 
     // Inicializar el controlador de la página con el índice inicial
@@ -66,7 +70,6 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
       _initializeVideoPlayer(_videos[_currentIndex]);
     }
   }
-
 
   void _initializeVideoPlayer(dynamic video) {
     if (_controller != null) {
@@ -88,7 +91,8 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
         if (_isSnippetsTab && !_isVideoPaused) {
           _controller!.play();
         } else {
-          _controller!.pause(); // Asegurar que el video se pausa inicialmente si no está en la pestaña 'Snippets'
+          _controller!
+              .pause(); // Asegurar que el video se pausa inicialmente si no está en la pestaña 'Snippets'
         }
       });
     });
@@ -102,7 +106,6 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
     final isDarkMode = darkModeProvider.isDarkMode;
     final textColor = darkModeProvider.textColor;
@@ -113,35 +116,200 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
       appBar: AppBar(
         backgroundColor: backgroundColor,
         elevation: 0,
-        toolbarHeight: 80.0, // Ajusta la altura según sea necesario
-        leading: _selectedIndex == 0
-            ? Container(
-          width: 70,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(height: 8.0),
-              Flexible(
-                child: IconButton(
-                  icon: Icon(Icons.live_tv, color: isDarkMode ? Colors.white : Colors.cyan, size: 30),
-                  onPressed: () {},
-                ),
-              ),
-              SizedBox(height: 12.0),
-              Flexible(
-                child: Text(
-                  'LIVE',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-            ],
+        toolbarHeight: 80.0,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16.0), // Ajusta el margen izquierdo
+          child: IconButton(
+            icon: Icon(Icons.menu_sharp, color: iconColor),
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                builder: (BuildContext context) {
+                  return StatefulBuilder(
+                    builder: (BuildContext context, StateSetter setModalState) {
+                      return Container(
+                        color: Color(0xFF121212), // Gris oscuro para el fondo principal
+                        child: Wrap(
+                          children: <Widget>[
+                            Center(
+                              child: Container(
+                                margin: EdgeInsets.only(top: 13.0), // Espaciado superior
+                                width: 40.0,
+                                height: 4.0,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(2.0),
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 28.0),
+                            // Encabezado con fondo negro
+                            Container(
+                              color: Color(0xFF1A1A1A), // Fondo negro para el encabezado
+                              padding: EdgeInsets.all(16.0),
+                              child: Center(
+                                child: Text(
+                                  'Opciones',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18.0,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Montserrat',
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 11.0),
+                            // Opciones del menú
+                            ListTile(
+                              leading: CircleAvatar(
+                                radius: 28.0,
+                                backgroundColor: Colors.white.withOpacity(0.1),
+                                child: FaIcon(
+                                  FontAwesomeIcons.cameraRetro,
+                                  color: Colors.cyan,
+                                  size: 23.0,
+                                ),
+                              ),
+                              title: Text(
+                                'Crear Publicación',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: 'Montserrat',
+                                ),
+                              ),
+                              subtitle: Text(
+                                'Publica un nuevo contenido',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.white70,
+                                  fontFamily: 'Montserrat',
+                                ),
+                              ),
+                              onTap: () {
+                                Navigator.pop(context);
+                                showCreateDialog(context, 'Crear Publicación');
+                              },
+                            ),
+                            ListTile(
+                              leading: CircleAvatar(
+                                radius: 28.0,
+                                backgroundColor: Colors.white.withOpacity(0.1),
+                                child: FaIcon(
+                                  FontAwesomeIcons.video,
+                                  color: Colors.green,
+                                  size: 23.0,
+                                ),
+                              ),
+                              title: Text(
+                                'Crear Video',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: 'Montserrat',
+                                ),
+                              ),
+                              subtitle: Text(
+                                'Graba un nuevo video',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.white70,
+                                  fontFamily: 'Montserrat',
+                                ),
+                              ),
+                              onTap: () {
+                                // Cierra el modal actual
+                                Navigator.pop(context);
+
+                                // Muestra el nuevo modal de opciones
+                                _showVideoOptions(context);
+                              },
+                            ),
+                            ListTile(
+                              leading: Container(
+                                width: 56.0, // Asegúrate de que el contenedor tenga suficiente ancho
+                                height: 56.0, // Asegúrate de que el contenedor tenga suficiente alto
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 28.0,
+                                      backgroundColor: Colors.white.withOpacity(0.1),
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(bottom: 8.0), // Ajusta el espacio superior del ícono
+                                        child: Icon(
+                                          Icons.live_tv,
+                                          color: Colors.red,
+                                          size: 25.0,
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      bottom: 4.0, // Ajusta la posición vertical del texto para que esté más separado del ícono
+                                      child: Text(
+                                        'LIVE',
+                                        style: TextStyle(
+                                          color: Colors.white, // Color del texto para hacer juego con el ícono
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 10.0,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              title: Text(
+                                'Transmitir en Vivo',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: 'Montserrat',
+                                ),
+                              ),
+                              subtitle: Text(
+                                'Trasmite en directo permite e interactua con tu audiencia ',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.white70,
+                                  fontFamily: 'Montserrat',
+                                ),
+                              ),
+                              onTap: () {
+                                Navigator.pop(context);
+                                showCreateDialog(context, 'Opción Adicional');
+                              },
+                            ),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 16.0), // Espaciado lateral
+                              child: Divider(color: Colors.white54),
+                            ),
+                            SwitchListTile(
+                              value: _isSwitched,
+                              onChanged: (bool value) {
+                                setModalState(() {
+                                  _isSwitched = value;
+                                });
+                                _updateFloatingActionButtonVisibility();
+                              },
+                              title: Text(
+                                'Mostrar botón flotante',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: 'Montserrat',
+                                ),
+                              ),
+                              activeColor: Colors.cyan,
+                              inactiveThumbColor: Colors.grey,
+                              inactiveTrackColor: Colors.grey[300],
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+              );
+            },
           ),
-        )
-            : null,
+        ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -160,7 +328,9 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
                           ? (isDarkMode ? Colors.white : Colors.black)
                           : Colors.grey,
                       fontSize: 18,
-                      fontWeight: _selectedIndex == 0 ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: _selectedIndex == 0
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                     ),
                   ),
                 ),
@@ -187,7 +357,9 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
                           ? (isDarkMode ? Colors.white : Colors.black)
                           : Colors.grey,
                       fontSize: 18,
-                      fontWeight: _selectedIndex == 1 ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: _selectedIndex == 1
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                     ),
                   ),
                 ),
@@ -201,14 +373,17 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.search, color: iconColor, size: 30),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SearchScreen()),
-              );
-            },
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0), // Ajusta el margen derecho
+            child: IconButton(
+              icon: Icon(Icons.search, color: iconColor),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SearchScreen()),
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -217,17 +392,42 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
         onPageChanged: (index) {
           setState(() {
             _selectedIndex = index;
-            _floatingActionButtonVisible = index == 0; // Mostrar FAB solo en Snippets
+            _updateFloatingActionButtonVisibility();
           });
         },
         children: [
           _buildSnippetsPage(),
-          PostClass(), // Mostrar PostClass en la segunda página
+          PostClass(),
         ],
       ),
-      floatingActionButton: _floatingActionButtonVisible
-          ? _buildFloatingActionButton()
-          : null,
+      floatingActionButton:
+      _floatingActionButtonVisible ? _buildFloatingActionButton() : null,
+    );
+  }
+
+  void _updateFloatingActionButtonVisibility() {
+    setState(() {
+      _floatingActionButtonVisible = _isSwitched && _selectedIndex == 0;
+    });
+  }
+
+  void showCreateDialog(BuildContext context, String title) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text('Aquí puedes agregar más contenido o configuraciones para ' + title),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cerrar'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -235,55 +435,56 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
     return _videos.isEmpty
         ? _buildPlaceholder()
         : RefreshIndicator(
-      onRefresh: _handleRefresh,
-      child: PageView.builder(
-        controller: _pageController,
-        scrollDirection: Axis.vertical,
-        onPageChanged: (index) {
-          setState(() {
-            _currentIndex = index;
-            _initializeVideoPlayer(_videos[_currentIndex]);
-            _isSnippetsTab = true; // Ajustar según la pestaña actual
+            onRefresh: _handleRefresh,
+            child: PageView.builder(
+              controller: _pageController,
+              scrollDirection: Axis.vertical,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentIndex = index;
+                  _initializeVideoPlayer(_videos[_currentIndex]);
+                  _isSnippetsTab = true; // Ajustar según la pestaña actual
 
-            // Actualizar visibilidad del FAB
-            _floatingActionButtonVisible = _isSnippetsTab && _videos.isNotEmpty;
+                  // Actualizar visibilidad del FAB
+                  _floatingActionButtonVisible =
+                      _isSnippetsTab && _videos.isNotEmpty;
 
-            if (!_isSnippetsTab) {
-              _controller!.pause();
-              setState(() {
-                _isPlaying = false;
-                _isVideoPaused = true; // Mostrar el ícono de pausa
-              });
-            } else {
-              _controller!.play();
-              setState(() {
-                _isPlaying = true;
-                _isVideoPaused = false; // Ocultar el ícono de pausa
-              });
-            }
-          });
-        },
-        itemCount: _videos.length,
-        itemBuilder: (context, index) {
-          return GestureDetector(
-            onTap: _toggleVideoPlayback,
-            child: Stack(
-              children: [
-                Center(
-                  child: AspectRatio(
-                    aspectRatio: _controller!.value.aspectRatio,
-                    child: VideoPlayer(_controller!),
+                  if (!_isSnippetsTab) {
+                    _controller!.pause();
+                    setState(() {
+                      _isPlaying = false;
+                      _isVideoPaused = true; // Mostrar el ícono de pausa
+                    });
+                  } else {
+                    _controller!.play();
+                    setState(() {
+                      _isPlaying = true;
+                      _isVideoPaused = false; // Ocultar el ícono de pausa
+                    });
+                  }
+                });
+              },
+              itemCount: _videos.length,
+              itemBuilder: (context, index) {
+                return GestureDetector(
+                  onTap: _toggleVideoPlayback,
+                  child: Stack(
+                    children: [
+                      Center(
+                        child: AspectRatio(
+                          aspectRatio: _controller!.value.aspectRatio,
+                          child: VideoPlayer(_controller!),
+                        ),
+                      ),
+                      _buildIcons(),
+                      _avatarPhoto(context),
+                      _pauseVideo(context),
+                    ],
                   ),
-                ),
-                _buildIcons(),
-                _avatarPhoto(context),
-                _pauseVideo(context),
-              ],
+                );
+              },
             ),
           );
-        },
-      ),
-    );
   }
 
   Widget _buildFloatingActionButton() {
@@ -302,7 +503,7 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
                 color: Colors.black.withOpacity(0.3),
                 spreadRadius: 1,
                 blurRadius: 5,
-                offset: Offset(0,1),
+                offset: Offset(0, 1),
               ),
             ],
           ),
@@ -321,7 +522,6 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
       ),
     );
   }
-
 
   Widget _pauseVideo(BuildContext context) {
     return Center(
@@ -456,9 +656,7 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
           ),
           _buildIconButton(
             iconPath: 'lib/assets/mesage.svg',
-            onPressed: () {
-
-            },
+            onPressed: () {},
             isFilled: true, // Rellenar el icono de blanco
             iconSize: 40.0, // Tamaño del icono
           ),
@@ -538,8 +736,6 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
     );
   }
 
-
-
   Future<void> _handleRefresh() async {
     // Simular carga de datos o actualizar la lista de videos
     // Aquí deberías tener lógica para verificar conectividad antes de actualizar
@@ -591,7 +787,6 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
     }
   }
 
-
   // Método para grabar un nuevo video
   void _recordVideo() async {
     final picker = ImagePicker();
@@ -634,7 +829,8 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -653,7 +849,8 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
                   SizedBox(height: 16.0),
                   // Título con fondo más oscuro
                   Container(
-                    color: Color(0xFF1A1A1A), // Gris más oscuro para el fondo del título
+                    color: Color(0xFF1A1A1A),
+                    // Gris más oscuro para el fondo del título
                     padding: EdgeInsets.all(16.0),
                     child: Center(
                       child: Text(
@@ -671,8 +868,10 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
                   // Opciones de íconos
                   ListTile(
                     leading: CircleAvatar(
-                      radius: 28.0, // Tamaño del círculo
-                      backgroundColor: Colors.white.withOpacity(0.1), // Fondo más claro
+                      radius: 28.0,
+                      // Tamaño del círculo
+                      backgroundColor: Colors.white.withOpacity(0.1),
+                      // Fondo más claro
                       child: FaIcon(
                         FontAwesomeIcons.video,
                         color: Colors.red, // Ícono blanco
@@ -688,7 +887,10 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
                     ),
                     subtitle: Text(
                       'Captura un nuevo video',
-                      style: TextStyle(fontSize: 13,color: Colors.white70, fontFamily: 'Montserrat'),
+                      style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.white70,
+                          fontFamily: 'Montserrat'),
                     ),
                     onTap: () {
                       if (Vibration.hasVibrator() != null) {
@@ -700,8 +902,10 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
                   ),
                   ListTile(
                     leading: CircleAvatar(
-                      radius: 28.0, // Tamaño del círculo
-                      backgroundColor: Colors.white.withOpacity(0.1), // Fondo más claro
+                      radius: 28.0,
+                      // Tamaño del círculo
+                      backgroundColor: Colors.white.withOpacity(0.1),
+                      // Fondo más claro
                       child: Icon(
                         FontAwesomeIcons.photoVideo,
                         color: Colors.cyan, // Ícono blanco
@@ -717,7 +921,10 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
                     ),
                     subtitle: Text(
                       'Elige un video existente',
-                      style: TextStyle(fontSize: 13,color: Colors.white70, fontFamily: 'Montserrat'),
+                      style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.white70,
+                          fontFamily: 'Montserrat'),
                     ),
                     onTap: () {
                       if (Vibration.hasVibrator() != null) {
@@ -729,8 +936,10 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
                   ),
                   ListTile(
                     leading: CircleAvatar(
-                      radius: 28.0, // Tamaño del círculo
-                      backgroundColor: Colors.white.withOpacity(0.1), // Fondo más claro
+                      radius: 28.0,
+                      // Tamaño del círculo
+                      backgroundColor: Colors.white.withOpacity(0.1),
+                      // Fondo más claro
                       child: FaIcon(
                         FontAwesomeIcons.image,
                         color: Colors.green, // Ícono blanco
@@ -746,8 +955,10 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
                     ),
                     subtitle: Text(
                       'Elige una imagen existente',
-                      style: TextStyle(color: Colors.white70,
-                          fontFamily: 'Montserrat', fontSize: 13),
+                      style: TextStyle(
+                          color: Colors.white70,
+                          fontFamily: 'Montserrat',
+                          fontSize: 13),
                     ),
                     onTap: () {
                       if (Vibration.hasVibrator() != null) {
@@ -766,7 +977,6 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
     );
   }
 
-
   // Método para pausar/activar la reproducción del video
   Future<void> _toggleVideoPlayback() async {
     if (_controller!.value.isPlaying) {
@@ -783,8 +993,6 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
       });
     }
   }
-
-
 
   // Método para elegir una imagen desde la galería
   void _pickImage() async {
@@ -803,4 +1011,3 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
     super.dispose();
   }
 }
-

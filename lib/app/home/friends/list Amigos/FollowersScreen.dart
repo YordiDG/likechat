@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../estadoDark-White/DarkModeProvider.dart';
+import '../../../Globales/estadoDark-White/DarkModeProvider.dart';
 
 class FollowersScreen extends StatefulWidget {
   @override

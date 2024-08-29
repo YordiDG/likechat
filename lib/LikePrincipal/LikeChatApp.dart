@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../app/estadoDark-White/DarkModeProvider.dart';
-import '../app/estadoDark-White/Fuentes/FontSizeProvider.dart';
+import '../app/Globales/estadoDark-White/DarkModeProvider.dart';
+import '../app/Globales/estadoDark-White/Fuentes/FontSizeProvider.dart';
 import '../app/home/shortVideos/ShortVideosScreen.dart';
+import '../app/home/shortVideos/searchRapida/SearchScreen.dart';
 import '../app/registros/login/ForgotPasswordScreen.dart';
 import '../app/registros/login/LoginScreen.dart';
 import '../app/registros/providers/CodeVerificationScreen.dart';
@@ -86,6 +87,7 @@ class LikeChatApp extends StatelessWidget {
             '/verification': (context) => CodeVerificationScreen(email: ''),
             '/home': (context) => HomeScreen(),
             '/shortVideos': (context) => ShortVideosScreen(),
+            '/search-rapida': (context) => SearchScreen(),
           },
         );
       },

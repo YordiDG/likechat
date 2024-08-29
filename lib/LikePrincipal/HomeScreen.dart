@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../app/estadoDark-White/DarkModeProvider.dart';
-import '../app/estadoDark-White/Fuentes/FontSizeProvider.dart';
+import '../app/Globales/estadoDark-White/DarkModeProvider.dart';
+import '../app/Globales/estadoDark-White/Fuentes/FontSizeProvider.dart';
 import '../app/home/chats/ChatsScreen.dart';
 import '../app/home/chats/storys/LikeChatScreen.dart';
 import '../app/home/friends/FriendsScreen.dart';
@@ -72,11 +71,11 @@ class _HomeScreenState extends State<HomeScreen> {
               label: 'Snippets',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.notifications, color: _selectedIndex == 3 ? Colors.cyan : Colors.grey),
+              icon: Icon(Icons.notifications, color: _selectedIndex == 3 ? Colors.cyan : Colors.grey ),
               label: 'Avisos',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person, color: _selectedIndex == 4 ? Colors.cyan : Colors.grey),
+              icon: Icon(Icons.person, color: _selectedIndex == 4 ? Colors.cyan : Colors.grey ),
               label: 'Perfil',
             ),
           ],

@@ -3,7 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../../estadoDark-White/DarkModeProvider.dart';
+import '../../Globales/estadoDark-White/DarkModeProvider.dart';
 import '../providers/AuthProvider.dart';
 import '../providers/CodeVerificationScreen.dart';
 import 'package:provider/provider.dart';

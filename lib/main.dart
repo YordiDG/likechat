@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'LikePrincipal/LikeChatApp.dart';
-import 'app/estadoDark-White/DarkModeProvider.dart';
-import 'app/estadoDark-White/Fuentes/FontSizeProvider.dart';
+import 'app/Globales/estadoDark-White/DarkModeProvider.dart';
+import 'app/Globales/estadoDark-White/Fuentes/FontSizeProvider.dart';
 import 'app/registros/providers/AuthProvider.dart';
 
 

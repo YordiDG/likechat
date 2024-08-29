@@ -70,6 +70,9 @@ dependencies:
   pdf_image_renderer: ^0.7.0
   qr_code_scanner: ^1.0.1
   flutter_facebook_auth: ^7.0.1
+  youtube_player_flutter: ^9.0.2
+  #arkit_plugin: ^1.1.0
+  #arcore_flutter_plugin: ^0.1.0
   #geolocator: ^12.0.0
 
   #flutter_localizations:

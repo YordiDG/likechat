@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 
-import '../../../estadoDark-White/DarkModeProvider.dart';
+import '../../../Globales/estadoDark-White/DarkModeProvider.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final String username;

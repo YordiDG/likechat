@@ -3,9 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart'; // Paquete para escaneo QR
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart'; // Paquete para Facebook
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 
-import '../../../../../estadoDark-White/DarkModeProvider.dart';
+import '../../../../../Globales/estadoDark-White/DarkModeProvider.dart'; // Paquete para Facebook
+
 
 class AccountVerificationScreen extends StatefulWidget {
   @override

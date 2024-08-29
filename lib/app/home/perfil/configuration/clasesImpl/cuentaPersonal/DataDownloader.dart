@@ -6,7 +6,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:flutter/services.dart' show rootBundle;
 
-import '../../../../../estadoDark-White/DarkModeProvider.dart';
+import '../../../../../Globales/estadoDark-White/DarkModeProvider.dart';
+
 
 class DownloadDataScreen extends StatefulWidget {
   @override

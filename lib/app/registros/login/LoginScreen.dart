@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../estadoDark-White/DarkModeProvider.dart';
+import '../../Globales/estadoDark-White/DarkModeProvider.dart';
 import '../providers/AuthProvider.dart';
 import 'ForgotPasswordScreen.dart';
 import 'package:google_sign_in/google_sign_in.dart';

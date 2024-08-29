@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../estadoDark-White/DarkModeProvider.dart';
+import '../../Globales/estadoDark-White/DarkModeProvider.dart';
 import 'configuration/MenuConfiguration.dart';
 import 'editProfile/EditProfile.dart';
 import 'package:image_picker/image_picker.dart';

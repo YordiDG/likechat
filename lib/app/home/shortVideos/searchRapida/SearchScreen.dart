@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../estadoDark-White/DarkModeProvider.dart';
+import '../../../Globales/estadoDark-White/DarkModeProvider.dart';
 import 'Ayuda/HelpScreen.dart';
 import 'package:provider/provider.dart';
 

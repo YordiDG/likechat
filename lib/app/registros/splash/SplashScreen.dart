@@ -56,11 +56,18 @@ class _SplashScreenState extends State<SplashScreen> {
               Navigator.of(context).pop();
               _checkInternetConnection();
             },
+            style: TextButton.styleFrom(
+              side: BorderSide(color: Colors.cyan, width: 2.0), // Borde ligero en el botón
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+            ),
             child: Text(
               'Reintentar',
               style: TextStyle(
                 fontSize: 18,
-                color: Colors.red,
+                color: Colors.pink,
               ),
             ),
           ),

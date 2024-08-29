@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
-import '../../ShortVideosScreen.dart';
+import '../../../../Globales/estadoDark-White/DarkModeProvider.dart';
+import '../../muestraaaaaaaaaaa/VideoFeedScreen.dart';
 import 'MasOpciones/MasOpcionesModal.dart';
 
 // Modelo para opciones de publicación
@@ -72,15 +74,22 @@ class _VideoPublishScreenState extends State<VideoPublishScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+    final iconColor = darkModeProvider.iconColor;
+    final backgroundColor = darkModeProvider.backgroundColor;
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: backgroundColor,
         title: Text(
           'Publicar',
-          style: TextStyle(fontSize: 21,color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 21,color: textColor, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back, color: iconColor),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -131,25 +140,20 @@ class _VideoPublishScreenState extends State<VideoPublishScreen> {
                             });
                           },
                           decoration: InputDecoration(
-                            hintText: 'Añade una breve descripción para alcanzar mas visitas',
+                            hintText: 'Añade una breve descripción para alcanzar más visitas',
                             hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14.0),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.white, width: 1.0),
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.white, width: 1.0),
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
+                            focusedBorder: InputBorder.none, // Quita el borde al enfocar
+                            enabledBorder: InputBorder.none, // Quita el borde cuando está habilitado
                             counterStyle: TextStyle(color: Colors.black),
                             counterText: '',
-                            hintMaxLines: 2, // Añadir esta línea para establecer un máximo de líneas
+                            hintMaxLines: 2,
                           ),
+                          cursorColor: Colors.cyan,
                           maxLength: 130,
                           maxLines: null,
                           maxLengthEnforcement: MaxLengthEnforcement.enforced,
                           style: TextStyle(
-                            fontSize: 16.0, color: Colors.black, height: 1.1,
+                            fontSize: 16.0, color: textColor, height: 1.1,
                           ),
                         ),
                       ),
@@ -181,7 +185,7 @@ class _VideoPublishScreenState extends State<VideoPublishScreen> {
                       child: Text(
                         '# Hashtag',
                         style: TextStyle(
-                            color: Colors.grey[700],
+                            color: Colors.grey[600],
                             fontSize: 13,
                             fontWeight: FontWeight.bold),
                       ),
@@ -207,7 +211,7 @@ class _VideoPublishScreenState extends State<VideoPublishScreen> {
                       child: Text(
                         '@ Amigos',
                         style: TextStyle(
-                            color: Colors.grey[700],
+                            color: Colors.grey[600],
                             fontSize: 13,
                             fontWeight: FontWeight.bold),
                       ),
@@ -240,7 +244,7 @@ class _VideoPublishScreenState extends State<VideoPublishScreen> {
                                   style: TextStyle(
                                       fontSize: 15.0,
                                       fontWeight: FontWeight.w700,
-                                      color: Colors.black),
+                                      color: textColor),
                                 ),
                               ],
                             ),
@@ -275,7 +279,7 @@ class _VideoPublishScreenState extends State<VideoPublishScreen> {
                                   color: widget.publishOptions.privacyOption ==
                                           'publico'
                                       ? Colors.white
-                                      : Colors.black,
+                                      : iconColor,
                                 ),
                                 label: Text(
                                   'Público',
@@ -284,7 +288,7 @@ class _VideoPublishScreenState extends State<VideoPublishScreen> {
                                         widget.publishOptions.privacyOption ==
                                                 'publico'
                                             ? Colors.white
-                                            : Colors.black,
+                                            : textColor,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 14
                                   ),
@@ -315,7 +319,7 @@ class _VideoPublishScreenState extends State<VideoPublishScreen> {
                                   color: widget.publishOptions.privacyOption ==
                                           'privado'
                                       ? Colors.white
-                                      : Colors.black,
+                                      : iconColor,
                                 ),
                                 label: Text(
                                   'Privado',
@@ -324,7 +328,7 @@ class _VideoPublishScreenState extends State<VideoPublishScreen> {
                                         widget.publishOptions.privacyOption ==
                                                 'privado'
                                             ? Colors.white
-                                            : Colors.black,
+                                            : textColor,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 14
                                   ),
@@ -357,7 +361,7 @@ class _VideoPublishScreenState extends State<VideoPublishScreen> {
                           'Permisos',
                           style: TextStyle(
                               fontSize: 15.0,
-                              color: Colors.black,
+                              color: textColor,
                               fontWeight: FontWeight.bold),
                         ),
                         Icon(
@@ -392,7 +396,7 @@ class _VideoPublishScreenState extends State<VideoPublishScreen> {
                                 Text(
                                   'Permitir descargas',
                                   style: TextStyle(
-                                      color: Colors.black,
+                                      color: textColor,
                                       fontWeight: FontWeight.w500,
                                       fontSize: 13),
                                 ),
@@ -438,7 +442,7 @@ class _VideoPublishScreenState extends State<VideoPublishScreen> {
                                 Text(
                                   'Permitir Ubicación',
                                   style: TextStyle(
-                                      color: Colors.black,
+                                      color: textColor,
                                       fontSize: 13,
                                       fontWeight: FontWeight.w500),
                                 ),
@@ -483,7 +487,7 @@ class _VideoPublishScreenState extends State<VideoPublishScreen> {
                                 SizedBox(width: 8),
                                 Text('Permitir Comentarios',
                                     style: TextStyle(
-                                        color: Colors.black,
+                                        color: textColor,
                                         fontSize: 13,
                                         fontWeight: FontWeight.w500)),
                                 Spacer(),
@@ -524,7 +528,7 @@ class _VideoPublishScreenState extends State<VideoPublishScreen> {
                         style: TextStyle(
                           fontSize: 15.0,
                           fontWeight: FontWeight.w700,
-                          color: Colors.black,
+                          color: textColor,
                         ),
                       ),
                       IconButton(
@@ -543,24 +547,28 @@ class _VideoPublishScreenState extends State<VideoPublishScreen> {
                   ),
                 ],
               ),
-
               SizedBox(height: 16.0),
-
               // Post Button
               ElevatedButton(
                 onPressed: () {
-
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => VideoPlayerScreen(
+                        videoPath: widget.videoPath,
+                        publishOptions: widget.publishOptions,
+                      ),
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.pinkAccent,
-                  padding:
-                      EdgeInsets.symmetric(vertical: 11.0, horizontal: 14.0),
+                  padding: EdgeInsets.symmetric(vertical: 11.0, horizontal: 14.0),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                   elevation: 3,
-                  // Elevación del botón
-                  shadowColor: Colors.grey, // Color de la sombra del botón
+                  shadowColor: Colors.grey,
                 ),
                 child: Text(
                   'Postear',

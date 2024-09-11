@@ -11,7 +11,6 @@ import 'package:vibration/vibration.dart';
 import '../PreviewVideo/VideoPreviewScreen.dart';
 
 
-// Modelo para opciones de publicación
 class VideoPlayerScreen extends StatefulWidget {
   final String videoPath;
   final PublishOptions publishOptions;
@@ -30,6 +29,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   bool _isPaused = false;
   bool _isLiked = false;
   bool _floatingActionButtonVisible = true;
+  static List<String> videoList = []; // Lista temporal de videos
+  int currentIndex = 0; // Índice del video actual
 
   @override
   void initState() {
@@ -47,6 +48,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           _isPaused = !_controller.value.isPlaying;
         });
       }
+    });
+
+    // Agregar video a la lista y actualizar el índice
+    setState(() {
+      videoList.add(widget.videoPath);
+      currentIndex = videoList.length - 1;
     });
   }
 
@@ -74,6 +81,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     });
   }
 
+  void _refreshPage() {
+    // Método para refrescar la página actual
+    setState(() {
+      // Actualizar estado aquí si es necesario
+    });
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -83,10 +99,20 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         onVerticalDragUpdate: (details) {
           if (details.primaryDelta! > 0) {
             // Deslizar hacia abajo
-            Navigator.of(context).pop();
+            _refreshPage(); // Refrescar la pantalla actual
           } else if (details.primaryDelta! < 0) {
             // Deslizar hacia arriba
-            // Implementar el cambio a otro video o la navegación aquí si es necesario
+            // Navegar al siguiente video si hay
+            if (currentIndex < videoList.length - 1) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => VideoPlayerScreen(
+                    videoPath: videoList[currentIndex + 1],
+                    publishOptions: widget.publishOptions,
+                  ),
+                ),
+              );
+            }
           }
         },
         child: Stack(
@@ -171,9 +197,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           ],
         ),
       ),
-
-      floatingActionButton:
-      _floatingActionButtonVisible ? _buildFloatingActionButton() : null,
+      floatingActionButton: _floatingActionButtonVisible
+          ? FloatingActionButton(
+        onPressed: _buildFloatingActionButton, // Subir nuevo video
+        child: Icon(Icons.add),
+      )
+          : null,
     );
   }
 

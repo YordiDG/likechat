@@ -281,6 +281,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+    final iconColor = darkModeProvider.iconColor;
+    final backgroundColor = darkModeProvider.backgroundColor;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFF1F1F1F),
@@ -419,7 +426,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                             focusNode: _focusNode,
                                             controller: _textController,
                                             maxLines: null,
-                                            style: TextStyle(color: Colors.black),
+                                            style: TextStyle(color: textColor),
                                             decoration: InputDecoration(
                                               hintText: 'Mensaje...',
                                               hintStyle: TextStyle(color: Colors.grey[600]),

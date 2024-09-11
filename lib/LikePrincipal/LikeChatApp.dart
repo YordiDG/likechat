@@ -8,6 +8,7 @@ import '../app/registros/login/ForgotPasswordScreen.dart';
 import '../app/registros/login/LoginScreen.dart';
 import '../app/registros/providers/CodeVerificationScreen.dart';
 import '../app/registros/register/RegisterScreen.dart';
+import '../app/registros/registroMuestraaaaaaaa/NameScreen.dart';
 import '../app/registros/splash/SplashScreen.dart';
 import 'HomeScreen.dart';
 
@@ -84,6 +85,7 @@ class LikeChatApp extends StatelessWidget {
             '/login': (context) => LoginScreen(),
             '/recover_password': (context) => RecoverPasswordScreen(),
             '/register': (context) => RegisterScreen(),
+            '/listaregistro': (context) => NameScreen(),
             '/verification': (context) => CodeVerificationScreen(email: ''),
             '/home': (context) => HomeScreen(),
             '/shortVideos': (context) => ShortVideosScreen(),

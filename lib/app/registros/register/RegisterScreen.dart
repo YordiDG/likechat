@@ -45,7 +45,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         return false; // Prevent default back button behavior
       },
       child: Scaffold(
-        backgroundColor: backgroundColor,
+        backgroundColor: isDarkMode ? Color(0xFF0F101B) : Colors.white,
         body: Padding(
           padding: EdgeInsets.all(20.0),
           child: SingleChildScrollView(
@@ -338,7 +338,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       'Registro',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: textColor,
+                        color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),

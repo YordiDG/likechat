@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../../Globales/estadoDark-White/DarkModeProvider.dart';
 import '../providers/AuthProvider.dart';
 
 class CodeVerificationScreen extends StatefulWidget {
@@ -20,6 +21,13 @@ class _CodeVerificationScreenState extends State<CodeVerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+    final iconColor = darkModeProvider.iconColor;
+    final backgroundColor = darkModeProvider.backgroundColor;
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       // Evitar que el teclado desplace la pantalla
@@ -33,57 +41,86 @@ class _CodeVerificationScreenState extends State<CodeVerificationScreen> {
               Text(
                 'Ingrese el código recibido en su correo electrónico:',
                 style: TextStyle(
-                  fontSize: 24.0,
+                  fontSize: 20.0,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: isDarkMode ? Colors.white : Colors.black,
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 30.0),
-              Form(
-                key: _formKey,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(
-                    6,
-                    (index) => SizedBox(
-                      width: 40.0,
-                      child: TextFormField(
-                        controller: _codeControllers[index],
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly
-                        ],
-                        textAlign: TextAlign.center,
-                        maxLength: 1,
-                        style: TextStyle(
+              SizedBox(height: 60.0),
+            Form(
+              key: _formKey,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: List.generate(6, (index) {
+                  return SizedBox(
+                    width: 40.0,
+                    child: StatefulBuilder(
+                      builder: (BuildContext context, StateSetter setState) {
+                        FocusNode _focusNode = FocusNode();
+                        bool _isError = false;
+
+                        return TextFormField(
+                          controller: _codeControllers[index],
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                          textAlign: TextAlign.center,
+                          maxLength: 1,
+                          focusNode: _focusNode,
+                          style: const TextStyle(
                             fontSize: 24.0,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black),
-                        decoration: InputDecoration(
-                          counterText: '',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10.0),
+                            color:  Colors.cyan,
                           ),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Ingrese un número';
-                          }
-                          return null;
-                        },
-                        onChanged: (value) {
-                          if (value.length == 1 &&
-                              index < _codeControllers.length - 1) {
-                            FocusScope.of(context).nextFocus();
-                          }
-                        },
-                      ),
+                          decoration: InputDecoration(
+                            counterText: '',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                              borderSide: BorderSide(
+                                color: _isError ? Colors.pink : Colors.grey,
+                                width: 2.0,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                              borderSide: BorderSide(
+                                color: Colors.cyan,
+                                width: 2.0,
+                              ),
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                              borderSide: BorderSide(
+                                color: Colors.pink,
+                                width: 2.0,
+                              ),
+                            ),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              setState(() {
+                                _isError = true;
+                              });
+                              return 'Ingrese un número';
+                            }
+                            setState(() {
+                              _isError = false;
+                            });
+                            return null;
+                          },
+                          onChanged: (value) {
+                            if (value.length == 1 && index < _codeControllers.length - 1) {
+                              FocusScope.of(context).nextFocus();
+                            }
+                          },
+                        );
+                      },
                     ),
-                  ),
-                ),
+                  );
+                }),
               ),
-              SizedBox(height: 40.0),
+            ),
+            SizedBox(height: 30.0),
               ElevatedButton(
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
@@ -251,7 +288,7 @@ class _CodeVerificationScreenState extends State<CodeVerificationScreen> {
                 },
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Color(0xFF0D0D55),
-                  backgroundColor: Color(0xFF4FD905),
+                  backgroundColor: Colors.cyan ,
                   padding: EdgeInsets.symmetric(horizontal: 35, vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),
@@ -260,8 +297,9 @@ class _CodeVerificationScreenState extends State<CodeVerificationScreen> {
                 child: Text(
                   'Verificar código',
                   style: TextStyle(
-                    fontSize: 20.0,
+                    fontSize: 18.0,
                     fontWeight: FontWeight.bold,
+                    color: Colors.white
                   ),
                 ),
               ),

@@ -41,6 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
     final textColor = darkModeProvider.textColor;
     final iconColor = darkModeProvider.iconColor;
     final backgroundColor = darkModeProvider.backgroundColor;
@@ -189,50 +190,56 @@ class _LoginScreenState extends State<LoginScreen> {
                               return Center(
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(15),
-                                    ),
-                                    padding: EdgeInsets.all(16),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          'Cuenta bloqueada',
-                                          style: TextStyle(
-                                            color: textColor,
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        Icon(Icons.lock),
-                                        SizedBox(height: 16),
-                                        Text(
-                                          'Debido a múltiples intentos fallidos, tu cuenta ha sido bloqueada temporalmente. Vuelve a intentar en 10 minutos.',
-                                          style: TextStyle(color: textColor, fontSize: 16),
-                                          textAlign: TextAlign.justify,
-                                        ),
-                                        SizedBox(height: 16),
-                                        ElevatedButton(
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.red,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(10),
+                                  child: Material(
+                                    borderRadius: BorderRadius.circular(15), // Asegura que el dialogo tenga el material necesario
+                                    color: Colors.transparent, // Hace que el material sea transparente
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: isDarkMode ? Colors.grey.shade900 : Colors.grey.shade500,
+                                        borderRadius: BorderRadius.circular(15),
+                                      ),
+                                      padding: const EdgeInsets.all(16),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            'Cuenta bloqueada',
+                                            style: TextStyle(
+                                              color: textColor,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
                                             ),
                                           ),
-                                          child: Text('OK'),
-                                        ),
-                                      ],
+                                          const SizedBox(height: 16),
+                                          const Icon(Icons.lock, size: 30),
+                                          const SizedBox(height: 16),
+                                          Text(
+                                            'Debido a múltiples intentos fallidos, tu cuenta ha sido bloqueada temporalmente. Vuelve a intentar en 10 minutos.',
+                                            style: TextStyle(color: textColor, fontSize: 16),
+                                            textAlign: TextAlign.justify,
+                                          ),
+                                          const SizedBox(height: 16),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.pink,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
+                                            ),
+                                            child: const Text('OK', style: TextStyle(color: Colors.white)),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
                               );
                             },
                           );
+
                         }
                       }
                     },

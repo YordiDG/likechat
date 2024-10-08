@@ -71,6 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     filled: true,
                     fillColor: fillColorEmail,
                     labelText: 'Correo electrónico',
+                    //labelStyle: TextStyle(color: Colors.cyan),
                     prefixIcon: Icon(Icons.email, color: iconColor),
                     errorText: _showEmailError ? 'Correo inválido o no autenticado' : null,
                     errorStyle: TextStyle(color: Color(0xFFFF0E0E)),
@@ -80,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: borderColor, width: 2.0),
+                      borderSide: BorderSide(color: Colors.cyan, width: 2.0),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -94,6 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 SizedBox(height: 22),
                 TextField(
+                  cursorColor: Colors.cyan,
                   controller: _passwordController,
                   obscureText: _obscureText,
                   decoration: InputDecoration(
@@ -120,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: borderColor, width: 2.0),
+                      borderSide: BorderSide(color: Colors.cyan, width: 2.0),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -259,7 +261,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-                SizedBox(height: 1),
                 TextButton(
                   onPressed: () {
                     Navigator.push(
@@ -270,8 +271,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Text(
                     '¿Olvidaste tu contraseña?',
                     style: TextStyle(
-                      color: Colors.cyan,
-                      fontSize: 14,
+                      color: isDarkMode ? Colors.cyan : Color(0xFF068C8C),
+                      fontSize: 13,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -330,7 +331,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         TextSpan(
                           text: 'Regístrate',
                           style: TextStyle(
-                            color: Colors.cyan,
+                            color: isDarkMode ? Colors.cyan : Color(0xFF068C8C),
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),

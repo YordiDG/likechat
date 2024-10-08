@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:LikeChat/app/home/perfil/photoPerfil/detail/ImageDetailDialog.dart';
 import 'package:LikeChat/app/home/perfil/photoPerfil/detail/ImagePreviewScreen.dart';
 import 'package:LikeChat/app/home/perfil/snippets/DetailSnipptes/SnippetsDetailScreen.dart';
@@ -10,6 +12,7 @@ import 'configuration/MenuConfiguration.dart';
 import 'editProfile/EditProfile.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'gallery/ImageDetail/ImageDetailDialog.dart';
 
@@ -23,10 +26,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _showGallery = true;
   bool _showVideo = false;
   bool _showStories = false;
-  List<String> images = [];
-  List<String> videos = [];
   List<String> history = [];
   String? _tempProfileImage;
+
+  List<String> _imageUrls = [];
+  bool _loading = true;
+  List<Map<String, dynamic>> _videoUrls = [];
+
 
   String username = 'Yordi Gonzales';
   String description = 'Añade una breve descripción';
@@ -37,22 +43,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
+    _fetchImages();
+    _fetchVideos('love, nature, travel, food, cities, travel');
 
-    images = [
-      'lib/assets/logo.png',
-      'lib/assets/placeholder_user.jpg',
-      'lib/assets/logo.png',
-      'lib/assets/logo.png',
-      'lib/assets/logo.png',
-      'lib/assets/logo.png',
-    ];
-
-    videos = [
-      'https://www.tom_w=pc',
-      'https://www.tiktok.com/@webapp=1&sender_device=pc',
-      'https://www.tiktbapp=1&sender_device=pc',
-      'https://www.tiktok.cis_from_webapp=1&sender_device=pc',
-    ];
   }
 
   void _updateProfile(
@@ -407,19 +400,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         )
                       ],
                     ),
-                    SizedBox(height: 12),
                     Container(
                       width: double.infinity,
-                      padding: EdgeInsets.all(16),
+                      padding: EdgeInsets.all(5),
                       child: Text(
                         description,
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 14,
                           color: isDarkMode ? Colors.white : Colors.black,
                         ),
                       ),
                     ),
-                    SizedBox(height: 1),
                     GestureDetector(
                       onTap: () {
                         if (socialLink.isNotEmpty &&
@@ -476,7 +467,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               _buildButtonsSection(),
-              SizedBox(height: 2),
               _buildContentSection(),
             ],
           ),
@@ -594,7 +584,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ],
           ),
-          SizedBox(height: 8.0),
+          SizedBox(height: 4.0),
           // Espacio entre la línea de los botones y el borde inferior
           Container(
             height: 0.1,
@@ -664,8 +654,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _fetchImages() async {
+    const apiKey = 'KAEVuNf8VCwEGTHfxOhWN3gfGvKyU4e2dkE5HOcRM1M';
+
+    // imagenes multiples
+    const query = 'travel, food';
+    final response = await http.get(
+      Uri.parse('https://api.unsplash.com/search/photos?query=$query&client_id=$apiKey&per_page=25'),
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = json.decode(response.body);
+      setState(() {
+        _imageUrls = (data['results'] as List<dynamic>)
+            .map((item) => item['urls']['small'] as String)
+            .toList();
+        _loading = false;
+      });
+    } else {
+      setState(() {
+        _loading = false;
+      });
+      throw Exception('Failed to load images');
+    }
+  }
+
   Widget _buildGalleryContent() {
-    if (images.isEmpty) {
+    if (_imageUrls.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -679,7 +694,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             SizedBox(height: 10),
             Text(
               'No hay fotos disponibles',
-              style: TextStyle(fontSize: 14, color: Colors.grey[500], ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
             ),
           ],
         ),
@@ -691,10 +706,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       physics: NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
-        mainAxisSpacing: 0.5, // Espacio vertical entre los elementos
-        crossAxisSpacing: 0.5, // Espacio horizontal entre los elementos
+        mainAxisSpacing: 0.5,
+        crossAxisSpacing: 0.5,
       ),
-      itemCount: images.length,
+      itemCount: _imageUrls.length,
       itemBuilder: (context, index) {
         return GestureDetector(
           onTap: () {
@@ -702,7 +717,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               context,
               MaterialPageRoute(
                 builder: (context) => ImageDetailScreen(
-                  imageUrls: images,
+                  imageUrls: _imageUrls,
                   initialIndex: index,
                 ),
               ),
@@ -712,9 +727,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(2.0),
               border: Border.all(color: Colors.white, width: 1.0),
-              // Borde blanco delgado
               image: DecorationImage(
-                image: AssetImage(images[index]),
+                image: NetworkImage(_imageUrls[index])
+                  ..resolve(ImageConfiguration())
+                      .addListener(
+                    ImageStreamListener(
+                          (ImageInfo image, bool synchronousCall) {},
+                      onError: (error, stackTrace) {
+                        // Manejar el error aquí
+                        setState(() {
+                          _imageUrls[index] = 'assets/logo.png'; // Ruta del placeholder
+                        });
+                      },
+                    ),
+                  ),
                 fit: BoxFit.cover,
               ),
             ),
@@ -724,23 +750,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Future<void> _fetchVideos(String query) async {
+    const apiKey = 'jUOv1hg2RxnB7vQcFZzbYdQB9bhYCAyS7wjvZVVpFoDQTqtj2QzoStbB';  // clave API
+
+    final response = await http.get(
+      Uri.parse('https://api.pexels.com/videos/search?query=$query&per_page=45'),
+      headers: {
+        'Authorization': apiKey,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = json.decode(response.body);
+      setState(() {
+        _videoUrls = (data['videos'] as List<dynamic>)
+            .map((item) => {
+          'videoUrl': item['video_files'][0]['link'],
+          'thumbnailUrl': item['image'],  // Aquí extraemos la miniatura del video
+        })
+            .toList();
+        _loading = false;
+      });
+    } else {
+      setState(() {
+        _loading = false;
+      });
+      throw Exception('Failed to load videos');
+    }
+  }
+
+
   Widget _buildVideoContent() {
-    if (videos.isEmpty) {
+    if (_videoUrls.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SizedBox(height: 30.0),
-            Icon(
-              Icons.videocam_off_rounded,
-              size: 70,
-              color: Colors.black,
-            ),
+            Icon(Icons.videocam_off_rounded, size: 70, color: Colors.black),
             SizedBox(height: 10),
-            Text(
-              'No hay Snippets disponibles',
-              style: TextStyle(fontSize: 14, color: Colors.grey[500],),
-            ),
+            Text('No hay videos disponibles', style: TextStyle(fontSize: 14, color: Colors.grey[500])),
           ],
         ),
       );
@@ -754,27 +803,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
         mainAxisSpacing: 1.0,
         crossAxisSpacing: 1.0,
       ),
-      itemCount: videos.length,
+      itemCount: _videoUrls.length,
       itemBuilder: (context, index) {
+        final video = _videoUrls[index];
         return GestureDetector(
           onTap: () {
-            _playVideo(context, videos[index]);
+            _playVideo(context, video['videoUrl']);
           },
           child: Stack(
             fit: StackFit.expand,
             children: [
               Image.network(
-                'https://via.placeholder.com/150', // Placeholder image
+                video['thumbnailUrl'],  // Usamos la miniatura real
                 fit: BoxFit.cover,
               ),
               Align(
                 alignment: Alignment.center,
-                child: Icon(
-                  Icons.play_circle_fill,
-                  size: 50,
-                  color: Colors.white.withOpacity(0.8),
+                child: Container(
+                  width: 40,  // Tamaño del círculo
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.4),  // Fondo blanco translúcido
+                    shape: BoxShape.circle,  // Forma circular
+                  ),
+                  child: Icon(
+                    Icons.play_arrow,  // Ícono de reproducción
+                    size: 25,  // Tamaño más grande para hacerlo más prominente
+                    color: Colors.white.withOpacity(0.9),  // Color blanco con opacidad para mejor contraste
+                  ),
                 ),
               ),
+              Align(
+                alignment: Alignment.bottomCenter,  // Posiciona el Row en la parte inferior central
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),  // Un poco de espacio
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min, // Ajusta el tamaño del Row al contenido
+                    mainAxisAlignment: MainAxisAlignment.center, // Centra los hijos del Row horizontalmente
+                    children: [
+                      Icon(Icons.play_arrow, size: 16, color: Colors.white),  // Ícono de reproducción pequeño
+                      SizedBox(width: 4),
+                      Text(
+                        '100 mil',  // Simulación de 100 mil vistas
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+              )
             ],
           ),
         );
@@ -782,13 +858,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+
   void _playVideo(BuildContext context, String videoUrl) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => SnippetsDetailScreen(
-          imageUrls: [],
-          initialIndex: 1,
+        builder: (context) => VideoDetailScreen(
+          videoUrls: _videoUrls.map((item) => item['videoUrl'] as String).toList(),
+          initialIndex: _videoUrls.indexWhere((item) => item['videoUrl'] == videoUrl),
         ),
       ),
     );

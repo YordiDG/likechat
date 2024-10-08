@@ -9,6 +9,7 @@ import 'clasesImpl/Monetization/MonetizationScreen.dart';
 import 'clasesImpl/Permisos/PermissionsSettings.dart';
 import 'clasesImpl/Privacidad/PrivacySettings.dart';
 import 'clasesImpl/VideoList/ListVideos.dart';
+import 'clasesImpl/accesibilidad/AccessibilitySettings.dart';
 import 'clasesImpl/estadoDeCuenta/EstadoDeCuentaScreen.dart';
 import 'clasesImpl/security/SecuritySettings.dart';
 
@@ -365,11 +366,29 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
                 },
               ),
               MenuTile(
-                  icon: Icons.accessibility,
-                  title: 'Accesibilidad',
-                  tileColor: tileColor,
-                  textColor: textColor,
-                  fontSize: fontSize),
+                icon: Icons.accessibility,
+                title: 'Accesibilidad',
+                tileColor: tileColor,
+                textColor: textColor,
+                fontSize: fontSize,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AccessibilitySettings(
+                        tileColor: tileColor,
+                        textColor: textColor,
+                        sectionTitleColor: textColor,
+                        titleColor: textColor,
+                        descriptionColor: textColor,
+                        titleFontSize: fontSize,
+                        sectionTitleFontSize: fontSize,
+                        descriptionFontSize: fontSize,
+                      ),
+                    ),
+                  );
+                },
+              ),
               MenuTile(
                   icon: Icons.notifications,
                   title: 'Notificaciones',

@@ -31,6 +31,42 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   bool _isRegistered = false;
 
+  //email
+  final FocusNode _emailFocusNode = FocusNode();
+  String? emailErrorMessage;
+
+  //Validaciones de password
+  final FocusNode _passwordFocusNode = FocusNode();
+  bool hasMinLength = false;
+  bool hasLetter = false;
+  bool hasNumber = false;
+  bool hasSpecialChar = false;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _emailFocusNode.addListener(_onEmailFocusChange);
+    
+    _passwordFocusNode.addListener(() {
+      if (!_passwordFocusNode.hasFocus) {
+        resetValidators();
+      }
+    });
+
+  }
+
+  @override
+  void dispose() {
+
+    _emailController.dispose();
+    _emailFocusNode.dispose();
+    _passwordController.dispose();
+    _passwordFocusNode.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
@@ -143,7 +179,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       labelStyle: TextStyle(color: textColor),
                     ),
                     dropdownColor: Colors.cyan.withOpacity(0.9),
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
                   ),
                 ),
                 Row(
@@ -208,28 +244,69 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         builder: (BuildContext context) {
                           return Theme(
                             data: ThemeData(
-                              dialogBackgroundColor: Colors.red.withOpacity(0.9),
+                              dialogBackgroundColor: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey[850] // Fondo oscuro para tema dark
+                                  : Colors.white,
                               textTheme: TextTheme(
-                                bodyLarge: TextStyle(color: Colors.white),
+                                bodyLarge: TextStyle(
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.white // Texto blanco para tema oscuro
+                                      : Colors.black, // Texto negro para tema claro
+                                ),
                               ),
                             ),
                             child: AlertDialog(
-                              title: Text(
-                                'Error de registro',
-                                style: TextStyle(color: Colors.white),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(17), // Bordes redondeados
+                              ),
+                              title: Row(
+                                children: [
+                                  Icon(
+                                    Icons.error_outline,
+                                    color: Theme.of(context).brightness == Brightness.dark
+                                        ? Colors.redAccent
+                                        : Colors.red,
+                                  ),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    'Error de registro',
+                                    style: TextStyle(
+                                      color: Theme.of(context).brightness == Brightness.dark
+                                          ? Colors.redAccent
+                                          : Colors.red,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
                               ),
                               content: Text(
                                 errorMessage,
-                                style: TextStyle(color: Colors.white),
+                                style: TextStyle(
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.white
+                                      : Colors.black,
+                                ),
                               ),
                               actions: <Widget>[
                                 TextButton(
+                                  style: TextButton.styleFrom(
+                                    backgroundColor: Theme.of(context).brightness == Brightness.dark
+                                        ? Colors.redAccent
+                                        : Colors.red,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
                                   onPressed: () {
                                     Navigator.of(context).pop();
                                   },
                                   child: Text(
                                     'OK',
-                                    style: TextStyle(color: Colors.white),
+                                    style: TextStyle(
+                                      color: Theme.of(context).brightness == Brightness.dark
+                                          ? Colors.white
+                                          : Colors.white,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -368,7 +445,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
 
   String? _validateFields() {
-    // Validar campos individualmente
+
     if (_firstNameController.text.isEmpty) {
       return 'Por favor, ingrese su nombre.';
     }
@@ -406,10 +483,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         TextInputType keyboardType = TextInputType.text,
         int? maxLength,
       }) {
+
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
     final isDarkMode = darkModeProvider.isDarkMode;
-
-    // Colores en función del modo oscuro o claro
     final textColor = isDarkMode ? Colors.white : Colors.black;
     final borderColor = isDarkMode ? Colors.white.withOpacity(0.5) : Colors.black.withOpacity(0.5);
     final focusedBorderColor = Colors.cyan;
@@ -417,7 +493,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     bool showError = false;
     String? errorText;
 
-    // Validar el campo
     if (labelText == 'First Name' && controller.text.isEmpty) {
       showError = true;
       errorText = 'Por favor, ingrese su nombre.';
@@ -455,11 +530,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildEmailField(String labelText, TextEditingController controller) {
-    bool showError = false;
-    Timer? _timer;
+  //email
 
-    // Determinar los colores basados en el modo oscuro o claro
+  Widget _buildEmailField(String labelText, TextEditingController controller) {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDarkMode ? Colors.white : Colors.black;
     final borderColor = isDarkMode ? Colors.white : Colors.black;
@@ -469,10 +542,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TextFormField(
+        TextField(
           controller: controller,
+          focusNode: _emailFocusNode,
           keyboardType: TextInputType.emailAddress,
-          maxLength: 60,
           decoration: InputDecoration(
             labelText: labelText,
             filled: true,
@@ -485,66 +558,90 @@ class _RegisterScreenState extends State<RegisterScreen> {
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide(color: focusedBorderColor, width: 2.0),
             ),
-            labelStyle: TextStyle(color: textColor,),
-            prefixIcon: Icon(Icons.email, color: textColor), // Icono añadido
+            labelStyle: TextStyle(color: textColor),
+            prefixIcon: Icon(Icons.email, color: textColor),
           ),
           style: TextStyle(color: textColor),
           onChanged: (value) {
             setState(() {
-              showError = !validateEmail(value);
-              _timer?.cancel();
-              _timer = Timer(Duration(seconds: 2), () {
-                setState(() {
-                  showError = false;
-                });
-              });
+              if (value.isEmpty) {
+                emailErrorMessage = 'Campo email es obligatorio';
+              } else if (!validateEmail(value)) {
+                emailErrorMessage = 'Dominios válidos: (gmail.com, outlook.com, hotmail.com)';
+              } else {
+                emailErrorMessage = null;
+              }
             });
           },
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Ingrese un correo electrónico';
-            } else if (!validateEmail(value)) {
-              return 'Ingrese un correo electrónico válido';
-            }
-            return null;
-          },
         ),
-        AnimatedOpacity(
-          duration: Duration(milliseconds: 500),
-          opacity: showError ? 1.0 : 0.0,
-          child: Container(
-            margin: EdgeInsets.only(top: 4),
-            child: Text(
-              'Ingrese un correo válido',
-              style: TextStyle(
-                color: errorTextColor,
-                fontSize: 12,
+        SizedBox(height: 8),
+        Container(
+          alignment: Alignment.centerRight,
+          padding: EdgeInsets.only(right: 10), // Agrega un padding de 10 píxeles a la derecha
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (emailErrorMessage != null)
+                Expanded(
+                  child: Text(
+                    emailErrorMessage!,
+                    style: TextStyle(
+                      color: errorTextColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              // Contador de caracteres
+              Text(
+                '${controller.text.length}/60',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 12,
+                ),
               ),
-            ),
+            ],
           ),
         ),
+        SizedBox(height: 17),
       ],
     );
   }
 
   bool validateEmail(String email) {
+    // Verifica si el email tiene un formato válido
     final emailRegex = RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$');
 
     if (!emailRegex.hasMatch(email)) {
       return false;
     }
 
+    // Verifica si el dominio es uno de los permitidos
     final allowedDomains = ['gmail.com', 'hotmail.com', 'outlook.com'];
 
-    final domain = email.split('@').last;
-
-    if (!allowedDomains.contains(domain)) {
-      return false;
+    if (email.contains('@')) {
+      final domain = email.split('@').last;
+      return allowedDomains.contains(domain);
     }
 
-    return true;
+    return false;
   }
 
+  void _onEmailFocusChange() {
+    if (_emailFocusNode.hasFocus) {
+      setState(() {
+        if (_emailController.text.isEmpty) {
+          emailErrorMessage = 'Campo email es obligatorio';
+        } else if (!validateEmail(_emailController.text)) {
+          emailErrorMessage = 'Válidos: (gmail.com, outlook.com, hotmail.com)';
+        } else {
+          emailErrorMessage = null;
+        }
+      });
+    }
+  }
+
+  //birthday
   bool _validateBirthday() {
     final int day = int.tryParse(_dobDayController.text.padLeft(2, '0')) ?? 0;
     final int month =
@@ -586,22 +683,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return age >= 18 && year <= now.year;
   }
 
-  Widget _buildPasswordField(
-      String labelText, TextEditingController controller) {
-    bool showError = false;
 
-    // Determinar los colores basados en el modo oscuro o claro
+  //contraseña
+  Widget _buildPasswordField(String labelText, TextEditingController passwordController) {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDarkMode ? Colors.white : Colors.black;
     final borderColor = isDarkMode ? Colors.white : Colors.black;
     final focusedBorderColor = Colors.cyan;
-    final errorTextColor = Colors.red;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TextField(
-          controller: controller,
+          controller: _passwordController,
+          focusNode: _passwordFocusNode, // Asocia el FocusNode aquí
           keyboardType: TextInputType.text,
           obscureText: _obscurePassword,
           maxLength: 25,
@@ -618,7 +713,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               borderSide: BorderSide(color: focusedBorderColor, width: 2.0),
             ),
             labelStyle: TextStyle(color: textColor),
-            prefixIcon: Icon(Icons.lock, color: textColor), // Icono añadido
+            counterText: '',
+            prefixIcon: Icon(Icons.lock, color: textColor),
             suffixIcon: IconButton(
               icon: Icon(
                 _obscurePassword ? Icons.visibility_off : Icons.visibility,
@@ -633,28 +729,88 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
           style: TextStyle(color: textColor),
           onChanged: (value) {
-            showError = !(value.length >= 8 &&
-                value.contains(RegExp(r'[A-Za-z]')) &&
-                value.contains(RegExp(r'[0-9]')) &&
-                value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]')));
-            setState(() {});
+            setState(() {
+              hasMinLength = value.length >= 8;
+              hasLetter = value.contains(RegExp(r'[A-Za-z]'));
+              hasNumber = value.contains(RegExp(r'[0-9]'));
+              hasSpecialChar = value.contains(RegExp(r'[!@#$%^&*£°(),¥€.?"¡~:+-/{}|<>]'));
+
+              // Actualiza el mensaje de error
+              if (value.isEmpty) {
+                errorMessage = 'La contraseña no puede estar vacía.';
+              } else {
+                errorMessage = null; // Resetea el mensaje si no está vacío
+              }
+            });
           },
         ),
-        AnimatedOpacity(
-          duration: Duration(milliseconds: 500),
-          opacity: showError ? 1.0 : 0.0,
-          child: Container(
-            margin: EdgeInsets.only(top: 4),
-            child: Text(
-              'La contraseña debe tener al menos 8 caracteres, una letra, un número y un símbolo.',
-              style: TextStyle(
-                color: errorTextColor,
-                fontSize: 12,
+        SizedBox(height: 8), // Espacio entre el TextField y la fila de validación
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Mensajes de validación o error en la misma fila
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Mostrar el mensaje de error si existe
+                  if (errorMessage != null)
+                    _buildValidationText(errorMessage!, false, '')
+                  else if (_passwordFocusNode.hasFocus && !(hasMinLength && hasLetter && hasNumber && hasSpecialChar)) ...[
+                    // Mostrar mensajes de validación solo si el campo está enfocado y no todos son válidos
+                    if (_passwordController.text.length >= 8) ...[
+                      _buildValidationText('Al menos 8 caracteres', hasMinLength, 'Al menos 8 caracteres'),
+                      _buildValidationText('Falta una letra', hasLetter, 'Completado'),
+                      _buildValidationText('Falta un número', hasNumber, 'Completado'),
+                      _buildValidationText('Falta un símbolo', hasSpecialChar, 'Completado'),
+                    ],
+                  ],
+                ],
               ),
             ),
+            // Contador de caracteres
+            Padding(
+              padding: const EdgeInsets.only(top: 2, right: 10),
+              child: Text(
+                '${_passwordController.text.length}/25',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 17),
+      ],
+    );
+  }
+
+  Widget _buildValidationText(String text, bool isValid, String successMessage) {
+    return Row(
+      children: [
+        Icon(
+          isValid ? Icons.check_circle : Icons.cancel,
+          color: isValid ? Colors.green : Colors.red,
+          size: 16,
+        ),
+        SizedBox(width: 5),
+        Text(
+          isValid ? successMessage : text,
+          style: TextStyle(
+            color: isValid ? Colors.green : Colors.red,
+            fontSize: 12,
+            fontWeight: isValid ? FontWeight.normal : FontWeight.bold,
           ),
         ),
       ],
     );
+  }
+
+  void resetValidators() {
+    hasMinLength = false;
+    hasLetter = false;
+    hasNumber = false;
+    hasSpecialChar = false;
+    errorMessage = null; // Resetea el mensaje de error
+    setState(() {});
   }
 }

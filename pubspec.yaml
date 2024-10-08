@@ -71,6 +71,8 @@ dependencies:
   qr_code_scanner: ^1.0.1
   flutter_facebook_auth: ^7.0.1
   youtube_player_flutter: ^9.0.2
+  uni_links2: ^0.6.0+2
+
 
   #arkit_plugin: ^1.1.0
   #arcore_flutter_plugin: ^0.1.0
@@ -103,6 +105,7 @@ flutter:
     - lib/assets/shared.svg
     - lib/assets/logo.png
     - lib/assets/perro.png
+    - lib/assets/placeholder_image.jpeg
     - lib/assets/loading_animation.json
     - lib/assets/logo_google_login.png
     - lib/assets/placeholder_user.jpg
@@ -116,6 +119,7 @@ flutter:
     - lib/assets/like.json
     - lib/assets/sorpresa.json
     - lib/assets/ultima.json
+    - lib/assets/code_success.json
 
     - lib/assets/LikeChat.gif
     - lib/assets/download.json

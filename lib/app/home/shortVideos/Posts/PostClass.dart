@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../Deezer-API-Musica/MusicModal.dart';
 import '../../../Globales/estadoDark-White/DarkModeProvider.dart';
 import '../../../Globales/expandetext/ExpandableText.dart';
 import 'OpenCamara/preview/PreviewScreen.dart';
@@ -175,6 +176,7 @@ class _PostClassState extends State<PostClass> {
     PermissionStatus cameraPermission = await Permission.camera.request();
     return cameraPermission.isGranted;
   }
+
 
   void _showImageSourceSelection() {
     showModalBottomSheet(

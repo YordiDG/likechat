@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
+import '../../../../../Deezer-API-Musica/MusicModal.dart';
 import 'Maps/MapScreen.dart';
 
 class PreviewScreen extends StatefulWidget {
@@ -128,6 +129,11 @@ class _PreviewScreenState extends State<PreviewScreen> {
                         label: 'Editar',
                       ),
                       _buildCarouselButton(
+                        onPressed: () => _showMusicModal(context),
+                        icon: Icons.music_note,
+                        label: 'Musica',
+                      ),
+                      _buildCarouselButton(
                         onPressed: _addLocation,
                         icon: Icons.location_on,
                         label: 'Ubicación',
@@ -137,6 +143,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
                         icon: Icons.tag,
                         label: 'Etiquetas',
                       ),
+
                     ],
                     options: CarouselOptions(
                       height: 42.0,
@@ -267,6 +274,16 @@ class _PreviewScreenState extends State<PreviewScreen> {
         // Navegar a la pantalla de edición de videos
       }
     }
+  }
+
+  //api de freezer d emusic
+  void _showMusicModal(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return MusicModal();
+      },
+    );
   }
 
 

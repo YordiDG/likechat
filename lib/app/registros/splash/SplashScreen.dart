@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:connectivity/connectivity.dart';
+import 'dart:io';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -8,6 +9,9 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  int _retryCount = 0;
+  bool _isCheckingConnection = false; // Variable para controlar el estado de verificación
+
   @override
   void initState() {
     super.initState();
@@ -15,9 +19,23 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkInternetConnection() async {
+    setState(() {
+      _isCheckingConnection = true; // Mostrar el círculo de carga
+    });
+
     var connectivityResult = await (Connectivity().checkConnectivity());
+
+    setState(() {
+      _isCheckingConnection = false; // Ocultar el círculo de carga
+    });
+
     if (connectivityResult == ConnectivityResult.none) {
-      _showNoInternetDialog();
+      _retryCount++;
+      if (_retryCount < 3) {
+        _showNoInternetDialog();
+      } else {
+        exit(0); // Cerrar la aplicación después de 3 intentos
+      }
     } else {
       _navigateToLogin();
     }
@@ -27,10 +45,13 @@ class _SplashScreenState extends State<SplashScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(7.0), // Radio del borde del diálogo
+        ),
         title: Text(
           'Sin Conexión de Internet',
           style: TextStyle(
-            fontSize: 22,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: Colors.red, // Color llamativo para el título
           ),
@@ -53,11 +74,11 @@ class _SplashScreenState extends State<SplashScreen> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
-              _checkInternetConnection();
+              Navigator.of(context).pop(); // Cerrar el diálogo
+              _checkInternetConnection(); // Volver a intentar la conexión
             },
             style: TextButton.styleFrom(
-              side: BorderSide(color: Colors.cyan, width: 2.0), // Borde ligero en el botón
+              side: BorderSide(color: Colors.cyan, width: 2.0),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8.0),
               ),
@@ -76,7 +97,6 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 
-
   void _navigateToLogin() {
     Future.delayed(Duration(seconds: 2), () {
       Navigator.pushReplacementNamed(context, '/login');
@@ -86,28 +106,45 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF0D0D55),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset('lib/assets/logo.png', height: 300),
-            SizedBox(height: 20),
-            Text(
-              'LikeChat',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFFD9F103),
+      backgroundColor: Colors.cyan,
+      //backgroundColor: Color(0xFF0D0D55),
+      body: Stack(
+        children: [
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset('lib/assets/logo.png', height: 300),
+                SizedBox(height: 20),
+                Text(
+                  'LikeChat',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    //color: Color(0xFFD9F103),
+                  ),
+                ),
+                SizedBox(
+                  height: 130,
+                  width: 130,
+                  child: Lottie.asset('lib/assets/loading_animation.json'),
+                ),
+              ],
+            ),
+          ),
+          if (_isCheckingConnection) // Mostramos el círculo de carga en la parte inferior si está verificando la conexión
+            Positioned(
+              bottom: 30,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
               ),
             ),
-            Container(
-              height: 130,
-              width: 130,
-              child: Lottie.asset('lib/assets/loading_animation.json'),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }

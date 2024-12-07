@@ -11,6 +11,7 @@ import 'clasesImpl/Privacidad/PrivacySettings.dart';
 import 'clasesImpl/VideoList/ListVideos.dart';
 import 'clasesImpl/accesibilidad/AccessibilitySettings.dart';
 import 'clasesImpl/estadoDeCuenta/EstadoDeCuentaScreen.dart';
+import 'clasesImpl/idioma/LanguageSelectionWidget.dart';
 import 'clasesImpl/security/SecuritySettings.dart';
 
 class MenuConfiguration extends StatefulWidget {
@@ -45,7 +46,7 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
               fontWeight: FontWeight.bold, color: textColor, fontSize: 21),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: textColor),
+          icon: Icon(Icons.arrow_back_ios_new, color: textColor),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -191,109 +192,7 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
                 textColor: textColor,
                 fontSize: fontSize,
                 onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        backgroundColor: Colors.grey.shade900,
-                        title: Center(
-                          child: Text(
-                            'Compartir perfil',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16, // Tamaño del texto del título
-                            ),
-                          ),
-                        ),
-                        content: Text(
-                          '¿Deseas compartir tu perfil?',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14, // Tamaño del texto del contenido
-                          ),
-                        ),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () {
-                              final String shareText =
-                                  'Mira mi perfil en LikeChat!';
-                              final String shareLink =
-                                  'https://www.likechat.com/yordigonzales';
-
-                              // Usar el paquete share_plus para compartir
-                              Share.share('$shareText\n$shareLink');
-                              Navigator.of(context)
-                                  .pop(); // Cierra el diálogo después de compartir
-                            },
-                            child: Text(
-                              'Compartir',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14, // Tamaño del texto del botón
-                              ),
-                            ),
-                            style: ButtonStyle(
-                              padding: MaterialStateProperty.all<EdgeInsets>(
-                                EdgeInsets.symmetric(
-                                    horizontal: 12.0, vertical: 4.0),
-                              ),
-                              minimumSize: MaterialStateProperty.all<Size>(
-                                Size(0, 40),
-                              ),
-                              shape: MaterialStateProperty.all<
-                                  RoundedRectangleBorder>(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              backgroundColor:
-                                  MaterialStateProperty.all<Color>(Colors.cyan),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop(); // Cierra el diálogo
-                            },
-                            child: Text(
-                              'Cancelar',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14, // Tamaño del texto del botón
-                              ),
-                            ),
-                            style: ButtonStyle(
-                              padding: MaterialStateProperty.all<EdgeInsets>(
-                                EdgeInsets.symmetric(
-                                    horizontal: 12.0, vertical: 4.0),
-                              ),
-                              minimumSize: MaterialStateProperty.all<Size>(
-                                Size(0, 40),
-                              ),
-                              side: MaterialStateProperty.all<BorderSide>(
-                                BorderSide(
-                                    color: Colors.grey.withOpacity(0.7),
-                                    width: 1),
-                              ),
-                              shape: MaterialStateProperty.all<
-                                  RoundedRectangleBorder>(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  Colors.transparent),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  );
+                  _showShareDialog(context);
                 },
               ),
               MenuTile(
@@ -325,33 +224,41 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => EstadoDeCuentaScreen(
-                        ),
+                        builder: (context) => EstadoDeCuentaScreen(),
                       ),
                     );
                   }),
               MenuTile(
-                  icon: Icons.video_camera_back_rounded,
-                  title: 'Snippets',
-                  tileColor: tileColor,
-                  textColor: textColor,
-                  fontSize: fontSize,
-              onTap: (){
-                    Navigator.push(
-                      context, MaterialPageRoute(builder: (context) => VideoListScreen())
-                    );
-              },),
+                icon: Icons.video_camera_back_rounded,
+                title: 'Snippets',
+                tileColor: tileColor,
+                textColor: textColor,
+                fontSize: fontSize,
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => VideoListScreen()));
+                },
+              ),
               SectionHeader(
                   title: 'Contenido y Pantalla',
                   backgroundColor: sectionHeaderColor,
                   textColor: textColor,
                   fontSize: fontSize),
               MenuTile(
-                  icon: Icons.language,
-                  title: 'Idioma',
-                  tileColor: tileColor,
-                  textColor: textColor,
-                  fontSize: fontSize),
+                icon: Icons.language,
+                title: 'Idioma',
+                tileColor: tileColor,
+                textColor: textColor,
+                fontSize: fontSize,
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => LanguageSelectionWidget()));
+                },
+              ),
               MenuTile(
                 icon: Icons.text_fields,
                 title: 'Tamaño de Fuente',
@@ -511,40 +418,38 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
                 padding: const EdgeInsets.all(10.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  // Alinea el contenido a los extremos
                   children: [
                     Row(
                       children: [
+                        SizedBox(width: 6.0),
                         Icon(
-                          Icons.wb_sunny, // Icono blanco
-                          color: Colors.white,
-                          size: 24.0,
+                          isDarkMode ? Icons.wb_sunny : Icons.nightlight_round,
+                          color: isDarkMode ? Colors.white : Colors.black,
+                          size: 25.0,
                         ),
                         SizedBox(width: 8.0),
-                        Icon(
-                          Icons.nightlight_round, // Icono negro
-                          color: Colors.black,
-                          size: 24.0,
-                        ),
-                        SizedBox(width: 8.0),
-                        Text(
-                          'Modo oscuro',
-                          style: TextStyle(
-                            color: textColor,
+                        Padding(
+                          padding: const EdgeInsets.only(left: 2.0),
+                          child: Text(
+                            'Modo ${isDarkMode ? "claro" : "oscuro"}',
+                            style: TextStyle(
+                              color: textColor,
+                            ),
                           ),
                         ),
                       ],
                     ),
                     Transform.scale(
-                      scale: 0.9,
+                      scale: 0.95,
                       child: Switch(
                         value: isDarkMode,
                         onChanged: (value) {
                           darkModeProvider.setDarkMode(value);
                         },
-                        activeColor: isDarkMode ? Colors.cyan : Colors.blue,
-                        inactiveTrackColor: Colors.grey[400],
-                        inactiveThumbColor: Colors.grey[600],
+                        activeColor: Colors.white,
+                        activeTrackColor: Colors.cyan,
+                        inactiveThumbColor: Colors.grey,
+                        inactiveTrackColor: Colors.grey.withOpacity(0.5),
                       ),
                     ),
                   ],
@@ -566,6 +471,101 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
           ),
         ),
       ),
+    );
+  }
+  //metodo de compartir perfil
+  void _showShareDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          backgroundColor: Colors.grey.shade900,
+          title: Center(
+            child: Text(
+              'Compartir perfil',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ),
+          content: Text(
+            '¿Deseas compartir tu perfil?',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                final String shareText = 'Mira mi perfil en LikeChat!';
+                final String shareLink = 'https://www.likechat.com/yordigonzales';
+
+                // Usar el paquete share_plus para compartir
+                Share.share('$shareText\n$shareLink');
+                Navigator.of(context).pop(); // Cierra el diálogo después de compartir
+              },
+              child: Text(
+                'Compartir',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+              style: ButtonStyle(
+                padding: MaterialStateProperty.all<EdgeInsets>(
+                  EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                ),
+                minimumSize: MaterialStateProperty.all<Size>(
+                  Size(0, 40),
+                ),
+                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                backgroundColor: MaterialStateProperty.all<Color>(Colors.cyan),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cierra el diálogo
+              },
+              child: Text(
+                'Cancelar',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+              style: ButtonStyle(
+                padding: MaterialStateProperty.all<EdgeInsets>(
+                  EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                ),
+                minimumSize: MaterialStateProperty.all<Size>(
+                  Size(0, 40),
+                ),
+                side: MaterialStateProperty.all<BorderSide>(
+                  BorderSide(color: Colors.grey.withOpacity(0.7), width: 1),
+                ),
+                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                backgroundColor: MaterialStateProperty.all<Color>(Colors.transparent),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

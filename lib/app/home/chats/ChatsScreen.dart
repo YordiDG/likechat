@@ -16,10 +16,8 @@ import 'encuestas/EncuestaDialog.dart';
 import 'mesaage/MessageBubble.dart';
 
 class ChatsScreen extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
-
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
     final isDarkMode = darkModeProvider.isDarkMode;
     final textColor = darkModeProvider.textColor;
@@ -40,18 +38,22 @@ class ChatsScreen extends StatelessWidget {
                 style: TextStyle(color: Colors.white),
               ),
             ),
-            title:
-                Text('Contacto $index', style: TextStyle(
-                    color: isDarkMode ? Colors.white : Colors.black, fontSize: 17, fontWeight: FontWeight.bold)),
-            subtitle: Text('Último mensaje',
+            title: Text('Contacto $index',
                 style: TextStyle(
-                    color: Colors.grey[500], fontSize: 12)),
+                    color: isDarkMode ? Colors.white : Colors.black,
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold)),
+            subtitle: Text('Último mensaje',
+                style: TextStyle(color: Colors.grey[500], fontSize: 12)),
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                      ChatScreen(chatTitle: 'Contacto $index', contactName: '', phoneNumber: '',),
+                  builder: (context) => ChatScreen(
+                    chatTitle: 'Yordi Diaz Gonzales $index',
+                    contactName: '',
+                    phoneNumber: '',
+                  ),
                 ),
               );
             },
@@ -136,8 +138,11 @@ class SelectContactsScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          ChatScreen(chatTitle: appContacts[index], contactName: '', phoneNumber: '',),
+                      builder: (context) => ChatScreen(
+                        chatTitle: appContacts[index],
+                        contactName: '',
+                        phoneNumber: '',
+                      ),
                     ),
                   );
                 },
@@ -205,7 +210,12 @@ class ChatScreen extends StatefulWidget {
   final String contactName;
   final String phoneNumber;
 
-  const ChatScreen({Key? key, required this.chatTitle, required this.contactName,required this.phoneNumber}) : super(key: key);
+  const ChatScreen(
+      {Key? key,
+      required this.chatTitle,
+      required this.contactName,
+      required this.phoneNumber})
+      : super(key: key);
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -219,7 +229,6 @@ class _ChatScreenState extends State<ChatScreen> {
   File? _imageFile;
 
   FocusNode _focusNode = FocusNode();
-
 
   @override
   void initState() {
@@ -248,7 +257,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
-
     _focusNode.dispose();
     // Desconectar del servidor de Socket.IO
     socket.disconnect();
@@ -265,7 +273,8 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _startVoiceCall() {
-    String phoneNumber = '+51935400894'; // Reemplaza esto con el número de tu contacto
+    String phoneNumber =
+        '+51935400894'; // Reemplaza esto con el número de tu contacto
 
     Navigator.push(
       context,
@@ -278,10 +287,8 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
-
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
     final isDarkMode = darkModeProvider.isDarkMode;
     final textColor = darkModeProvider.textColor;
@@ -291,73 +298,24 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFF1F1F1F),
+        titleSpacing: 0.0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
-        title: Row(
-          children: [
-            Container(
-              child: CircleAvatar(
-                radius: 22,
-                backgroundColor: Colors.cyan,
-                child: Text(
-                  widget.chatTitle[0],
-                  style: TextStyle(color: Colors.white, fontSize: 16),
-                ),
-              ),
-            ),
-            SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.chatTitle,
-                  style: TextStyle(color: Colors.white),
-                ),
-                Text(
-                  'Activo ahora',
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-              ],
-            ),
-          ],
-        ),
+        title: _buildAppBarTitle(),
         actions: [
-          IconButton(
-            icon: Icon(Icons.videocam, color: Colors.white, size: 28,),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => VideoCall(),
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.phone, color: Colors.white),
-            onPressed: _startVoiceCall,
-          ),
           PopupMenuButton<String>(
             icon: Icon(Icons.more_vert, color: Colors.white),
-            onSelected: (String value) {
-              // Handle menu actions
-            },
-            itemBuilder: (BuildContext context) {
-              return [
-                PopupMenuItem(value: 'Ver perfil', child: Text('Ver perfil')),
-                PopupMenuItem(value: 'Archivar chat', child: Text('Archivar chat')),
-                // Add more menu items here...
-              ];
-            },
+            onSelected: _handleMenuSelection,
+            itemBuilder: (BuildContext context) => _buildMenuItems(),
           ),
         ],
       ),
       body: Container(
-      color: Color(0xFF2C2A2A),
+        color: Color(0xFF2C2A2A),
         child: Stack(
           children: [
             Column(
@@ -416,12 +374,14 @@ class _ChatScreenState extends State<ChatScreen> {
                                   Expanded(
                                     child: GestureDetector(
                                       onTap: () {
-                                        FocusScope.of(context).requestFocus(_focusNode);
+                                        FocusScope.of(context)
+                                            .requestFocus(_focusNode);
                                       },
                                       child: Container(
                                         color: Color(0xFF2C2A2A),
                                         child: Theme(
-                                          data: ThemeData(hintColor: Colors.grey[700]),
+                                          data: ThemeData(
+                                              hintColor: Colors.grey[700]),
                                           child: TextField(
                                             focusNode: _focusNode,
                                             controller: _textController,
@@ -429,9 +389,12 @@ class _ChatScreenState extends State<ChatScreen> {
                                             style: TextStyle(color: textColor),
                                             decoration: InputDecoration(
                                               hintText: 'Mensaje...',
-                                              hintStyle: TextStyle(color: Colors.grey[600]),
+                                              hintStyle: TextStyle(
+                                                  color: Colors.grey[600]),
                                               border: InputBorder.none,
-                                              contentPadding: EdgeInsets.symmetric(vertical: 10),
+                                              contentPadding:
+                                                  EdgeInsets.symmetric(
+                                                      vertical: 10),
                                             ),
                                           ),
                                         ),
@@ -442,7 +405,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                     iconSize: 24,
                                     icon: Icon(Icons.attach_file),
                                     color: Colors.cyan,
-                                    onPressed: _showAttachmentOptions, // Abrir el modal
+                                    onPressed:
+                                        _showAttachmentOptions, // Abrir el modal
                                   ),
                                   IconButton(
                                     iconSize: 24,
@@ -455,7 +419,6 @@ class _ChatScreenState extends State<ChatScreen> {
                                       }
                                     },
                                   ),
-
                                 ],
                               ),
                             ),
@@ -484,7 +447,8 @@ class _ChatScreenState extends State<ChatScreen> {
                     _buildJsonWithTitle('lib/assets/angry.json'),
                     _buildJsonWithTitle('lib/assets/aplausos.json'),
                     _buildJsonWithTitle('lib/assets/ultima.json'),
-                    _buildImageWithTitle('lib/assets/perro.png'), // Displaying image
+                    _buildImageWithTitle('lib/assets/perro.png'),
+                    // Displaying image
                     _buildJsonWithTitle('lib/assets/emoticon.json'),
                     _buildJsonWithTitle('lib/assets/emoticon2.json'),
                   ],
@@ -497,6 +461,143 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  //para appbar
+  // Método para construir el título del AppBar
+  Widget _buildAppBarTitle() {
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 20,
+          backgroundColor: Colors.cyan,
+          child: Text(
+            widget.chatTitle[0],
+            style: TextStyle(color: Colors.white, fontSize: 16),
+          ),
+        ),
+        SizedBox(width: 6),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.chatTitle,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+              Text(
+                'Activo ahora',
+                style: TextStyle(color: Colors.cyan, fontSize: 10),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Método para construir los elementos del menú
+  List<PopupMenuItem<String>> _buildMenuItems() {
+    return [
+      PopupMenuItem(
+        value: 'Ver perfil',
+        child: ListTile(
+          leading: Icon(Icons.person, color: Colors.black),
+          title: Text('Ver perfil'),
+        ),
+      ),
+      PopupMenuItem(
+        value: 'Archivar chat',
+        child: ListTile(
+          leading: Icon(Icons.archive, color: Colors.black),
+          title: Text('Archivar chat'),
+        ),
+      ),
+      PopupMenuItem(
+        value: 'Video llamada',
+        child: ListTile(
+          leading: Icon(Icons.videocam, color: Colors.black),
+          title: Text('Video llamada'),
+        ),
+      ),
+      PopupMenuItem(
+        value: 'Llamada de voz',
+        child: ListTile(
+          leading: Icon(Icons.phone, color: Colors.black),
+          title: Text('Llamada de voz'),
+        ),
+      ),
+      PopupMenuItem(
+        value: 'Buscar',
+        child: ListTile(
+          leading: Icon(Icons.search, color: Colors.black),
+          title: Text('Buscar'),
+        ),
+      ),
+      PopupMenuItem(
+        value: 'Vaciar chat',
+        child: ListTile(
+          leading: Icon(Icons.delete_outline, color: Colors.black),
+          title: Text('Vaciar chat'),
+        ),
+      ),
+      PopupMenuItem(
+        value: 'Eliminar chat',
+        child: ListTile(
+          leading: Icon(Icons.delete, color: Colors.black),
+          title: Text('Eliminar chat'),
+        ),
+      ),
+      PopupMenuItem(
+        value: 'Bloquear',
+        child: ListTile(
+          leading: Icon(Icons.block, color: Colors.black),
+          title: Text('Bloquear'),
+        ),
+      ),
+    ];
+  }
+
+// Método para manejar la selección del menú
+  void _handleMenuSelection(String value) {
+    switch (value) {
+      case 'Ver perfil':
+      // Acción para ver perfil
+        break;
+      case 'Archivar chat':
+      // Acción para archivar chat
+        break;
+      case 'Video llamada':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VideoCall(),
+          ),
+        );
+        break;
+      case 'Llamada de voz':
+        _startVoiceCall();
+        break;
+      case 'Buscar':
+      // Acción para buscar en el chat
+        break;
+      case 'Vaciar chat':
+      // Acción para vaciar el chat
+        break;
+      case 'Eliminar chat':
+      // Acción para eliminar el chat
+        break;
+      case 'Bloquear':
+      // Acción para bloquear usuario
+        break;
+    }
+  }
+  //
+
   void _showAttachmentOptions() {
     // Verifica si el teclado está activo
     bool isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom != 0;
@@ -504,47 +605,58 @@ class _ChatScreenState extends State<ChatScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.grey[850],
-      isScrollControlled: isKeyboardOpen, // Permite que el modal ajuste su tamaño
+      isScrollControlled: isKeyboardOpen,
+      // Permite que el modal ajuste su tamaño
       builder: (context) {
         return Container(
           padding: EdgeInsets.all(16),
-          margin: isKeyboardOpen ? EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom) : null,
+          margin: isKeyboardOpen
+              ? EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom)
+              : null,
           height: 120, // Ajusta la altura según sea necesario
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _buildAttachmentOption(Icons.camera_alt, 'Cámara', Colors.green, () {
+                _buildAttachmentOption(Icons.camera_alt, 'Cámara', Colors.green,
+                    () {
                   _openCamera();
                   Navigator.of(context).pop();
                 }),
                 _buildSpacer(), // Añade espacio entre los ítems
-                _buildAttachmentOption(Icons.image, 'Imágenes', Colors.blue, () {
+                _buildAttachmentOption(Icons.image, 'Imágenes', Colors.blue,
+                    () {
                   _openGallery();
                   Navigator.of(context).pop();
                 }),
                 _buildSpacer(), // Añade espacio entre los ítems
-                _buildAttachmentOption(Icons.videocam, 'Videos', Colors.orange, () {
+                _buildAttachmentOption(Icons.videocam, 'Videos', Colors.orange,
+                    () {
                   _openVideoPicker();
                   Navigator.of(context).pop();
                 }),
                 _buildSpacer(), // Añade espacio entre los ítems
-                _buildAttachmentOption(Icons.insert_drive_file, 'Archivos', Colors.purple, () {
+                _buildAttachmentOption(
+                    Icons.insert_drive_file, 'Archivos', Colors.purple, () {
                   _openFilePicker();
                   Navigator.of(context).pop();
                 }),
                 _buildSpacer(), // Añade espacio entre los ítems
-                _buildAttachmentOption(Icons.contacts, 'Contactos', Colors.red, () {
+                _buildAttachmentOption(Icons.contacts, 'Contactos', Colors.red,
+                    () {
                   _openContacts();
                   Navigator.of(context).pop();
                 }),
                 _buildSpacer(), // Añade espacio entre los ítems
-                _buildAttachmentOption(Icons.poll, 'Encuestas', Colors.brown, () {
+                _buildAttachmentOption(Icons.poll, 'Encuestas', Colors.brown,
+                    () {
                   _openEncuestas();
                   Navigator.of(context).pop();
                 }),
                 _buildSpacer(), // Añade espacio entre los ítems
-                _buildAttachmentOption(Icons.emoji_emotions, 'Stickers', Colors.yellow, () {
+                _buildAttachmentOption(
+                    Icons.emoji_emotions, 'Stickers', Colors.yellow, () {
                   _openStickers();
                   Navigator.of(context).pop();
                 }),
@@ -556,7 +668,8 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildAttachmentOption(IconData icon, String label, Color color, VoidCallback onPressed) {
+  Widget _buildAttachmentOption(
+      IconData icon, String label, Color color, VoidCallback onPressed) {
     return GestureDetector(
       onTap: onPressed,
       child: Column(
@@ -574,9 +687,7 @@ class _ChatScreenState extends State<ChatScreen> {
           Text(
             label,
             style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 12),
+                color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
             textAlign: TextAlign.center,
           ),
         ],
@@ -592,7 +703,6 @@ class _ChatScreenState extends State<ChatScreen> {
     // Implementa la lógica para abrir la sección de stickers
   }
 
-
   void _openEncuestas() {
     print("Abriendo diálogo de Encuestas");
     if (mounted) {
@@ -606,7 +716,8 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _openGallery() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       // Handle the selected image file
       _addImageToChat(File(pickedFile.path));
@@ -614,7 +725,8 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _openVideoPicker() async {
-    final pickedFile = await ImagePicker().pickVideo(source: ImageSource.gallery);
+    final pickedFile =
+        await ImagePicker().pickVideo(source: ImageSource.gallery);
     if (pickedFile != null) {
       // Handle the selected video file
       _addVideoToChat(File(pickedFile.path));
@@ -644,7 +756,6 @@ class _ChatScreenState extends State<ChatScreen> {
       print('No se ha seleccionado ningún archivo.');
     }
   }
-
 
   void _addVideoToChat(File videoFile) {
     // Lógica para agregar el video al chat
@@ -703,8 +814,6 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-
-
 // Function to build an image widget
   Widget _buildImageWithTitle(String assetPath) {
     return Padding(
@@ -722,7 +831,8 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _openCamera() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.camera);
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.camera);
 
     if (pickedFile != null) {
       setState(() {
@@ -772,7 +882,8 @@ class _ChatScreenState extends State<ChatScreen> {
                       _iconButtonWithLabel(Icons.filter, 'Filtrar'),
                       _iconButtonWithLabel(Icons.text_fields, 'Texto'),
                       _iconButtonWithLabel(Icons.brush, 'Dibujar'),
-                      _iconButtonWithLabel(Icons.delete, 'Eliminar', color: Colors.red),
+                      _iconButtonWithLabel(Icons.delete, 'Eliminar',
+                          color: Colors.red),
                       _iconButtonWithLabel(
                         Icons.crop,
                         'Recortar',
@@ -785,7 +896,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                   toolbarTitle: 'Recortar Imagen',
                                   toolbarColor: Colors.deepOrange,
                                   toolbarWidgetColor: Colors.white,
-                                  initAspectRatio: CropAspectRatioPreset.original,
+                                  initAspectRatio:
+                                      CropAspectRatioPreset.original,
                                   lockAspectRatio: false,
                                 ),
                                 IOSUiSettings(
@@ -797,13 +909,16 @@ class _ChatScreenState extends State<ChatScreen> {
 
                             if (croppedFile != null) {
                               setState(() {
-                                _imageFile = File(croppedFile.path); // Actualiza la imagen recortada
+                                _imageFile = File(croppedFile
+                                    .path); // Actualiza la imagen recortada
                               });
                             }
                           } catch (e) {
                             print("Error durante el recorte: $e");
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error al recortar la imagen.')),
+                              SnackBar(
+                                  content:
+                                      Text('Error al recortar la imagen.')),
                             );
                           }
                         },
@@ -823,7 +938,8 @@ class _ChatScreenState extends State<ChatScreen> {
                           Navigator.of(context).pop();
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('No hay imagen para enviar.')),
+                            SnackBar(
+                                content: Text('No hay imagen para enviar.')),
                           );
                         }
                       }),
@@ -840,7 +956,8 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Widget _iconButtonWithLabel(IconData icon, String label, {VoidCallback? onPressed, Color? color}) {
+  Widget _iconButtonWithLabel(IconData icon, String label,
+      {VoidCallback? onPressed, Color? color}) {
     return Column(
       children: [
         Container(
@@ -878,7 +995,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _styledTextButton(String label, Color color, VoidCallback onPressed) {
     return Container(
       decoration: BoxDecoration(
-          color: Color(0xFF494949),
+        color: Color(0xFF494949),
         borderRadius: BorderRadius.circular(8),
       ),
       child: TextButton(
@@ -887,7 +1004,6 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
-
 
 // Method to add the image to the chat
   void _addImageToChat(File imageFile) {
@@ -898,7 +1014,6 @@ class _ChatScreenState extends State<ChatScreen> {
       });
     });
   }
-
 
   Widget _buildImageMessage(File imageFile) {
     return Container(
@@ -1027,8 +1142,3 @@ class ChatMessage {
     this.videoFile,
   });
 }
-
-
-
-
-

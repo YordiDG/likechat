@@ -15,13 +15,16 @@ class VideoTrimScreen extends StatefulWidget {
 
 class _VideoTrimScreenState extends State<VideoTrimScreen> {
   final Trimmer _trimmer = Trimmer();
-  late VideoPlayerController _videoPlayerController;
+  VideoPlayerController? _videoPlayerController; // Cambiar a nullable
   bool _isPlaying = false;
   double _videoPosition = 0.0;
 
   String _displayText = '';
-  TextStyle _textStyle = TextStyle(fontSize: 30, color: Colors.white, fontFamily: 'OpenSans');
+  TextStyle _textStyle =
+      TextStyle(fontSize: 30, color: Colors.white, fontFamily: 'OpenSans');
   TextAlign _textAlign = TextAlign.center;
+
+  double _frameWidth = 50.0;
 
   @override
   void initState() {
@@ -35,13 +38,15 @@ class _VideoTrimScreenState extends State<VideoTrimScreen> {
       ..initialize().then((_) {
         setState(() {
           _isPlaying = true; // Inicia la reproducción automáticamente
-          _videoPlayerController.play(); // Reproduce el video
+          _videoPlayerController!.play(); // Reproduce el video
         });
       });
-    _videoPlayerController.addListener(() {
+    _videoPlayerController!.addListener(() {
       setState(() {
-        _videoPosition = _videoPlayerController.value.position.inSeconds.toDouble();
-        if (_videoPlayerController.value.position == _videoPlayerController.value.duration) {
+        _videoPosition =
+            _videoPlayerController!.value.position.inSeconds.toDouble();
+        if (_videoPlayerController!.value.position ==
+            _videoPlayerController!.value.duration) {
           _isPlaying = false; // Detiene la reproducción cuando termina el video
         }
       });
@@ -50,15 +55,20 @@ class _VideoTrimScreenState extends State<VideoTrimScreen> {
 
   void _togglePlayback() {
     setState(() {
-      _isPlaying = !_isPlaying;
-      _isPlaying ? _videoPlayerController.play() : _videoPlayerController.pause();
+      if (_videoPlayerController != null) {
+        // Asegúrate de que no sea null
+        _isPlaying = !_isPlaying;
+        _isPlaying
+            ? _videoPlayerController!.play()
+            : _videoPlayerController!.pause();
+      }
     });
   }
 
   @override
   void dispose() {
     _trimmer.dispose();
-    _videoPlayerController.dispose();
+    _videoPlayerController?.dispose(); // Asegúrate de que sea null
     super.dispose();
   }
 
@@ -69,7 +79,8 @@ class _VideoTrimScreenState extends State<VideoTrimScreen> {
         backgroundColor: Colors.black,
         title: Text(
           'Edición Video',
-          style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700),
+          style: TextStyle(
+              color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700),
         ),
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
@@ -79,11 +90,12 @@ class _VideoTrimScreenState extends State<VideoTrimScreen> {
         ),
         actions: [
           Container(
-            height: 40, // Altura del contenedor
+            height: 40,
+            // Altura del contenedor
             margin: EdgeInsets.symmetric(horizontal: 10),
             padding: EdgeInsets.symmetric(horizontal: 20),
             decoration: BoxDecoration(
-              color: Colors.pinkAccent, // Fondo rosa
+              color: Colors.cyan, // Fondo rosa
               borderRadius: BorderRadius.circular(11),
             ),
             child: TextButton(
@@ -91,11 +103,14 @@ class _VideoTrimScreenState extends State<VideoTrimScreen> {
                 // Implementa aquí la lógica para guardar los cambios o navegar
               },
               style: TextButton.styleFrom(
-                foregroundColor: Colors.white, padding: EdgeInsets.zero,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.zero,
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center, // Centra el contenido horizontalmente
-                mainAxisSize: MainAxisSize.min, // Ajusta el tamaño del Row al contenido
+                mainAxisAlignment: MainAxisAlignment.center,
+                // Centra el contenido horizontalmente
+                mainAxisSize: MainAxisSize.min,
+                // Ajusta el tamaño del Row al contenido
                 children: [
                   Text(
                     "Guardar",
@@ -115,71 +130,135 @@ class _VideoTrimScreenState extends State<VideoTrimScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Expanded(
-              child: ListView(
-                children: <Widget>[
-                  if (_videoPlayerController.value.isInitialized) ...[
-                    Stack(
-                      alignment: Alignment.bottomCenter,
-                      children: <Widget>[
-                        Container(
-                          margin: EdgeInsets.symmetric(horizontal: 50.0),
-                          height: MediaQuery.of(context).size.width *
-                              0.6 /
-                              _videoPlayerController.value.aspectRatio,
-                          child: AspectRatio(
-                            aspectRatio: _videoPlayerController.value.aspectRatio,
-                            child: VideoPlayer(_videoPlayerController),
+            // Contenedor para el VideoPlayer
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 80.0),
+              height: _videoPlayerController != null
+                  ? MediaQuery.of(context).size.width *
+                      0.5 /
+                      _videoPlayerController!.value.aspectRatio
+                  : 0.0, // Altura por defecto en caso de que sea nulo
+              child: _videoPlayerController != null
+                  ? AspectRatio(
+                      aspectRatio: _videoPlayerController!.value.aspectRatio,
+                      child: VideoPlayer(_videoPlayerController!),
+                    )
+                  : Center(
+                      child:
+                          CircularProgressIndicator()), // Cargar indicador si es nulo
+            ),
+            SizedBox(height: 10.0),
+
+            // Controles de reproducción debajo del video
+            if (_videoPlayerController?.value.isInitialized ?? false)
+              _buildPlaybackControls(),
+
+            SizedBox(height: 5.0),
+
+            // Línea de tiempo de frames con línea de progreso vertical y duración total
+            if (_videoPlayerController?.value.isInitialized ?? false)
+              Column(
+                children: [
+                  // Línea horizontal superior
+                  Container(
+                    height: 1.0, // Altura de la línea
+                    color: Colors.white, // Color de la línea
+                  ),
+
+                  Row(
+                    children: [
+                      // Línea vertical gruesa al inicio con efecto
+                      Container(
+                        width: 4.0, // Ancho de la línea
+                        height: 60.0, // Altura de la línea
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.blue, Colors.white], // Color del degradado
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(5.0),
+                            bottomLeft: Radius.circular(5.0),
                           ),
                         ),
-                        Positioned(
-                          left: 40.0,
-                          right: 40.0,
-                          bottom: 20.0,
-                          child: Container(
-                            height: 60.0,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: _videoPlayerController.value.duration!.inSeconds + 1,
-                              itemBuilder: (context, index) {
-                                return GestureDetector(
-                                  onTap: () {
-                                    _videoPlayerController.seekTo(Duration(seconds: index));
-                                  },
-                                  child: Container(
-                                    width: 60.0,
-                                    margin: EdgeInsets.symmetric(horizontal: 2.0),
-                                    child: Stack(
-                                      alignment: Alignment.bottomCenter,
-                                      children: <Widget>[
-                                        VideoPlayer(_videoPlayerController),
-                                        Positioned(
-                                          bottom: 0,
-                                          left: 0,
-                                          right: 0,
-                                          child: Container(
-                                            height: 6.0,
-                                            color: index <= _videoPosition ? Colors.red.withOpacity(0.8) : Colors.grey.withOpacity(0.5),
-                                            width: 60.0,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                      ),
+
+                      // Línea de progreso vertical encima de los frames
+                      Container(
+                        width: 2.0,
+                        height: 60.0,
+                        color: Colors.white, // Color de la línea de progreso
+                        margin: EdgeInsets.only(
+                          left: _videoPosition * _frameWidth / _videoPlayerController!.value.duration!.inSeconds,
+                        ),
+                      ),
+
+                      // Línea de tiempo de frames con control de posición
+                      Expanded(
+                        child: SizedBox(
+                          height: 60.0,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: _videoPlayerController!.value.duration!.inSeconds + 1,
+                            itemBuilder: (context, index) {
+                              return GestureDetector(
+                                onTap: () {
+                                  _videoPlayerController!.seekTo(Duration(seconds: index));
+                                },
+                                child: Container(
+                                  width: _frameWidth,
+                                  child: Stack(
+                                    alignment: Alignment.bottomCenter,
+                                    children: <Widget>[
+                                      VideoPlayer(_videoPlayerController!),
+                                    ],
                                   ),
-                                );
-                              },
-                            ),
+                                ),
+                              );
+                            },
                           ),
                         ),
-                      ],
-                    ),
-                    SizedBox(height: 16.0),
-                  ],
-                  _buildPlaybackControls(),
-                  SizedBox(height: 5.0),
+                      ),
+
+                      // Línea vertical gruesa al final con efecto
+                      Container(
+                        width: 4.0, // Ancho de la línea
+                        height: 60.0, // Altura de la línea
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.blue, Colors.white], // Color del degradado
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                          borderRadius: BorderRadius.only(
+                            topRight: Radius.circular(5.0),
+                            bottomRight: Radius.circular(5.0),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // Línea horizontal inferior
+                  Container(
+                    height: 1.0, // Altura de la línea
+                    color: Colors.white, // Color de la línea
+                  ),
+
+                  SizedBox(height: 8.0),
+
+                  // Mostrar la duración total del video
+                  Text(
+                    "${_videoPosition.toStringAsFixed(1)} / ${_videoPlayerController!.value.duration.inSeconds.toString()} segundos",
+                    style: TextStyle(color: Colors.white, fontSize: 12.0),
+                    textAlign: TextAlign.right,
+                  ),
                 ],
               ),
-            ),
+
+            SizedBox(height: 16.0),
+            Expanded(child: Container()),
             _buildBottomCarousel(),
           ],
         ),
@@ -194,9 +273,11 @@ class _VideoTrimScreenState extends State<VideoTrimScreen> {
         IconButton(
           icon: Icon(Icons.replay_10, size: 26.0, color: Colors.white),
           onPressed: () {
-            final position = _videoPlayerController.value.position;
-            final newPosition = position - Duration(seconds: 10);
-            _videoPlayerController.seekTo(newPosition);
+            if (_videoPlayerController != null) {
+              final position = _videoPlayerController!.value.position;
+              final newPosition = position - Duration(seconds: 5);
+              _videoPlayerController!.seekTo(newPosition);
+            }
           },
         ),
         IconButton(
@@ -210,9 +291,11 @@ class _VideoTrimScreenState extends State<VideoTrimScreen> {
         IconButton(
           icon: Icon(Icons.forward_10, size: 26.0, color: Colors.white),
           onPressed: () {
-            final position = _videoPlayerController.value.position;
-            final newPosition = position + Duration(seconds: 10);
-            _videoPlayerController.seekTo(newPosition);
+            if (_videoPlayerController != null) {
+              final position = _videoPlayerController!.value.position;
+              final newPosition = position + Duration(seconds: 5);
+              _videoPlayerController!.seekTo(newPosition);
+            }
           },
         ),
         IconButton(
@@ -220,7 +303,9 @@ class _VideoTrimScreenState extends State<VideoTrimScreen> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => FullScreenVideo(_videoPlayerController)),
+              MaterialPageRoute(
+                  builder: (context) =>
+                      FullScreenVideo(_videoPlayerController!)),
             );
           },
         ),
@@ -262,7 +347,7 @@ class _VideoTrimScreenState extends State<VideoTrimScreen> {
                 // Crear una instancia de TextEditorHandler y llamar a openTextEditor
                 TextEditorHandler().openTextEditor(
                   context,
-                      (String text, TextStyle style, TextAlign align) {
+                  (String text, TextStyle style, TextAlign align) {
                     // Lógica para manejar el texto editado
                     _setText(text, style, align);
                   },
@@ -281,6 +366,7 @@ class _VideoTrimScreenState extends State<VideoTrimScreen> {
   }
 
   void _setText(String text, TextStyle style, TextAlign align) {
+    // Lógica para manejar el texto editado
     setState(() {
       _displayText = text;
       _textStyle = style;
@@ -290,17 +376,31 @@ class _VideoTrimScreenState extends State<VideoTrimScreen> {
 }
 
 class FullScreenVideo extends StatelessWidget {
-  final VideoPlayerController controller;
+  final VideoPlayerController videoPlayerController;
 
-  FullScreenVideo(this.controller);
+  FullScreenVideo(this.videoPlayerController);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
         child: AspectRatio(
-          aspectRatio: controller.value.aspectRatio,
-          child: VideoPlayer(controller),
+          aspectRatio: videoPlayerController.value.aspectRatio,
+          child: VideoPlayer(videoPlayerController),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          if (videoPlayerController.value.isPlaying) {
+            videoPlayerController.pause();
+          } else {
+            videoPlayerController.play();
+          }
+        },
+        child: Icon(
+          videoPlayerController.value.isPlaying
+              ? Icons.pause
+              : Icons.play_arrow,
         ),
       ),
     );

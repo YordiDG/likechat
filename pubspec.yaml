@@ -72,8 +72,34 @@ dependencies:
   flutter_facebook_auth: ^7.0.1
   youtube_player_flutter: ^9.0.2
   uni_links2: ^0.6.0+2
+  #birthday
+  flutter_datetime_picker_plus: ^2.2.0
+  intl: ^0.18.0
+  dropdown_button2: ^2.3.9
+  installed_apps: ^1.5.2
+  device_apps: ^2.2.0
+  #para pagos
+  fl_chart: ^0.69.2
+  #Fondo borroso
+  glassmorphism: ^3.0.0
+  #idioma
+  #flutter_localization: ^0.2.2
+  #save imagen
+  image_gallery_saver: ^2.0.3
+  #animation_wrappers:
+  flutter_animate: ^4.5.2
+  #galeria de imagenes
+  photo_manager: ^3.6.3
+  #authentication
+  oauth2: ^2.0.3
+  #no salir de la app_links:
+  flutter_web_auth: ^0.5.0
 
-
+  cached_network_image: ^3.4.0
+  sqflite: ^2.3.3+1
+  fluttertoast: ^8.2.8
+  vibration: ^1.9.0
+  google_fonts: ^6.2.1
   #arkit_plugin: ^1.1.0
   #arcore_flutter_plugin: ^0.1.0
   #geolocator: ^12.0.0
@@ -107,8 +133,11 @@ flutter:
     - lib/assets/perro.png
     - lib/assets/placeholder_image.jpeg
     - lib/assets/loading_animation.json
+
     - lib/assets/logo_google_login.png
     - lib/assets/placeholder_user.jpg
+    - lib/assets/placeholder-image.png
+    - lib/assets/placeholder_filter.png
     - lib/assets/emoticon.json
     - lib/assets/emoticon2.json
     - lib/assets/angry.json
@@ -120,14 +149,18 @@ flutter:
     - lib/assets/sorpresa.json
     - lib/assets/ultima.json
     - lib/assets/code_success.json
-
+    #loading
+    - lib/assets/loading/infinity_cyan.json
+    - lib/assets/loading/infinity_blue.json
+    - lib/assets/loading/infinity.json
     - lib/assets/LikeChat.gif
     - lib/assets/download.json
     - lib/assets/download1.json
     - lib/assets/downloadel.json
     - lib/assets/descargavideo.json
     - lib/assets/loading-end.json
-
+    - lib/assets/flum_viral.json
+    - lib/assets/sounds/toggle_sound.mp3
 
   fonts:
     - family: Poppins

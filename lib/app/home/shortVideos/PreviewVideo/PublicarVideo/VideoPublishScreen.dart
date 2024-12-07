@@ -85,13 +85,17 @@ class _VideoPublishScreenState extends State<VideoPublishScreen> {
       appBar: AppBar(
         backgroundColor: backgroundColor,
         title: Text(
-          'Publicar',
-          style: TextStyle(fontSize: 21,color: textColor, fontWeight: FontWeight.bold),
+          'Publicar Contenido',
+          style: TextStyle(fontSize: 16,color: textColor, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: iconColor),
+          icon: Icon(
+            Icons.arrow_back_ios_new,
+            color: iconColor,
+            size: 20,
+          ),
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.of(context).pop();
           },
         ),
       ),
@@ -560,6 +564,14 @@ class _VideoPublishScreenState extends State<VideoPublishScreen> {
                       ),
                     ),
                   );
+
+                  /*muestra:  Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (context) => VideoPostScreen(videoUrl: 'https://www.example.com/video.mp4'),
+  ),
+);
+*/
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.pinkAccent,

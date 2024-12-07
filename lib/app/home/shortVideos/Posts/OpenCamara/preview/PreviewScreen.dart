@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import '../../../../../APIS-Consumir/Deezer-API-Musica/MusicModal.dart';
+import '../../../../../Globales/estadoDark-White/DarkModeProvider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import '../../eventos/ShareButton.dart';
+import 'configuracion/Maps/MapScreen.dart';
+import 'configuracion/Privacidad/PrivacyOptionsModal.dart';
+import 'package:provider/provider.dart';
 
-import '../../../../../Deezer-API-Musica/MusicModal.dart';
-import 'Maps/MapScreen.dart';
+import 'configuracion/Promocionar/PromotionPreview.dart';
+import 'configuracion/EtiquetasAmigos/FriendsModal.dart';
+
 
 class PreviewScreen extends StatefulWidget {
   final String imagePath;
@@ -23,6 +32,9 @@ class PreviewScreen extends StatefulWidget {
 
 class _PreviewScreenState extends State<PreviewScreen> {
   final List<File> _images = [];
+  final bool isModal = false;
+
+  final ScrollController _controller = ScrollController();
 
   @override
   void initState() {
@@ -40,38 +52,60 @@ class _PreviewScreenState extends State<PreviewScreen> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+    final iconColor = darkModeProvider.iconColor;
+    final background = darkModeProvider.backgroundColor;
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: background,
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white), // Flecha personalizada
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        leadingWidth: 56, // Ajusta el ancho del leading si es necesario
-        backgroundColor: Colors.black,
-        title: Text(
-          'New Post',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            fontSize: 20,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 10),
+          // Ajusta el margen izquierdo
+          child: IconButton(
+            icon: Icon(Icons.arrow_back_ios, color: iconColor),
+            // Flecha personalizada
+            onPressed: () {
+              Navigator.pop(context);
+            },
           ),
+        ),
+        leadingWidth: 28,
+        // Ajusta el ancho del leading
+        backgroundColor: background,
+        title: LayoutBuilder(
+          builder: (context, constraints) {
+            return FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                'Nuevo contenido',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                  fontSize: 20,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            );
+          },
         ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16),
-            child: OutlinedButton(
+            child: ElevatedButton(
               onPressed: widget.onPublish,
-              style: OutlinedButton.styleFrom(
+              style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.cyan,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 6), // Padding interno
               ),
               child: Text(
                 'Publicar',
@@ -85,154 +119,322 @@ class _PreviewScreenState extends State<PreviewScreen> {
           ),
         ],
       ),
+
       body: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              height: 300.0,
-              margin: EdgeInsets.all(10.0),
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: _images.length,
-                itemBuilder: (context, index) {
-                  return Container(
-                    margin: EdgeInsets.symmetric(horizontal: 5.0),
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: FileImage(_images[index]),
-                        fit: BoxFit.cover,
-                      ),
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    width: MediaQuery.of(context).size.width * 0.8,
-                  );
-                },
-              ),
-            ),
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  CarouselSlider(
-                    items: [
-                      _buildCarouselButton(
-                        onPressed: _pickImage,
-                        icon: Icons.add_photo_alternate,
-                        label: 'Add Foto',
-                      ),
-                      _buildCarouselButton(
-                        onPressed: _editMedia,
-                        icon: Icons.edit,
-                        label: 'Editar',
-                      ),
-                      _buildCarouselButton(
-                        onPressed: () => _showMusicModal(context),
-                        icon: Icons.music_note,
-                        label: 'Musica',
-                      ),
-                      _buildCarouselButton(
-                        onPressed: _addLocation,
-                        icon: Icons.location_on,
-                        label: 'Ubicación',
-                      ),
-                      _buildCarouselButton(
-                        onPressed: _addTags,
-                        icon: Icons.tag,
-                        label: 'Etiquetas',
-                      ),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+            buildImageList(),
+        buildCarousel(),
+        buildDescriptionInput(),
 
-                    ],
-                    options: CarouselOptions(
-                      height: 42.0,
-                      enableInfiniteScroll: false,
-                      enlargeCenterPage: true,
-                      viewportFraction: 0.32,
-                      // Ajustar el ancho de los botones
-                      initialPage: 0,
+        buildPublicationSettings(),
+
+        _buildSettingsItem(
+          icon: Icons.group_add,
+          iconColor: Colors.greenAccent,
+          title: 'Etiquetar personas',
+          subtitle: 'Agrega amigos a tu publicación',
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (context) => FriendsModales(),
+            );
+
+          },
+        ),
+
+        _buildSettingsItem(
+        icon: Icons.lock_outline,
+        iconColor: Colors.cyan,
+        title: 'Privacidad',
+        subtitle: 'Controla quién puede ver tu post',
+        onTap: () {
+          _showOptionsModalPrivacity(
+              context); // Llama al método para mostrar el modal
+        },
+      ),
+      _buildSettingsItem(
+        icon: Icons.campaign,
+        iconColor: Colors.redAccent,
+        title: 'Promocionar publicación',
+        subtitle: 'Aumenta el alcance de tu contenido',
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) =>
+                  PromotionPreview(
+                    imageUrl: 'https://cdn.pixabay.com/photo/2021/09/20/23/03/car-6642036_1280.jpg',
+                    // Reemplaza con la URL real
+                    textColor: textColor,
+                  ),
+            ),
+          );
+        },
+      ),
+      _buildSettingsItem(
+        icon: Icons.location_on,
+        iconColor: Colors.blueAccent,
+        title: 'Seleccionar ubicación',
+        subtitle: 'Comparte dónde estás',
+        onTap: () {
+          _showOptionsModal(context, 'Seleccionar ubicación');
+        },
+      ),
+      _buildSettingsItem(
+        icon: Icons.schedule,
+        iconColor: Colors.amber,
+        title: 'Programar publicación',
+        subtitle: 'Elige cuándo publicar',
+        onTap: () {
+          _showOptionsModal(context, 'Programar publicación');
+        },
+      ),
+      _buildSettingsItem(
+        icon: Icons.more_horiz,
+        iconColor: Colors.grey,
+        title: 'Ver más',
+        subtitle: 'Opciones adicionales',
+        onTap: () {
+          // Acción de ver más
+        },
+      ),
+      ],
+    ),
+    )
+        .animate(delay: 100. ms)
+        .fadeIn(duration: 300.ms)
+        .slideY(begin: 0.1, end: 0),
+    );
+  }
+
+  Widget _buildSettingsItem({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+    final iconColor = darkModeProvider.iconColor;
+    final background = darkModeProvider.backgroundColor;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              // Circular icon container
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: isDarkMode ? Colors.grey.shade800 : Colors.grey
+                      .shade300,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  color: iconColor,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+
+              // Text content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: textColor,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0),
-              child: TextField(
-                controller: widget.descriptionController,
-                style: TextStyle(color: Colors.white),  // Color del texto blanco
-                decoration: InputDecoration(
-                  filled: true,  // Habilitar el color de fondo
-                  fillColor: Colors.black,  // Fondo negro
-                  hintText: 'Agrega una breve descripción...',
-                  hintStyle: TextStyle(color: Colors.grey[400]),  // Color del texto del hint
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.black),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey, width: 1.0),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.black, width: 1.0), // por definir el borde
-                  ),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
                 ),
-                maxLines: 2,
               ),
-            ),
-            Divider(color: Colors.grey[850]),
-            ListTile(
-              leading: Container(
-                width: 40,  // Ancho del contenedor
-                height: 40, // Altura del contenedor
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2), // Fondo negro con opacidad
-                  shape: BoxShape.circle, // Forma circular
-                ),
-                child: Icon(Icons.group_add, color: Colors.lightGreenAccent),
+
+              // Chevron icon
+              Icon(
+                Icons.chevron_right,
+                color: Colors.grey,
               ),
-              title: Text('Etiquetar personas',
-                  style: TextStyle(color: Colors.white)),
-              onTap: () {
-                // Acción para etiquetar personas
-              },
-            ),
-            ListTile(
-              leading: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(Icons.lock, color: Colors.cyan),
-              ),
-              title: Text('Privacidad', style: TextStyle(color: Colors.white)),
-              onTap: () {
-                // Acción para seleccionar privacidad
-              },
-            ),
-            ListTile(
-              leading: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(Icons.campaign_sharp, size: 29, color: Colors.red),
-              ),
-              title: Text('Promocionar publicación',
-                  style: TextStyle(color: Colors.white)),
-              onTap: () {
-                // Acción para promocionar publicación
-              },
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
+
+  Widget buildPublicationSettings() {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+    final iconColor = darkModeProvider.iconColor;
+    final background = darkModeProvider.backgroundColor;
+
+    return Column(
+      children: [
+        Divider(
+          color: Colors.grey[100],
+          thickness: 0.2,
+        ),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: isDarkMode ? Colors.grey[850] : Colors.grey[100],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.settings, // Ícono de la flecha o ícono que desees
+                color: textColor,
+              ),
+              SizedBox(width: 8), // Espacio entre el ícono y el texto
+              Text(
+                'Configuración de Publicación',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+
+  //imagen
+  Widget buildImageList() {
+    return Container(
+      height: 300.0,
+      margin: EdgeInsets.all(10.0),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _images.length,
+        itemBuilder: (context, index) {
+          return Container(
+            margin: EdgeInsets.symmetric(horizontal: 5.0),
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: FileImage(_images[index]),
+                fit: BoxFit.cover,
+              ),
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            width: MediaQuery
+                .of(context)
+                .size
+                .width * 0.8,
+          );
+        },
+      ),
+    );
+  }
+
+  //carrucel de opciones
+  Widget buildCarousel() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          CarouselSlider(
+            items: [
+              _buildCarouselButton(
+                onPressed: _pickImage,
+                icon: Icons.add_photo_alternate,
+                label: 'Añadir Foto',
+              ),
+              _buildCarouselButton(
+                onPressed: _editMedia,
+                icon: Icons.edit,
+                label: 'Editar',
+              ),
+              _buildCarouselButton(
+                onPressed: () => _showMusicModal(context),
+                icon: Icons.music_note,
+                label: 'Musica',
+              ),
+              _buildCarouselButton(
+                onPressed: _addLocation,
+                icon: Icons.location_on,
+                label: 'Ubicación',
+              ),
+              _buildCarouselButton(
+                onPressed: _addTags,
+                icon: Icons.tag,
+                label: 'Etiquetas',
+              ),
+            ],
+            options: CarouselOptions(
+              height: 42.0,
+              enableInfiniteScroll: false,
+              enlargeCenterPage: true,
+              viewportFraction: 0.32,
+              initialPage: 0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  //descripcion
+  Widget buildDescriptionInput() {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15.0),
+      child: TextField(
+        controller: widget.descriptionController,
+        style: TextStyle(color: textColor),
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: isDarkMode ? Colors.black : Colors.grey[200],
+          // Fondo negro
+          hintText: 'Agrega una breve descripción...',
+          hintStyle: TextStyle(color: textColor, fontSize: 13),
+          border: InputBorder.none,
+          // Sin borde
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.cyan,
+                width: 1.0), // Borde cyan cuando está en foco
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.transparent,
+                width: 1.0), // Borde transparente cuando está habilitado
+          ),
+        ),
+        maxLines: 2,
+        cursorColor: Colors.cyan,
+      ),
+    );
+  }
+
 
   void _editMedia() async {
     // Muestra un diálogo o pantalla para editar el medio
@@ -286,7 +488,6 @@ class _PreviewScreenState extends State<PreviewScreen> {
     );
   }
 
-
   void _addLocation() async {
     // Obtiene la ubicación actual del usuario o abre un mapa para seleccionar una ubicación
     final location = await Navigator.of(context).push(
@@ -301,7 +502,6 @@ class _PreviewScreenState extends State<PreviewScreen> {
       // Puedes actualizar el estado o hacer otra cosa con la ubicación
     }
   }
-
 
   void _addTags() async {
     final TextEditingController _controller = TextEditingController();
@@ -327,7 +527,8 @@ class _PreviewScreenState extends State<PreviewScreen> {
             TextButton(
               child: Text('Añadir'),
               onPressed: () {
-                Navigator.of(context).pop(_controller.text.split(',').map((e) => e.trim()).toList());
+                Navigator.of(context).pop(
+                    _controller.text.split(',').map((e) => e.trim()).toList());
               },
             ),
             TextButton(
@@ -358,12 +559,13 @@ class _PreviewScreenState extends State<PreviewScreen> {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.blueGrey[800], // Fondo del botón oscuro
-        minimumSize: Size(100, 40), // Tamaño compacto del botón
+        backgroundColor: Colors.cyan,
+        minimumSize: Size(150, 40),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
-        padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0), // Relleno ajustado
+        padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 5.0),
+        // Relleno ajustado
         elevation: 5, // Agregar elevación para mayor profundidad
       ),
       child: Row(
@@ -371,17 +573,55 @@ class _PreviewScreenState extends State<PreviewScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(icon, size: 20.0, color: Colors.white),
-          SizedBox(width: 8.0), // Espacio entre el icono y el texto
+          SizedBox(width: 3.0), // Espacio entre el icono y el texto
           Text(
             label,
             style: TextStyle(
-              fontSize: 14.0,
+              fontSize: 13.0,
               color: Colors.white,
               fontWeight: FontWeight.bold,
             ),
           ),
         ],
       ),
+    );
+  }
+
+  //opciones adicionales va a cambial
+  void _showOptionsModal(BuildContext context, String title) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(16.0),
+          height: 250, // Ajusta la altura según lo que necesites
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              SizedBox(height: 16),
+              // Aquí puedes agregar más opciones para cada sección
+              Text('Opción 1', style: TextStyle(color: Colors.white)),
+              Text('Opción 2', style: TextStyle(color: Colors.white)),
+              // Agrega más opciones según sea necesario
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  //privacidad
+  void _showOptionsModalPrivacity(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return PrivacyOptionsModal(
+          isFullScreen: isModal, // Aquí pasas isModal
+        );
+      },
     );
   }
 

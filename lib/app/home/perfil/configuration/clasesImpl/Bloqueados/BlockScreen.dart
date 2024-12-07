@@ -44,56 +44,70 @@ class _BlockScreenState extends State<BlockScreen> {
     final isDarkMode = darkModeProvider.isDarkMode;
     final backgroundColor = isDarkMode ? Colors.black : Colors.grey.shade100;
     final textColor = isDarkMode ? Colors.white : Colors.black;
+    final iconColor = isDarkMode ? Colors.white : Colors.black;
 
     return Scaffold(
       backgroundColor: backgroundColor,
-      appBar: AppBar(
-        title: Text(
-          'Lista de Bloqueados',
-          style: TextStyle(fontSize: 18, color: textColor, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: backgroundColor,
-        elevation: 1,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 10.0),
-            child: TextButton(
-              onPressed: _blockedUsers.isNotEmpty ? () {
-                _showClearAllDialog(context);
-              } : null,
-              child: Text(
-                'Eliminar Todo',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              style: ButtonStyle(
-                padding: MaterialStateProperty.all<EdgeInsets>(
-                  EdgeInsets.symmetric(horizontal: 9.0, vertical: 4.0),
-                ),
-                minimumSize: MaterialStateProperty.all<Size>(
-                  Size(0, 30),
-                ),
-                side: MaterialStateProperty.all<BorderSide>(
-                  BorderSide(
-                      color: Colors.pink.withOpacity(0.7),
-                      width: 1.6),
-                ),
-                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                backgroundColor: MaterialStateProperty.all<Color>(
-                    Colors.pink),
-              ),
+        appBar:AppBar(
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios_new,
+              color: iconColor,
+              size: 20,
+            ),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          title: Text(
+            'Lista de Bloqueados',
+            style: TextStyle(
+              fontSize: 18,
+              color: textColor,
+              fontWeight: FontWeight.bold,
             ),
           ),
-        ],
-      ),
-      body: Padding(
+          backgroundColor: backgroundColor,
+          elevation: 1,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 10.0),
+              child: TextButton(
+                onPressed: _blockedUsers.isNotEmpty
+                    ? () {
+                  _showClearAllDialog(context);
+                }
+                    : null,
+                child: Text(
+                  'Eliminar Todo',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: ButtonStyle(
+                  padding: MaterialStateProperty.all<EdgeInsets>(
+                    EdgeInsets.symmetric(horizontal: 9.0, vertical: 10.0),
+                  ),
+                  minimumSize: MaterialStateProperty.all<Size>(
+                    Size(0, 30),
+                  ),
+                  side: MaterialStateProperty.all<BorderSide>(
+                    BorderSide(color: Colors.pink.withOpacity(0.7), width: 1.6),
+                  ),
+                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  backgroundColor: MaterialStateProperty.all<Color>(Colors.pink),
+                ),
+              ),
+            ),
+          ],
+        ),
+        body: Padding(
         padding: const EdgeInsets.all(1.0),
         child: _blockedUsers.isNotEmpty
             ? ListView.builder(

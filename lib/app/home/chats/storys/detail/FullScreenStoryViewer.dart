@@ -25,7 +25,7 @@ class FullScreenStoryViewer extends StatefulWidget {
 class _FullScreenStoryViewerState extends State<FullScreenStoryViewer> {
   late Timer _timer;
   double _currentTime = 0.0;
-  double _totalTime = 5.0;
+  double _totalTime = 6.0;
   bool _isPaused = false;
   int _viewCount = 0;
   List<String> _comments = [];
@@ -99,6 +99,7 @@ class _FullScreenStoryViewerState extends State<FullScreenStoryViewer> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
     final isDarkMode = darkModeProvider.isDarkMode;
@@ -122,7 +123,7 @@ class _FullScreenStoryViewerState extends State<FullScreenStoryViewer> {
           },
           onTapUp: (details) {
             final width = MediaQuery.of(context).size.width;
-            if (details.globalPosition.dx < width / 2) {
+            if (details.globalPosition.dx < width / 1) {
               _goToPreviousStory();
             } else {
               _goToNextStory();
@@ -138,187 +139,202 @@ class _FullScreenStoryViewerState extends State<FullScreenStoryViewer> {
           },
           child: Stack(
             children: [
-              Positioned.fill(
-                child: Image.file(
-                  File(widget.stories[_currentStoryIndex]),
-                  fit: BoxFit.cover,
-                ),
-              ),
-              Positioned.fill(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
-                  child: Container(
-                    color: Colors.black.withOpacity(0.5),
-                  ),
-                ),
-              ),
-              Center(
-                child: Image.file(
-                  File(widget.stories[_currentStoryIndex]),
-                  fit: BoxFit.contain,
-                ),
-              ),
-              Positioned(
-                top: 56.0,
-                left: 26.0,
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 25,
-                      backgroundColor: Colors.grey.shade300,
-                      child: Icon(
-                        Icons.person,
-                        color: Colors.grey[800],
-                        size: 30,
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Stack(
-                          children: [
-                            // Capa del borde (sombra más pronunciada)
-                            Text(
-                              _generateFakeName(),
-                              style: TextStyle(
-                                color: Colors.transparent, // Hacemos el texto invisible para que solo se vea la sombra
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                shadows: [
-                                  Shadow(
-                                    color: Colors.black.withOpacity(0.8), // Color del borde
-                                    offset: Offset(0, 0),
-                                    blurRadius: 3,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            // Capa del texto real (superpuesta sobre el borde)
-                            Text(
-                              _generateFakeName(),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                shadows: [
-                                  Shadow(
-                                    color: Colors.black.withOpacity(0.5), // Color de la sombra
-                                    offset: Offset(1, 1), // Posición de la sombra
-                                    blurRadius: 30, // Difuminado de la sombra
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 4),
-                        Stack(
-                          children: [
-                            // Capa del borde (sombra más pronunciada)
-                            Text(
-                              '${DateTime.now().hour}:${DateTime.now().minute}',
-                              style: TextStyle(
-                                color: Colors.transparent, // Hacemos el texto invisible para que solo se vea la sombra
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                                shadows: [
-                                  Shadow(
-                                    color: Colors.black.withOpacity(0.8), // Color del borde
-                                    offset: Offset(0, 0),
-                                    blurRadius: 30,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            // Capa del texto real (superpuesta sobre el borde)
-                            Text(
-                              '${DateTime.now().hour}:${DateTime.now().minute}',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                                shadows: [
-                                  Shadow(
-                                    color: Colors.black.withOpacity(0.5), // Color de la sombra
-                                    offset: Offset(1, 1),
-                                    blurRadius: 20,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                top: MediaQuery.of(context).padding.top + 12.0,
-                left: 12.0,
-                right: 12.0,
-                child: Row(
-                  children: List.generate(widget.stories.length, (index) {
-                    return Expanded(
-                      child: Container(
-                        margin: EdgeInsets.symmetric(horizontal: 2.0),
-                        height: 2.5,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8.0),
-                          color: Colors.grey[400],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8.0),
-                          child: LinearProgressIndicator(
-                            value: index == _currentStoryIndex
-                                ? _currentTime / _totalTime
-                                : index < _currentStoryIndex
-                                ? 1.0
-                                : 0.0,
-                            backgroundColor: Colors.transparent,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.cyan,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-              ),
-              Positioned(
-                bottom: 20.0,
-                left: 20.0,
-                right: 20.0,
-                child: Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      IconButton(
-                        icon: Icon(Icons.remove_red_eye, color: Colors.white),
-                        onPressed: _showViewersModal,
-                      ),
-                      SizedBox(width: 2.0),
-                      Text(
-                        'Vistas',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                top: MediaQuery.of(context).padding.top + 20.0,
-                right: 20.0,
-                child: IconButton(
-                  icon: Icon(Icons.more_vert, color: Colors.white, size: 30,),
-                  onPressed: () => _showOptions(context),
-                ),
+              _buildBackgroundImage(),
+              _buildBlurOverlay(),
+              _buildCenterImage(),
+              _buildUserInfo(),
+              _buildStoryProgressBar(context),
+              _buildViewersButton(),
+              _buildOptionsButton(context),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackgroundImage() {
+    return Positioned.fill(
+      child: Image.file(
+        File(widget.stories[_currentStoryIndex]),
+        fit: BoxFit.cover,
+      ),
+    );
+  }
+
+  Widget _buildBlurOverlay() {
+    return Positioned.fill(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+        child: Container(
+          color: Colors.black.withOpacity(0.5),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCenterImage() {
+    return Center(
+      child: Image.file(
+        File(widget.stories[_currentStoryIndex]),
+        fit: BoxFit.contain,
+      ),
+    );
+  }
+
+  //hora y user
+  String _getTimeAgoText(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inMinutes < 1) {
+      return 'hace unos instantes';
+    } else if (difference.inMinutes < 60) {
+      return 'hace ${difference.inMinutes} minuto${difference.inMinutes > 1 ? 's' : ''}';
+    } else if (difference.inHours < 24) {
+      return 'hace ${difference.inHours} hora${difference.inHours > 1 ? 's' : ''}';
+    } else {
+      return 'hace 1 día'; // o "expirado" si deseas mostrar que ha caducado
+    }
+  }
+
+  Widget _buildUserInfo() {
+    DateTime storyCreationTime = DateTime.now().subtract(Duration(hours: 1, minutes: 15)); // Cambia esta fecha a la fecha real de la historia
+    String timeAgoText = _getTimeAgoText(storyCreationTime);
+
+    return Positioned(
+      top: 56.0,
+      left: 26.0,
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 25,
+            backgroundColor: Colors.grey.shade300,
+            child: Icon(
+              Icons.person,
+              color: Colors.grey[800],
+              size: 30,
+            ),
+          ),
+          SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildTextWithShadow(_generateFakeName(), 18, Colors.white),
+              SizedBox(height: 4),
+              _buildTextWithShadow(timeAgoText, 10, Colors.white),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  Widget _buildTextWithShadow(String text, double fontSize, Color color) {
+    return Stack(
+      children: [
+        Text(
+          text,
+          style: TextStyle(
+            color: Colors.transparent,
+            fontWeight: FontWeight.bold,
+            fontSize: fontSize,
+            shadows: [
+              Shadow(
+                color: Colors.black.withOpacity(0.8),
+                offset: Offset(0, 0),
+                blurRadius: 3,
               ),
             ],
           ),
         ),
+        Text(
+          text,
+          style: TextStyle(
+            color: color,
+            fontWeight: FontWeight.bold,
+            fontSize: fontSize,
+            shadows: [
+              Shadow(
+                color: Colors.black.withOpacity(0.5),
+                offset: Offset(1, 1),
+                blurRadius: 20,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStoryProgressBar(BuildContext context) {
+    return Positioned(
+      top: MediaQuery.of(context).padding.top + 12.0,
+      left: 12.0,
+      right: 12.0,
+      child: Row(
+        children: List.generate(widget.stories.length, (index) {
+          return Expanded(
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 2.0),
+              height: 2.3, // altura barra de historia
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8.0),
+                color: Colors.grey[400],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8.0),
+                child: LinearProgressIndicator(
+                  value: index == _currentStoryIndex
+                      ? _currentTime / _totalTime
+                      : index < _currentStoryIndex
+                      ? 1.0
+                      : 0.0,
+                  backgroundColor: Colors.transparent,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    Colors.cyan,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildViewersButton() {
+    return Positioned(
+      bottom: 20.0,
+      left: 20.0,
+      right: 20.0,
+      child: Center(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            IconButton(
+              icon: Icon(Icons.remove_red_eye, color: Colors.white),
+              onPressed: _showViewersModal,
+            ),
+            SizedBox(width: 2.0),
+            Text(
+              'Vistas',
+              style: TextStyle(color: Colors.white),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOptionsButton(BuildContext context) {
+    return Positioned(
+      top: MediaQuery.of(context).padding.top + 20.0,
+      right: 20.0,
+      child: IconButton(
+        icon: Icon(Icons.more_vert, color: Colors.white, size: 28),
+        onPressed: () => _showOptions(context),
       ),
     );
   }
@@ -335,6 +351,7 @@ class _FullScreenStoryViewerState extends State<FullScreenStoryViewer> {
     });
   }
 
+  //configuracion o modal multiple
   void _showOptions(BuildContext context) {
     _pauseStory();
 
@@ -391,7 +408,7 @@ class _FullScreenStoryViewerState extends State<FullScreenStoryViewer> {
                         'Configuración',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 20.0,
+                          fontSize: 16.0,
                           fontWeight: FontWeight.bold,
                           fontFamily: 'Montserrat',
                         ),
@@ -504,8 +521,6 @@ class _FullScreenStoryViewerState extends State<FullScreenStoryViewer> {
       });
     });
   }
-
-
 
   void _showCommentDialog() {
     showDialog(

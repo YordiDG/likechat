@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../../../Globales/estadoDark-White/DarkModeProvider.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  final String username;
+  final String fullname;
+  final String usernameid;
   final String description;
-  final String socialLink;
-  final Function(String, String, String) onSave;
+  final List<String> socialLinks; // Cambié socialLink a una lista de enlaces
+  final Function(String, String, String, List<String>)
+      onSave; // Cambié el tipo de la función
 
   EditProfileScreen({
-    required this.username,
+    required this.fullname,
+    required this.usernameid,
     required this.description,
-    required this.socialLink,
+    required this.socialLinks,
     required this.onSave,
   });
 
@@ -22,6 +26,7 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
+  late TextEditingController _fullnameController;
   late TextEditingController _usernameController;
   late TextEditingController _descriptionController;
   late TextEditingController _socialLinkController;
@@ -29,16 +34,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final int maxLines = 3;
   String? socialPlatform;
 
+  List<String> socialLinks = []; // Lista para almacenar los enlaces agregados
+
   @override
   void initState() {
     super.initState();
-    _usernameController = TextEditingController(text: widget.username);
+    _fullnameController = TextEditingController(text: widget.fullname);
+    _usernameController = TextEditingController(text: widget.usernameid);
     _descriptionController = TextEditingController(text: widget.description);
-    _socialLinkController = TextEditingController(text: widget.socialLink);
+    _socialLinkController = TextEditingController();
+    socialLinks = List.from(
+        widget.socialLinks); // Inicia la lista con los enlaces pasados
   }
 
   @override
   void dispose() {
+    _fullnameController.dispose();
     _usernameController.dispose();
     _descriptionController.dispose();
     _socialLinkController.dispose();
@@ -46,12 +57,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   bool isValidSocialLink(String url) {
-    final RegExp facebookRegExp = RegExp(r'^https?:\/\/(www\.)?facebook.com\/.+$');
+    final RegExp facebookRegExp =
+        RegExp(r'^https?:\/\/(www\.)?facebook.com\/.+$');
     final RegExp tiktokRegExp = RegExp(r'^https?:\/\/(www\.)?tiktok.com\/.+$');
-    final RegExp youtubeRegExp = RegExp(r'^https?:\/\/(www\.)?youtube.com\/.+$');
+    final RegExp youtubeRegExp =
+        RegExp(r'^https?:\/\/(www\.)?youtube.com\/.+$');
     final RegExp whatsappRegExp = RegExp(r'^https?:\/\/(www\.)?wa.me\/.+$');
-    final RegExp instagramRegExp = RegExp(r'^https?:\/\/(www\.)?instagram.com\/.+$');
-    final RegExp linkedinRegExp = RegExp(r'^https?:\/\/(www\.)?linkedin.com\/.+$');
+    final RegExp instagramRegExp =
+        RegExp(r'^https?:\/\/(www\.)?instagram.com\/.+$');
+    final RegExp linkedinRegExp =
+        RegExp(r'^https?:\/\/(www\.)?linkedin.com\/.+$');
 
     if (facebookRegExp.hasMatch(url)) {
       socialPlatform = 'Facebook';
@@ -79,7 +94,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
     final isDarkMode = darkModeProvider.isDarkMode;
     final textColor = darkModeProvider.textColor;
@@ -98,181 +112,251 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: isDarkMode ? Colors.white : Colors.black,),
+          icon: Icon(Icons.arrow_back_ios_new,
+              color: isDarkMode ? Colors.white : Colors.black),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _usernameController,
-              maxLength: 35,
-              decoration: InputDecoration(
-                labelText: 'Nombre',
-                labelStyle: TextStyle(color: Colors.cyan),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.cyan),
-                  borderRadius: BorderRadius.circular(10.0),
+      body: Theme(
+        data: Theme.of(context).copyWith(
+          textSelectionTheme: TextSelectionThemeData(
+            cursorColor: Colors.cyan,
+            selectionColor: Colors.cyan.withOpacity(0.3),
+            selectionHandleColor: Colors.cyan,
+          ),
+        ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14),
+            child: Column(
+              children: [
+                // Reemplazar el TextField de nombre con customDecoration
+                TextField(
+                  controller: _fullnameController,
+                  maxLength: 35,
+                  decoration: customDecoration('Nombre', Icons.person),
+                  cursorColor: Colors.cyan,
+                  style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.cyan),
-                  borderRadius: BorderRadius.circular(10.0),
+                SizedBox(height: 16),
+
+                // Reemplazar el TextField de nombre de usuario con customDecoration
+                TextField(
+                  controller: _usernameController,
+                  maxLength: 20,
+                  decoration: customDecoration('Nombre de Usuario', Icons.person),
+                  cursorColor: Colors.cyan,
+                  style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
                 ),
-                prefixIcon: Icon(Icons.person, color: Colors.cyan),
-              ),
-              cursorColor: Colors.cyan,
-              style: TextStyle(color: isDarkMode ? Colors.white : Colors.black,),
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: _descriptionController,
-              maxLength: 60,
-              maxLines: null,
-              keyboardType: TextInputType.multiline,
-              textInputAction: TextInputAction.newline,
-              onChanged: (text) {
-                if (text.split('\n').length > maxLines) {
-                  _descriptionController.text = _descriptionController.text.substring(0, _descriptionController.text.lastIndexOf('\n'));
-                  _descriptionController.selection = TextSelection.fromPosition(TextPosition(offset: _descriptionController.text.length));
-                }
-              },
-              decoration: InputDecoration(
-                labelText: 'Descripción',
-                labelStyle: TextStyle(color: Colors.cyan,),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.cyan),
-                  borderRadius: BorderRadius.circular(10.0),
+                SizedBox(height: 16),
+
+                // Reemplazar el TextField de descripción con customDecoration
+                TextField(
+                  controller: _descriptionController,
+                  maxLength: 60,
+                  maxLines: null,
+                  keyboardType: TextInputType.multiline,
+                  textInputAction: TextInputAction.newline,
+                  onChanged: (text) {
+                    if (text.split('\n').length > maxLines) {
+                      _descriptionController.text = _descriptionController.text
+                          .substring(
+                          0, _descriptionController.text.lastIndexOf('\n'));
+                      _descriptionController.selection =
+                          TextSelection.fromPosition(TextPosition(
+                              offset: _descriptionController.text.length));
+                    }
+                  },
+                  decoration: customDecoration('Descripción', Icons.description),
+                  cursorColor: Colors.cyan,
+                  style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.cyan),
-                  borderRadius: BorderRadius.circular(10.0),
+                SizedBox(height: 16),
+
+                // Reemplazar el TextField de enlace con customDecoration
+                TextField(
+                  controller: _socialLinkController,
+                  decoration: customDecoration('Enlace a otra red social', Icons.link),
+                  cursorColor: Colors.cyan,
+                  style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                  onChanged: (text) {
+                    setState(() {
+                      isValidSocialLink(text);
+                    });
+                  },
                 ),
-                prefixIcon: Icon(Icons.description, color: Colors.cyan),
-              ),
-              cursorColor: Colors.cyan,
-              style: TextStyle(color: isDarkMode ? Colors.white : Colors.black,),
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: _socialLinkController,
-              decoration: InputDecoration(
-                labelText: 'Enlace a otra red social',
-                labelStyle: TextStyle(color: Colors.cyan),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.cyan),
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.cyan),
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                prefixIcon: Icon(Icons.link, color: Colors.cyan),
-              ),
-              cursorColor: Colors.cyan,
-              style: TextStyle(color: isDarkMode ? Colors.white : Colors.black,),
-              onChanged: (text) {
-                setState(() {
-                  isValidSocialLink(text);
-                });
-              },
-            ),
-            if (socialPlatform != null) ...[
-              SizedBox(height: 10),
-              Row(
-                children: [
-                  Icon(
-                    socialPlatform == 'Facebook' ? FontAwesomeIcons.facebook :
-                    socialPlatform == 'TikTok' ? FontAwesomeIcons.tiktok :
-                    socialPlatform == 'YouTube' ? FontAwesomeIcons.youtube :
-                    socialPlatform == 'Instagram' ? FontAwesomeIcons.instagram :
-                    socialPlatform == 'LinkedIn' ? FontAwesomeIcons.linkedin :
-                    FontAwesomeIcons.whatsapp,
-                    color: Colors.cyan,
-                  ),
-                  SizedBox(width: 10),
-                  Text(
-                    'Enlace válido para $socialPlatform',
-                    style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ],
-            SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: () {
-                final socialLink = _socialLinkController.text;
-                if (socialLink.isEmpty || isValidSocialLink(socialLink)) {
-                  widget.onSave(
-                    _usernameController.text,
-                    _descriptionController.text,
-                    socialLink,
-                  );
-                  Navigator.pop(context);
-                } else {
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        backgroundColor: Colors.grey[850], // Fondo gris oscuro
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15.0), // Bordes redondeados
+                SizedBox(height: 8),
+
+                // El resto del código sigue igual...
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          if (_socialLinkController.text.isNotEmpty &&
+                              isValidSocialLink(_socialLinkController.text)) {
+                            if (socialLinks.length < 5) {
+                              // Añadir enlace si el límite no ha sido alcanzado
+                              socialLinks.add(_socialLinkController.text);
+                              _socialLinkController.clear();
+                            } else {
+                              Fluttertoast.showToast(
+                                msg: "Solo se permiten hasta 5 redes sociales.",
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                backgroundColor: Colors.grey.shade800,
+                                textColor: Colors.white,
+                                fontSize: 13.0,
+                              );
+                            }
+                          }
+                        });
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.cyan,
+                          shape: BoxShape.rectangle,
+                          borderRadius: BorderRadius.circular(4),
                         ),
-                        title: Text(
-                          'Enlace no válido',
-                          style: TextStyle(
-                            color: Colors.white, // Letras blancas
-                            fontWeight: FontWeight.bold,
-                          ),
+                        padding: EdgeInsets.all(6),
+                        child: Icon(FontAwesomeIcons.add,
+                            color: Colors.white, size: 16),
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    Text(
+                      'Añadir más enlace',
+                      style: TextStyle(
+                        color: Colors.cyan,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: 'Elras',
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                // Mostrar enlaces añadidos (igual)
+                if (socialLinks.isNotEmpty)
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: socialLinks.length,
+                    itemBuilder: (context, index) {
+                      String link = socialLinks[index];
+                      IconData icon = Icons.link;
+
+                      // Definir el ícono basado en la plataforma detectada
+                      if (link.contains('facebook'))
+                        icon = FontAwesomeIcons.facebook;
+                      else if (link.contains('tiktok'))
+                        icon = FontAwesomeIcons.tiktok;
+                      else if (link.contains('youtube'))
+                        icon = FontAwesomeIcons.youtube;
+                      else if (link.contains('whatsapp'))
+                        icon = FontAwesomeIcons.whatsapp;
+                      else if (link.contains('instagram'))
+                        icon = FontAwesomeIcons.instagram;
+                      else if (link.contains('linkedin'))
+                        icon = FontAwesomeIcons.linkedin;
+
+                      return Container(
+                        margin: EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+                        padding: EdgeInsets.symmetric(horizontal: 8),
+                        decoration: BoxDecoration(
+                          color: isDarkMode
+                              ? Colors.grey.shade900
+                              : Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(9),
+                          boxShadow: [
+                            BoxShadow(
+                              color: isDarkMode
+                                  ? Colors.white60
+                                  : Colors.grey.withOpacity(0.2),
+                              spreadRadius: 1,
+                              blurRadius: 1,
+                              offset: Offset(0, 1),
+                            ),
+                          ],
                         ),
-                        content: Text(
-                          'Por favor, ingrese un enlace válido de Facebook, TikTok, YouTube, WhatsApp, Instagram, o LinkedIn.',
-                          style: TextStyle(
-                            color: Colors.white70, // Letras blancas con menor opacidad
-                          ),
-                        ),
-                        actions: [
-                          TextButton(
-                            style: TextButton.styleFrom(
-                              foregroundColor: Colors.cyan, // Color del texto del botón
-                              textStyle: TextStyle(
-                                fontWeight: FontWeight.bold, // Texto en negrita
+                        child: Row(
+                          children: [
+                            Icon(icon, color: Colors.cyan, size: 22),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                link,
+                                style: TextStyle(
+                                  color: isDarkMode ? Colors.white : Colors.cyan,
+                                  fontWeight: FontWeight.w400,
+                                  fontSize: 14,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
                               ),
                             ),
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: Text('OK'),
-                          ),
-                        ],
+                            IconButton(
+                              icon: Icon(Icons.remove_circle,
+                                  color: Colors.red, size: 20),
+                              onPressed: () {
+                                setState(() {
+                                  socialLinks.removeAt(index);
+                                });
+                              },
+                              splashRadius: 20,
+                            ),
+                          ],
+                        ),
                       );
                     },
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.cyan,
-                padding: EdgeInsets.symmetric(horizontal: 80, vertical: 15),
-                textStyle: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  ),
+
+                SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      widget.onSave(
+                        _fullnameController.text,
+                        _usernameController.text,
+                        _descriptionController.text,
+                        socialLinks,
+                      );
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.cyan,
+                      padding: EdgeInsets.symmetric(vertical: 13),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: Text('Guardar Cambios',
+                        style: TextStyle(color: Colors.white, fontSize: 16)),
+                  ),
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-              ),
-              child: Text(
-                'Guardar',
-                style: TextStyle(color: Colors.white),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
+
+  InputDecoration customDecoration(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: TextStyle(color: Colors.cyan),
+      enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.cyan),
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.cyan),
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      prefixIcon: Icon(icon, color: Colors.cyan),
+    );
+  }
+
 }

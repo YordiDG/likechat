@@ -19,6 +19,10 @@
     <key>GMSApiKey</key>
     <string>AIzaSyBoKy2M2XN4rWEi5xWow0XBII-FbLGNUA4</string>
 
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Necesitamos acceso a tu galería de fotos</string>
+
+
     <key>NSMicrophoneUsageDescription</key>
     <string>Necesitamos tu permiso para grabar audio</string>
     <key>NSPhotoLibraryUsageDescription</key>
@@ -43,6 +47,13 @@
     </dict>
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>Necesitamos acceder a tu biblioteca para guardar el archivo.</string>
+
+     //para camara
+     <key>NSCameraUsageDescription</key>
+     <string>We need access to your camera</string>
+     <key>NSMicrophoneUsageDescription</key>
+     <string>We need access to your microphone</string>
+
 
 
      <key>NSCameraUsageDescription</key>

@@ -21,7 +21,7 @@ class _LikeChatScreenState extends State<LikeChatScreen> {
   List<String> _stories = [];
   int _currentIndex = 0;
   Timer? _timer;
-  final double _storySize = 75.0;
+  final double _storySize = 77.0;
   final double _activeStorySize = 90.0;
 
   File? _image;
@@ -42,7 +42,7 @@ class _LikeChatScreenState extends State<LikeChatScreen> {
     final backgroundColor = darkModeProvider.backgroundColor;
 
     return Container(
-      color: Colors.black.withOpacity(0.2),
+      color: backgroundColor,
       child: Padding(
         padding: EdgeInsets.only(top: 30.0),
         child: Container(
@@ -50,205 +50,215 @@ class _LikeChatScreenState extends State<LikeChatScreen> {
           color: backgroundColor,
           child: Stack(
             children: [
-              Row(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.only(left: 30.0),
-                    child: Text(
-                      'LikeChat',
-                      style: TextStyle(
-                        color: isDarkMode ? Colors.white : Colors.cyan,
-                        fontSize: 26.0,
-                        fontWeight: FontWeight.bold,
+              buildHeaderRow(),
+              buildStoryContainer(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
+  //header de estados:
+  Widget buildHeaderRow() {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final iconColor = darkModeProvider.iconColor;
+
+    return Row(
+      children: [
+        Padding(
+          padding: EdgeInsets.only(left: 30.0),
+          child: Text(
+            'LikeChat',
+            style: TextStyle(
+              color: isDarkMode ? Colors.white : Colors.cyan,
+              fontSize: 26.0,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        Spacer(),
+        IconButton(
+          icon: Icon(Icons.search, color: iconColor, size: 28),
+          onPressed: () {
+            // Acción de búsqueda
+          },
+        ),
+        IconButton(
+          icon: Icon(Icons.add, color: iconColor, size: 28),
+          onPressed: _addStory,
+        ),
+        IconButton(
+          icon: Icon(Icons.more_vert, color: iconColor, size: 28),
+          onPressed: () {
+            showOptionsDialog(context);
+          },
+        ),
+      ],
+    );
+  }
+
+  //contruye la iamgen:
+  Widget buildStoryContainer() {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final iconColor = darkModeProvider.iconColor;
+
+    return Container(
+      margin: EdgeInsets.only(top: 43.0),
+      height: _activeStorySize + 1,
+      width: 500,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: 17.0, right: 5.0),
+              child: GestureDetector(
+                onTap: _addStory,
+                child: Container(
+                  width: _storySize,
+                  height: _storySize,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.grey[300],
+                  ),
+                  child: Stack(
+                    children: [
+                      Center(
+                        child: _image != null
+                            ? Container(
+                          width: _storySize,
+                          height: _storySize,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            image: DecorationImage(
+                              image: FileImage(File(_image!.path)),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        )
+                            : Container(
+                          width: _storySize,
+                          height: _storySize,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            image: DecorationImage(
+                              image: AssetImage('lib/assets/placeholder_user.jpg'),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
                       ),
+                      Positioned(
+                        bottom: 1.0,
+                        right: 1.0,
+                        child: Container(
+                          width: 29.0,
+                          height: 29.0,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isDarkMode ? Colors.cyan : Colors.cyan,
+                            border: Border.all(color: isDarkMode ? Colors.black : Colors.white, width: 2.0),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.3),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Icon(
+                              Icons.add,
+                              size: 24,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(width: 8),
+            if (_stories.isNotEmpty) buildActiveStory(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  //contrye la histori activa
+  Widget buildActiveStory() {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final iconColor = darkModeProvider.iconColor;
+
+    return GestureDetector(
+      onTap: () {
+        if (_stories.isNotEmpty) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => FullScreenStoryViewer(
+                stories: _stories,
+                currentIndex: _currentIndex,
+                onDelete: _deleteStory,
+              ),
+            ),
+          );
+        }
+      },
+      child: Container(
+        width: _activeStorySize + 2.0,
+        height: _activeStorySize + 2.0,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.cyan,
+            width: 2.5,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(2.5),
+          child: Stack(
+            children: [
+              ClipOval(
+                child: Container(
+                  width: _activeStorySize - 6.0,
+                  height: _activeStorySize - 6.0,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                      image: FileImage(File(_stories[_currentIndex])),
+                      fit: BoxFit.cover,
                     ),
                   ),
-                  Spacer(),
-                  IconButton(
-                    icon: Icon(Icons.search, color: iconColor, size: 28),
-                    onPressed: () {
-                      // Acción de búsqueda
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.add, color: iconColor, size: 28),
-                    onPressed: _addStory,
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.more_vert, color: iconColor, size: 28),
-                    onPressed: () {
-                      showOptionsDialog(context);
-                    },
-                  ),
-                ],
+                ),
               ),
-              Container(
-                margin: EdgeInsets.only(top: 43.0),
-                height: _activeStorySize + 1,
-                width: 600,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(left: 17.0, right: 5.0),
-                        child: GestureDetector(
-                          onTap: _addStory,
-                          child: Container(
-                            width: _storySize,
-                            height: _storySize,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.grey[300],
-                            ),
-                            child: Stack(
-                              children: [
-                                Center(
-                                  child: _image != null
-                                      ? Container(
-                                    width: _storySize,
-                                    height: _storySize,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      image: DecorationImage(
-                                        image: FileImage(File(_image!.path)),
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  )
-                                      : Container(
-                                    width: _storySize,
-                                    height: _storySize,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      image: DecorationImage(
-                                        image: AssetImage(
-                                            'lib/assets/placeholder_user.jpg'),
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  bottom: 1.0,
-                                  right: 1.0,
-                                  child: Container(
-                                    width: 30.0,
-                                    height: 30.0,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: isDarkMode ? Colors.cyan : Colors
-                                          .cyan,
-                                      border: Border.all(color: isDarkMode
-                                          ? Colors.black
-                                          : Colors.white, width: 2.0),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.3),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Center(
-                                      child: Icon(
-                                        Icons.add,
-                                        size: 26,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+              Positioned(
+                bottom: 8.0,
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+                  decoration: BoxDecoration(
+                    color: isDarkMode ? Colors.black87 : Colors.white.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(12.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 4.0,
+                        offset: Offset(0, 2),
                       ),
-                      SizedBox(width: 8),
-                      if (_stories.isNotEmpty)
-                        GestureDetector(
-                          onTap: () {
-                            if (_stories.isNotEmpty) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      FullScreenStoryViewer(
-                                        stories: _stories,
-                                        currentIndex: _currentIndex,
-                                        onDelete: _deleteStory,
-                                      ),
-                                ),
-                              );
-                            }
-                          },
-                          child: Container(
-                            width: _activeStorySize + 8.0,
-                            // Aumenta el ancho del contenedor para incluir el espacio de separación
-                            height: _activeStorySize + 8.0,
-                            // Aumenta el alto del contenedor para incluir el espacio de separación
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.cyan,
-                                width: 3.0,
-                              ),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(4.0),
-                              // Añade padding para separar el contenido del borde
-                              child: Stack(
-                                children: [
-                                  ClipOval(
-                                    child: Container(
-                                      width: _activeStorySize,
-                                      height: _activeStorySize,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        image: DecorationImage(
-                                          image: FileImage(
-                                              File(_stories[_currentIndex])),
-                                          fit: BoxFit.cover,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: 50.0,
-                                    left: 0.0,
-                                    right: 0.0,
-                                    child: Container(
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: 8.0, vertical: 1.0),
-                                      decoration: BoxDecoration(
-                                        color: isDarkMode
-                                            ? Colors.black54
-                                            : Colors.black.withOpacity(0.4),
-                                        // Fondo negro transparente
-                                        borderRadius: BorderRadius.circular(4.0),
-                                        border: Border.all(
-                                          color: isDarkMode
-                                              ? Colors.white
-                                              : Colors.white,
-                                          width: 1.0,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        'Tu historia',
-                                        style: TextStyle(
-                                          color: Colors.white, // Texto blanco
-                                          fontSize: 12.0,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
                     ],
+                  ),
+                  child: Text(
+                    'Tu historia',
+                    style: TextStyle(
+                      color: isDarkMode ? Colors.white : Colors.black87,
+                      fontSize: 12.0,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
@@ -258,6 +268,7 @@ class _LikeChatScreenState extends State<LikeChatScreen> {
       ),
     );
   }
+
 
   Future<void> _requestPermissions() async {
     await [

@@ -27,9 +27,19 @@ class _DownloadDataScreenState extends State<DownloadDataScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios_new,
+            color: iconColor,
+            size: 24,
+          ),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
         title: Text(
           'Descargar tus Datos',
-          style: TextStyle(color: textColor),
+          style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
         ),
         backgroundColor: backgroundColor,
       ),
@@ -55,24 +65,45 @@ class _DownloadDataScreenState extends State<DownloadDataScreen> {
   }
 
   Widget _buildDownloadTile(BuildContext context) {
-    return ListTile(
-      leading: Icon(
-        Icons.security_update,
-        color: Colors.cyan,
-      ),
-      title: Text(
-        'Descargar tus Datos',
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
-      subtitle: Text('Descarga una copia de tus datos personales.'),
-      onTap: _isDownloading ? null : () => _downloadUserData(context),
-      tileColor: Colors.grey[850],
-      shape: RoundedRectangleBorder(
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isDarkMode ? Colors.grey.shade600 : Colors.grey.shade400,
+          width: 1,
+        ),
       ),
-      contentPadding: EdgeInsets.all(16),
+      child: ListTile(
+        leading: Icon(
+          Icons.security_update,
+          color: Colors.cyan,
+        ),
+        title: Text(
+          'Descargar tus Datos',
+          style: TextStyle(
+            color: textColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+        ),
+        subtitle: Text(
+          'Descarga una copia de tus datos personales.',
+          style: TextStyle(
+            color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700,
+            fontSize: 12,
+          ),
+        ),
+        onTap: _isDownloading ? null : () => _downloadUserData(context),
+        contentPadding: EdgeInsets.all(16),
+      ),
     );
   }
+
 
   Widget _buildLoadingIndicator() {
     return Center(

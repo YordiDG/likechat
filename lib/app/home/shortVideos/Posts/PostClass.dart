@@ -1,14 +1,15 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'dart:io';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../Deezer-API-Musica/MusicModal.dart';
 import '../../../Globales/estadoDark-White/DarkModeProvider.dart';
 import '../../../Globales/expandetext/ExpandableText.dart';
 import 'OpenCamara/preview/PreviewScreen.dart';
 import 'package:provider/provider.dart';
+import 'eventos/ComentariosPost.dart';
+import 'eventos/EtiquetaButton.dart';
+import 'eventos/Likes.dart';
+import 'eventos/ShareButton.dart';
 
 class PostClass extends StatefulWidget {
   @override
@@ -23,7 +24,10 @@ class _PostClassState extends State<PostClass> {
   bool _permissionsDeniedMessageShown = false;
 
   bool isLiked = false;
-  int likeCount = 123;
+  int likeCount = 10;
+
+  bool _isSearchBarVisible = true;
+  double _lastScrollOffset = 0.0;
 
   void _toggleLike() {
     setState(() {
@@ -35,17 +39,21 @@ class _PostClassState extends State<PostClass> {
   @override
   void initState() {
     super.initState();
-    // Solicitar permisos de cámara y abrir la cámara automáticamente cuando se carga la pantalla
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _requestCameraPermission().then((granted) {
-        if (granted) {
-          _selectImage(source: ImageSource.camera);
-        } else if (!_permissionsDeniedMessageShown) {
-          _showPermissionDeniedMessage();
-          _permissionsDeniedMessageShown = true;
-        }
+  }
+
+  void _onScroll(double offset) {
+    if (offset > _lastScrollOffset && _isSearchBarVisible) {
+      // Ocultar barra de búsqueda cuando se desliza hacia arriba
+      setState(() {
+        _isSearchBarVisible = false;
       });
-    });
+    } else if (offset < _lastScrollOffset && !_isSearchBarVisible) {
+      // Mostrar barra de búsqueda cuando se desliza hacia abajo
+      setState(() {
+        _isSearchBarVisible = true;
+      });
+    }
+    _lastScrollOffset = offset;
   }
 
   @override
@@ -61,82 +69,71 @@ class _PostClassState extends State<PostClass> {
         children: [
           Column(
             children: [
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
-                child: Container(
-                  color: Colors.transparent,
-                  height: 38.0,
-                  child: TextField(
-                    controller: _searchController,
-                    cursorColor: Colors.cyan,
-                    decoration: InputDecoration(
-                      hintText: 'Buscar amigo',
-                      hintStyle:
-                          TextStyle(color: Colors.grey[500], fontSize: 14.0),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                        borderSide: BorderSide(color: Colors.white, width: 0.8),
+              AnimatedContainer(
+                duration: Duration(milliseconds: 300),
+                height: _isSearchBarVisible ? 50.0 : 0.0,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14.0, vertical: 8.0),
+                  child: Container(
+                    color: Colors.transparent,
+                    height: 38.0,
+                    child: TextField(
+                      controller: _searchController,
+                      cursorColor: Colors.cyan,
+                      decoration: InputDecoration(
+                        hintText: 'Buscar amigo',
+                        hintStyle: TextStyle(
+                            color: isDarkMode
+                                ? Colors.grey[500]
+                                : Colors.grey[700],
+                            fontSize: 12.0),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          borderSide:
+                              BorderSide(color: Colors.white, width: 0.8),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          borderSide: BorderSide(
+                              color:
+                                  isDarkMode ? Colors.grey : Colors.grey[400]!,
+                              width: 0.8),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          borderSide:
+                              BorderSide(color: Colors.cyan, width: 0.8),
+                        ),
+                        filled: true,
+                        fillColor: backgroundColor,
+                        contentPadding: EdgeInsets.symmetric(
+                            vertical: 10.0, horizontal: 10.0),
+                        prefixIcon: Icon(Icons.search, color: iconColor),
                       ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                        borderSide: BorderSide(color: Colors.grey, width: 0.8),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                        borderSide: BorderSide(color: Colors.grey, width: 0.8),
-                      ),
-                      filled: true,
-                      fillColor: Colors.transparent,
-                      contentPadding: EdgeInsets.symmetric(
-                          vertical: 10.0, horizontal: 10.0),
-                      prefixIcon: Icon(
-                        Icons.search,
-                        color: Colors.grey[500],
-                      ),
-                      suffixIcon: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            padding: EdgeInsets.symmetric(vertical: 5),
-                            child: VerticalDivider(
-                              color: Colors.grey,
-                              thickness: 1,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              // Lógica para el botón de búsqueda
-                            },
-                            child: Text(
-                              'Buscar',
-                              style: TextStyle(
-                                color: Colors.cyan,
-                                fontSize: 12,
-                              ),
-                            ),
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.symmetric(vertical: 2),
-                            ),
-                          ),
-                        ],
-                      ),
+                      style: TextStyle(color: textColor),
+                      onChanged: (value) {
+                        // Acción de búsqueda en tiempo real
+                      },
                     ),
-                    style: TextStyle(color: Colors.white),
-                    onChanged: (value) {
-                      // Acción de búsqueda en tiempo real
-                    },
                   ),
                 ),
               ),
               Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      SizedBox(height: 20.0),
-                      _buildPublishedPostCards(),
-                    ],
+                child: NotificationListener<ScrollNotification>(
+                  onNotification: (scrollNotification) {
+                    if (scrollNotification is ScrollUpdateNotification) {
+                      _onScroll(scrollNotification.metrics.pixels);
+                    }
+                    return false;
+                  },
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildPublishedPostCards(),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -171,21 +168,20 @@ class _PostClassState extends State<PostClass> {
     );
   }
 
-  Future<bool> _requestCameraPermission() async {
-    // Solicitar permisos de cámara
-    PermissionStatus cameraPermission = await Permission.camera.request();
-    return cameraPermission.isGranted;
-  }
-
-
   void _showImageSourceSelection() {
+    final darkModeProvider =
+        Provider.of<DarkModeProvider>(context, listen: false);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+
     showModalBottomSheet(
       context: context,
       builder: (context) {
         return Container(
           padding: EdgeInsets.all(20.0),
           decoration: BoxDecoration(
-            color: Colors.black87, // Fondo más oscuro y profesional
+            color: isDarkMode ? Colors.grey.shade900 : Colors.grey.shade200,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -193,8 +189,7 @@ class _PostClassState extends State<PostClass> {
               Text(
                 'Seleccionar Imagen',
                 style: TextStyle(
-                  color: Colors.white70,
-                  // Tono de blanco más oscuro y profesional
+                  color: textColor,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -228,8 +223,13 @@ class _PostClassState extends State<PostClass> {
     required IconData icon,
     required String label,
     required ImageSource source,
-    required Color color, // Cambiado a Color
+    required Color color,
   }) {
+    // Usar listen: false para evitar problemas fuera del árbol de widgets
+    final darkModeProvider =
+        Provider.of<DarkModeProvider>(context, listen: false);
+    final textColor = darkModeProvider.textColor;
+
     return GestureDetector(
       onTap: () {
         Navigator.pop(context); // Cerrar el BottomSheet
@@ -246,16 +246,17 @@ class _PostClassState extends State<PostClass> {
             ),
             child: Icon(
               icon,
-              color: Colors.white, // Color del icono
-              size: 30.0, // Tamaño reducido para hacerlo más profesional
+              color: Colors.white,
+              size: 30.0,
             ),
           ),
           SizedBox(height: 5),
           Text(
             label,
             style: TextStyle(
-              color: Colors.white,
-              fontSize: 14, // Tamaño de texto reducido
+              color: textColor,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -278,15 +279,6 @@ class _PostClassState extends State<PostClass> {
         ),
       ));
     }
-  }
-
-  void _showPermissionDeniedMessage() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-            'Permiso de cámara denegado. Por favor, habilite los permisos en la configuración.'),
-      ),
-    );
   }
 
   void _publishPost() {
@@ -321,217 +313,224 @@ class _PostClassState extends State<PostClass> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: _publishedPosts.map((post) {
-        return Column(
-          children: [
-            Card(
-              color: backgroundColor,
-              margin: EdgeInsets.only(bottom: 5.0),
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.zero,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            CircleAvatar(
-                              backgroundImage:
-                                  AssetImage('lib/assets/avatar.png'),
-                              radius: 21.0,
-                            ),
-                            SizedBox(width: 10.0),
-                            Expanded(
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Yordi Gonzales',
-                                    style: TextStyle(
-                                      fontSize: 15.0,
-                                      fontWeight: FontWeight.bold,
-                                      color: textColor,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    onPressed: () {
-                                      // Acción del botón para opciones adicionales
-                                    },
-                                    icon: Icon(Icons.more_vert,
-                                        size: 26.0, color: iconColor),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 5.0),
-                        // Ajuste del espacio entre el avatar y la hora
-                        Row(
-                          children: [
-                            Icon(Icons.access_time,
-                                size: 11.0, color: Colors.grey[600]),
-                            SizedBox(width: 6.0),
-                            Text(
-                              'Hace 1 hora',
-                              style: TextStyle(
-                                  fontSize: 11.0, color: Colors.grey[600]),
-                            ),
-                            SizedBox(width: 20.0),
-                            Icon(Icons.public,
-                                size: 15.0, color: Colors.grey[600]),
-                          ],
-                        ),
-                        SizedBox(height: 8.0),
-                        // Ajuste del espacio entre la hora y la descripción
-                        if (post.description.isNotEmpty)
-                          Container(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 3.0),
-                            // Asegura espaciado uniforme en los laterales
-                            child: ExpandableText(
-                              text: post.description,
-                              style: TextStyle(
-                                fontSize: 14.0,
-                                // Ajusta el tamaño del texto si es necesario
-                                color: textColor,
-                              ),
-                            ),
-                          ),
-                      ],
+        int _currentIndex = 0; // Inicializar el índice del carrusel
+
+        return Container(
+          margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(12.0),
+            boxShadow: [
+              BoxShadow(
+                color: isDarkMode
+                    ? Colors.white.withOpacity(0.1)
+                    : Colors.grey.withOpacity(0.2),
+                spreadRadius: 1,
+                blurRadius: 6,
+                offset: Offset(0, 3),
+              )
+            ],
+            border: Border.all(
+              color: isDarkMode
+                  ? Colors.red.withOpacity(0.2)
+                  : Colors.grey.withOpacity(0.3),
+              width: 1.0,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    CircleAvatar(
+                      backgroundImage: AssetImage('lib/assets/avatar.png'),
+                      radius: 23.0,
                     ),
-                  ),
-                  Container(
-                    width: double.infinity,
-                    child: post.imagePaths.isNotEmpty
-                        ? post.imagePaths.length > 1
-                        ? CarouselSlider(
-                      options: CarouselOptions(
-                        height: MediaQuery.of(context).size.width * 1.5,
-                        viewportFraction: 1.0,
-                        enableInfiniteScroll: false,
-                        autoPlay: false,
-                      ),
-                      items: post.imagePaths.map((path) {
-                        return GestureDetector(
-                          onDoubleTap: () {
-                            setState(() {
-                              isLiked = !isLiked;
-                              if (isLiked) {
-                                likeCount++;
-                              } else {
-                                likeCount--;
-                              }
-                            });
-                          },
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              final imageWidth = constraints.maxWidth;
-                              final imageHeight = MediaQuery.of(context).size.width * 1.5;
-                              return FittedBox(
-                                fit: BoxFit.cover,
-                                child: Image.file(
-                                  File(path),
-                                  width: imageWidth,
-                                  height: imageHeight,
+                    SizedBox(width: 10.0),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Yordi Gonzales',
+                                  style: TextStyle(
+                                    fontSize: 15.0,
+                                    fontWeight: FontWeight.bold,
+                                    color: textColor,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                 ),
-                              );
-                            },
+                              ),
+                              SizedBox(width: 8.0),
+                              Text(
+                                '• 1 min',
+                                style: TextStyle(
+                                  fontSize: 12.0,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
                           ),
-                        );
-                      }).toList(),
-                    )
-                        : LayoutBuilder(
-                      builder: (context, constraints) {
-                        final imageWidth = constraints.maxWidth;
-                        return FittedBox(
-                          fit: BoxFit.cover,
-                          child: Image.file(
-                            File(post.imagePaths.first),
-                            width: imageWidth,
-                          ),
-                        );
-                      },
-                    )
-                        : SizedBox.shrink(),
-                  ),
-                  SizedBox(height: 5.0),
-                  Container(
-                    height: 47.0,
-                    // Establece una altura fija para el contenedor
-                    margin: EdgeInsets.symmetric(horizontal: 70.0),
-                    // Ajusta el margen horizontal
-                    decoration: BoxDecoration(
-                      color: backgroundColor == Colors.white
-                          ? Colors.black.withOpacity(0.4)
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(12.0),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.3),
-                        width: 1.0,
+                        ],
                       ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        IconButton(
-                          onPressed: _toggleLike,
-                          icon: Icon(
-                            Icons.favorite,
-                            size: 26.0,
-                            color: isLiked ? Colors.red : Colors.white,
-                          ),
-                        ),
-                        Text(
-                          '$likeCount',
+                    IconButton(
+                      onPressed: () {
+                        _showPostOptionsBottomSheet(context);
+                      },
+                      icon: Icon(Icons.more_vert, size: 25.0, color: iconColor),
+                    ),
+                  ],
+                ),
+              ),
+              if (post.description.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 9.0),
+                  child: ExpandableText(
+                    text: post.description,
+                    style: TextStyle(
+                      fontSize: 14.0,
+                      color: textColor,
+                    ),
+                  ),
+                ),
+              if (post.imagePaths.isNotEmpty)
+                Column(
+                  children: [
+                    // Contador en la parte superior
+                    if (post.imagePaths.length > 1)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          '${_currentIndex + 1}/${post.imagePaths.length}',
                           style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13.0,
+                            color: Colors.grey,
+                            fontSize: 14.0,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(width: 16.0),
-                        IconButton(
-                          onPressed: () {
-                            // Acción del botón para comentar
-                          },
-                          icon: SvgPicture.asset(
-                            'lib/assets/mesage.svg',
-                            width: 28.0,
-                            color: Colors.white,
-                          ),
-                        ),
-                        SizedBox(width: 16.0),
-                        IconButton(
-                          onPressed: () {
-                            // Acción del botón para compartir
-                          },
-                          icon: SvgPicture.asset(
-                            'lib/assets/shared.svg',
-                            width: 28.0,
-                            color: Colors.white,
-                          ),
-                        ),
+                      ),
+
+                    // Carrusel
+                    ClipRRect(
+                      child: post.imagePaths.length > 1
+                          ? CarouselSlider(
+                              options: CarouselOptions(
+                                height: MediaQuery.of(context).size.width * 0.8,
+                                viewportFraction: 1.0,
+                                enableInfiniteScroll: false,
+                                autoPlay: false,
+                                onPageChanged: (index, reason) {
+                                  _currentIndex = index; // Actualizar índice
+                                },
+                              ),
+                              items: post.imagePaths.map((path) {
+                                return Image.file(
+                                  File(path),
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                );
+                              }).toList(),
+                            )
+                          : Image.file(
+                              File(post.imagePaths.first),
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                    ),
+
+                    // Indicadores de puntos debajo
+                    if (post.imagePaths.length > 1)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: post.imagePaths.asMap().entries.map((entry) {
+                          return Container(
+                            width: 8.0,
+                            height: 8.0,
+                            margin: EdgeInsets.symmetric(
+                                vertical: 10.0, horizontal: 4.0),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: _currentIndex == entry.key
+                                  ? Colors.white
+                                  : Colors.grey.withOpacity(0.5),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                  ],
+                ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Likes(),
                       ],
                     ),
-                  )
-                ],
+                    Row(
+                      children: [
+                        ComentariosPost(),
+                        ShareButton(),
+                        EtiquetaButton(),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Divider(
-                height: 0.1,
-                color: isDarkMode ? Colors.grey[850] : Colors.grey[100]),
-          ],
+            ],
+          ),
         );
       }).toList(),
     );
+  }
+
+  // Método para mostrar menú de opciones de la publicación
+  void _showPostOptionsBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+        context: context,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(17)),
+        ),
+        builder: (context) {
+          return Container(
+            padding: EdgeInsets.symmetric(vertical: 20, horizontal: 15),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Opciones de publicación',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                SizedBox(height: 20),
+                ListTile(
+                  leading: Icon(Icons.edit),
+                  title: Text('Editar publicación'),
+                  onTap: () {
+                    // Lógica de edición
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.delete),
+                  title: Text('Eliminar publicación'),
+                  onTap: () {
+                    // Lógica de eliminación
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
+          );
+        });
   }
 }
 

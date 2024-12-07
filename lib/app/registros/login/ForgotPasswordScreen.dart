@@ -10,85 +10,162 @@ class RecoverPasswordScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: Text('Recover Password'),
+        backgroundColor: Colors.cyan,
+        elevation: 0,
+        title: Text(
+          'Password Recovery',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  height: 150,
-                  child: Image.asset('lib/assets/logo.png'),
-                ),
-                SizedBox(height: 20),
-                // Campo de email con borde verde
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    //border: Border.all(color: Color(0xFFD9F103), width: 4.0),
-                    border: Border.all(color: Colors.cyan, width: 4.0),
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SizedBox(
+          width: double.infinity,
+          child: Center(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Logo de la empresa
+                  SizedBox(
+                    height: 130,
+                    child: Image.asset('lib/assets/logo.png'),
                   ),
-                  child: TextField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Colors.white, // Fondo blanco
-                      labelText: 'Email',
-                      labelStyle: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none, // Sin borde
-                      ),
-                      prefixIcon: Icon(Icons.email, color: Colors.black),
+                  SizedBox(height: 40),
+
+                  // Título y descripción
+                  Text(
+                    'Forgot Your Password?',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.cyan[800],
                     ),
-                    keyboardType: TextInputType.emailAddress,
-                    style: TextStyle(color: Colors.black), // Texto negro en el campo
                   ),
-                ),
-                SizedBox(height: 40),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      try {
-                        await Provider.of<AuthProvider>(context, listen: false).recoverPassword(_emailController.text);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => VerificationPassword(email: '')),
-                        );
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Failed to send recovery email')),
-                        );
-                      }
+                  SizedBox(height: 8),
+                  Text(
+                    'Enter your registered email below to receive password reset instructions.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.black54,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 30),
+
+                  // Campo de correo electrónico
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 10,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      controller: _emailController,
+                      cursorColor: Colors.cyan,
+                      decoration: InputDecoration(
+                        labelText: 'Email Address',
+                        labelStyle: TextStyle(
+                          color: Colors.cyan[700],
+                          fontWeight: FontWeight.w500,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
+                        ),
+                        prefixIcon: Icon(Icons.email, color: Colors.cyan[700]),
+                        // Agregar el borde cuando no tiene foco
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: Colors.grey.shade300, width: 1.5),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: Colors.cyan, width: 2.0), // Borde cian al enfocar
+                        ),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                      style: TextStyle(color: Colors.black87),
+                    ),
+                  ),
+
+                  SizedBox(height: 40),
+
+                  // Botón para enviar el correo de recuperación
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        try {
+                          await Provider.of<AuthProvider>(context, listen: false).recoverPassword(_emailController.text);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => VerificationPassword(email: '')),
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Failed to send recovery email')),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.cyan,
+                        elevation: 5,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: Text(
+                        'Send Recovery Email',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Espacio entre el botón y el pie de página
+                  SizedBox(height: 20),
+
+                  // Mensaje de ayuda
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => UpdatePasswordScreen(email: '')),
+                      );
                     },
-                    style: ElevatedButton.styleFrom(
-                      //backgroundColor: Color(0xFFD9F103),
-                      backgroundColor: Colors.cyan,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
                     child: Text(
-                      'Send Recovery Email',
+                      'Need Help?',
                       style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black, // Texto negro en el botón
+                        color: Colors.cyan.shade800,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

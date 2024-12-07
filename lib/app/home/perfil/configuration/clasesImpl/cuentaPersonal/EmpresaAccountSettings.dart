@@ -36,6 +36,16 @@ class _EmpresaAccountSettingsState extends State<EmpresaAccountSettings> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios_new,
+            color: iconColor,
+            size: 25,
+          ),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
         backgroundColor: backgroundColor,
         title: Text('Configuración de la Cuenta', style: TextStyle(color: textColor)),
       ),

@@ -23,11 +23,22 @@ class Cuenta extends StatelessWidget {
   Widget build(BuildContext context) {
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
     final backgroundColor = darkModeProvider.backgroundColor;
+    final iconColor = darkModeProvider.iconColor;
 
     return Scaffold(
       backgroundColor:backgroundColor ,
       appBar: AppBar(
-        title: Text('Cuenta'),
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios_new,
+            color: iconColor,
+            size: 25,
+          ),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        title: Text('Cuenta', style: TextStyle(fontWeight: FontWeight.w600),),
       ),
       body: ListView(
         children: [

@@ -7,6 +7,9 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:device_apps/device_apps.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+
+import '../../../../Globales/estadoDark-White/DarkModeProvider.dart';
 
 class ShareButton extends StatelessWidget {
   void _showFriendsModal(BuildContext context) {
@@ -34,8 +37,8 @@ class ShareButton extends StatelessWidget {
     return IconButton(
       icon: Icon(
         FontAwesomeIcons.paperPlane,
-        color: Colors.grey,
-        size: 23,
+        color: Colors.grey.shade200,
+        size: 20,
       ),
       onPressed: () => _showFriendsModal(context),
     );
@@ -91,15 +94,102 @@ class _FriendsModalState extends State<FriendsModal> {
 
   Future<void> fetchInstalledApps() async {
     try {
+      // Obtenemos las apps pero manejamos los íconos de manera más segura
       final apps = await DeviceApps.getInstalledApplications(
         includeAppIcons: true,
         includeSystemApps: false,
+        onlyAppsWithLaunchIntent: true, // Solo apps que se pueden lanzar
       );
 
-      print("Apps instaladas: ${apps.map((app) => app.appName).toList()}");
+      final socialMediaPackages = [
+        // Facebook y apps relacionadas
+        'com.facebook.katana',          // Facebook app principal
+        'com.facebook.lite',            // Facebook Lite
+        'com.facebook.orca',            // Messenger
+        'com.facebook.mlite',           // Messenger Lite
+
+        // Instagram
+        'com.instagram.android',        // Instagram principal
+        'com.instagram.lite',           // Instagram Lite
+
+        // Twitter/X - Paquetes actualizados
+        'twitter.com.android',          // Twitter formato alternativo
+        'com.twitter.lite.android',     // Twitter Lite alternativo
+        'com.twitter.london',           // Twitter/X nueva versión
+        'twitter.x.android',            // X versión alternativa
+
+        // WhatsApp
+        'com.whatsapp',                // WhatsApp principal
+        'com.whatsapp.w4b',            // WhatsApp Business principal
+        'com.whatsapp.business',       // WhatsApp Business alternativo
+        'com.whatsapp.business.lite',  // WhatsApp Business Lite
+
+        // TikTok
+        'com.zhiliaoapp.musically',    // TikTok versión global
+        'com.ss.android.ugc.trill',    // TikTok versión alternativa
+        'com.tiktok.musical.ly',       // TikTok nombre antiguo
+        'com.tiktok.lite',             // TikTok Lite
+
+        // Snapchat
+        'com.snapchat.android',        // Snapchat
+
+        // LinkedIn
+        'com.linkedin.android',        // LinkedIn principal
+        'com.linkedin.android.lite',   // LinkedIn Lite
+
+        // Pinterest
+        'com.pinterest',               // Pinterest principal
+        'com.pinterest.twa',           // Pinterest Lite
+
+        // Reddit
+        'com.reddit.frontpage',        // Reddit oficial
+        'com.reddit.lite',             // Reddit lite
+
+        // Telegram
+        'org.telegram.messenger',      // Telegram principal
+        'org.telegram.messenger.web',  // Telegram Web
+        'org.telegram.messenger.lite', // Telegram Lite
+
+        // Twitch
+        'tv.twitch.android.app',      // Twitch principal
+        'tv.twitch.android.game',     // Twitch Gaming
+
+        // Discord
+        'com.discord',                // Discord
+
+        // BeReal
+        'com.bereal.ft',              // BeReal
+
+        // Threads
+        'com.instagram.barcelona',     // Threads de Meta
+      ];
+
+      final socialApps = apps.where((app) =>
+          socialMediaPackages.contains(app.packageName)
+      ).toList();
+
+      // Verificamos que cada app tenga un ícono válido antes de hacer el cast
+      final validSocialApps = socialApps.map((app) {
+        if (app is ApplicationWithIcon) {
+          try {
+            // Verificamos que el ícono sea accesible
+            final icon = app.icon;
+            if (icon != null && icon.isNotEmpty) {
+              return app;
+            }
+          } catch (e) {
+            print('Error al procesar ícono para ${app.appName}: $e');
+          }
+        }
+        // Si no hay ícono válido, aún incluimos la app pero marcamos que no tiene ícono
+        return app;
+      }).toList();
+
+      print("Redes sociales instaladas: ${validSocialApps.map((app) => app.appName).toList()}");
 
       setState(() {
-        installedApps = apps.cast<ApplicationWithIcon>();
+        // Solo hacemos cast de las apps que confirmamos que tienen ícono
+        installedApps = validSocialApps.whereType<ApplicationWithIcon>().toList();
       });
     } catch (error) {
       print("Error al obtener las apps instaladas: $error");
@@ -112,9 +202,9 @@ class _FriendsModalState extends State<FriendsModal> {
       msg: "¡Enlace copiado al portapapeles!",
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.BOTTOM,
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.grey.shade800,
       textColor: Colors.white,
-      fontSize: 16.0,
+      fontSize: 13.0,
     );
   }
 
@@ -124,213 +214,254 @@ class _FriendsModalState extends State<FriendsModal> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      controller: widget.scrollController,
-      slivers: [
-        SliverPersistentHeader(
-          pinned: true,
-          delegate: _FixedHeaderDelegate(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(10)), // Rounded corners
-              ),
-              padding: EdgeInsets.all(16),
-              alignment: Alignment.centerLeft,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      "Compartir con",
-                      textAlign: TextAlign.center,
-                      style:
-                          TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                    ),
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+    final iconColor = darkModeProvider.iconColor;
+    final backgroundColor = darkModeProvider.backgroundColor;
+
+    return SizedBox(
+      height: MediaQuery.of(context).size.height *
+          0.6,
+      child: CustomScrollView(
+        controller: widget.scrollController,
+        slivers: [
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _FixedHeaderDelegate(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isDarkMode ? Colors.grey.shade900.withOpacity(0.9) : Colors.white,
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(10),
                   ),
-                  Icon(FontAwesomeIcons.close, size: 17),
-                ],
-              ),
-            ),
-          ),
-        ),
-        SliverToBoxAdapter(
-          child: Container(
-            color: Colors.white, // Color de fondo
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 4),
-                isLoading
-                    ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          // Padding alrededor del círculo
-                          child: SizedBox(
-                            height: 25,
-                            width: 25,
-                            child: CircularProgressIndicator(
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.cyan),
-                              strokeWidth: 2.6,
+                ),
+                padding: EdgeInsets.all(16),
+                alignment: Alignment.centerLeft,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Compartir con",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
                             ),
                           ),
-                        ),
-                      )
-                    : CarouselSlider.builder(
-                        itemCount: friends.length,
-                        options: CarouselOptions(
-                          height: 98,
-                          // Altura del carrusel
-                          viewportFraction: 0.2,
-                          // Reducido aún más para unir los elementos
-                          enableInfiniteScroll: true,
-                          autoPlayInterval: Duration(seconds: 3),
-                          padEnds: false, // Sin padding en los extremos
-                        ),
-                        itemBuilder: (context, index, realIndex) {
-                          final friend = friends[index];
-                          return Column(
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.grey.shade300,
-                                    width: 0.3,
-                                  ),
-                                ),
-                                child: CircleAvatar(
-                                  radius: 27,
-                                  backgroundImage:
-                                      NetworkImage(friend['image']!),
-                                ),
-                              ),
-                              SizedBox(height: 5),
-                              SizedBox(
-                                width: 60, // Limita el ancho del texto
-                                child: Text(
-                                  friend['name']!,
-                                  style: TextStyle(fontSize: 10, ),
-                                  textAlign: TextAlign.center,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                Divider(
-                  height: 1, // Altura total
-                  thickness: 0.2, // Grosor real de la línea
-                  color: Colors.grey,
-                ),
-                SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    "Herramientas de Interacción",
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey.shade500),
-                  ),
-                ),
-                SizedBox(height: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          _buildAppIconEvent(
-                            FontAwesomeIcons.solidFlag,
-                            Colors.grey.withOpacity(0.2),
-                            "Denunciar",
-                            _reportPost,
-                          ),
-                          _buildAppIconEvent(
-                            FontAwesomeIcons.solidHeart,
-                            Colors.grey.withOpacity(0.2),
-                            "Me gusta",
-                            _likePost,
-                          ),
-                          _buildAppIconEvent(
-                            FontAwesomeIcons.solidBookmark,
-                            Colors.grey.withOpacity(0.2),
-                            "Guardar contenido",
-                            _savePost,
-                          ),
-                          _buildAppIconEvent(
-                            FontAwesomeIcons.solidStar,
-                            Colors.grey.withOpacity(0.2),
-                            "Agregar a favoritos",
-                            _favoritePost,
-                          ),
-                          _buildAppIconEvent(
-                            FontAwesomeIcons.retweet,
-                            Colors.grey.withOpacity(0.2),
-                            "Reaccionar",
-                            _reactToPost,
-                          ),
-                          _buildAppIconEvent(
-                            FontAwesomeIcons.userPlus,
-                            Colors.grey.withOpacity(0.2),
-                            "Seguir",
-                            _followUser,
-                          ),
-                          _buildAppIconEvent(
-                            FontAwesomeIcons.solidBell,
-                            Colors.grey.withOpacity(0.2),
-                            "Notificacion",
-                            _toggleNotifications,
+                          SizedBox(width: 3), // Espacio entre el texto y el icono
+                          Icon(
+                            Icons.arrow_drop_down,
+                            size: 20,
+                            color: textColor,
                           ),
                         ],
                       ),
                     ),
+                    Icon(
+                      FontAwesomeIcons.close,
+                      size: 17,
+                      color: iconColor,
+                    ),
                   ],
                 ),
-
-                SizedBox(height: 8),
-                Divider(
-                  height: 1,
-                  thickness: 0.2, // Grosor real de la línea
-                  color: Colors.grey,
-                ),
-                SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    "Más opciones",
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey.shade500),
-                  ),
-                ),
-                SizedBox(height: 10),
-                Wrap(
-                  alignment: WrapAlignment.start, // Alinea los íconos al inicio
-                  spacing: 10,  // Ajusta el espacio entre los íconos
-                  runSpacing: 10, // Espacio entre filas
-                  children: [
-                    _buildAppIconLink(FontAwesomeIcons.link, Colors.cyan, "Copiar Enlace", _copyLink),
-                    _buildAppIconLink(FontAwesomeIcons.shareAlt, Colors.blue, "Compartir", _shareLink),
-                    ...installedApps.map((app) {
-                      return _buildAppIcon(
-                        null,
-                        Colors.transparent, // Sin fondo
-                        app.appName,
-                            () {
-                          DeviceApps.openApp(app.packageName);
-                        },
-                        iconData: MemoryImage(app.icon!),
-                      );
-                    }).toList(),
-                  ],
-                ),
-                SizedBox(height: 10),
-              ],
+              ),
             ),
           ),
-        ),
-      ],
+          SliverToBoxAdapter(
+            child: Container(
+              color: isDarkMode ? Colors.grey.shade800.withOpacity(0.4) : Colors.white,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 8),
+                  isLoading
+                      ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: SizedBox(
+                        height: 23,
+                        width: 23,
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.cyan),
+                          strokeWidth: 2.6,
+                        ),
+                      ),
+                    ),
+                  )
+                      : CarouselSlider.builder(
+                    itemCount: friends.length,
+                    options: CarouselOptions(
+                      height: 98,
+                      viewportFraction: 0.2,
+                      enableInfiniteScroll: true,
+                      autoPlayInterval: Duration(seconds: 3),
+                      padEnds: false,
+                    ),
+                    itemBuilder: (context, index, realIndex) {
+                      final friend = friends[index];
+                      return Column(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isDarkMode
+                                    ? Colors.grey.shade800
+                                    : Colors.grey.shade300,
+                                width: 0.3,
+                              ),
+                            ),
+                            child: CircleAvatar(
+                              radius: 27,
+                              backgroundImage:
+                              NetworkImage(friend['image']!),
+                            ),
+                          ),
+                          SizedBox(height: 5),
+                          SizedBox(
+                            width: 60,
+                            child: Text(
+                              friend['name']!,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                                color: textColor,
+                              ),
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  Divider(
+                    height: 1,
+                    thickness: 0.2,
+                    color: isDarkMode
+                        ? Colors.grey.shade700
+                        : Colors.grey.shade300,
+                  ),
+                  SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Herramientas de Interacción",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: isDarkMode
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade500,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _buildAppIconEvent(
+                              FontAwesomeIcons.solidFlag,
+                              Colors.grey.withOpacity(0.2),
+                              "Denunciar",
+                              _reportPost,
+                            ),
+                            _buildAppIconEvent(
+                              FontAwesomeIcons.solidHeart,
+                              Colors.grey.withOpacity(0.2),
+                              "Me gusta",
+                              _likePost,
+                            ),
+                            _buildAppIconEvent(
+                              FontAwesomeIcons.solidBookmark,
+                              Colors.grey.withOpacity(0.2),
+                              "Guardar contenido",
+                              _savePost,
+                            ),
+                            _buildAppIconEvent(
+                              FontAwesomeIcons.solidStar,
+                              Colors.grey.withOpacity(0.2),
+                              "Agregar a favoritos",
+                              _favoritePost,
+                            ),
+                            _buildAppIconEvent(
+                              FontAwesomeIcons.retweet,
+                              Colors.grey.withOpacity(0.2),
+                              "Reaccionar",
+                              _reactToPost,
+                            ),
+                            _buildAppIconEvent(
+                              FontAwesomeIcons.userPlus,
+                              Colors.grey.withOpacity(0.2),
+                              "Seguir",
+                              _followUser,
+                            ),
+                            _buildAppIconEvent(
+                              FontAwesomeIcons.solidBell,
+                              Colors.grey.withOpacity(0.2),
+                              "Notificacion",
+                              _toggleNotifications,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: 8),
+                  Divider(
+                    height: 1,
+                    thickness: 0.2, // Grosor real de la línea
+                    color: Colors.grey,
+                  ),
+                  SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "Más opciones",
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey.shade500),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Wrap(
+                    alignment: WrapAlignment.start, // Alinea los íconos al inicio
+                    spacing: 10,  // Ajusta el espacio entre los íconos
+                    runSpacing: 10, // Espacio entre filas
+                    children: [
+                      _buildAppIconLink(FontAwesomeIcons.link, Colors.cyan, "Copiar Enlace", _copyLink),
+                      _buildAppIconLink(FontAwesomeIcons.reply, Colors.blue, "Compartir", _shareLink),
+                      ...installedApps.map((app) {
+                        return _buildAppIcon(
+                          null,
+                          Colors.transparent, // Sin fondo
+                          app.appName,
+                              () {
+                            DeviceApps.openApp(app.packageName);
+                          },
+                          iconData: MemoryImage(app.icon!),
+                        );
+                      }).toList(),
+                    ],
+                  ),
+                  SizedBox(height: 10),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -341,47 +472,61 @@ class _FriendsModalState extends State<FriendsModal> {
       VoidCallback onTap,
       {ImageProvider? iconData}
       ) {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+    final iconColor = darkModeProvider.iconColor;
+    final backgroundColor = darkModeProvider.backgroundColor;
+
     return GestureDetector(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 3.0), // Separación horizontal
+        padding: const EdgeInsets.symmetric(horizontal: 3.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start, // Mantiene la alineación al inicio
-          crossAxisAlignment: CrossAxisAlignment.center, // Centra los iconos horizontalmente
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Contenedor para el icono
             Container(
-              height: 50, // Altura fija para el contenedor del icono
-              width: 50, // Ancho fijo para mantener la proporción
+              height: 45,
+              width: 45,
+              margin: EdgeInsets.only(bottom: 4),
               decoration: BoxDecoration(
                 color: color,
                 borderRadius: BorderRadius.circular(30),
               ),
-              padding: const EdgeInsets.all(10), // Relleno alrededor del icono
+              padding: const EdgeInsets.all(10),
               child: iconData == null
-                  ? Icon(icon, color: Colors.grey.shade900, size: 24)
+                  ? Icon(
+                icon,
+                color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+                size: 20,
+              )
                   : ClipOval(
                 child: Image(
                   image: iconData,
                   fit: BoxFit.cover,
-                  width: 50,
-                  height: 50,
+                  width: 40,
+                  height: 40,
                 ),
               ),
             ),
-            SizedBox(height: 2),
-
+            SizedBox(height: 6),
             Container(
               width: 60,
-              constraints: BoxConstraints(maxHeight: 40),
-              child: Center(
-                child: Text(
-                  label,
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
+              height: 28,
+              alignment: Alignment.topCenter, // Alinea el texto hacia arriba
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: textColor,
+                  fontWeight: FontWeight.w500,
+                  height: 1.2,
                 ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+                textAlign: TextAlign.center,
               ),
             ),
           ],
@@ -397,7 +542,7 @@ class _FriendsModalState extends State<FriendsModal> {
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 6.0),  // Menos padding
-        child: Container(
+        child: SizedBox(
           width: 70,  // Asegura que todos los íconos tengan el mismo tamaño
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -449,7 +594,7 @@ class _FriendsModalState extends State<FriendsModal> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               CircleAvatar(
-                backgroundColor: Colors.transparent, // Sin color de fondo
+                backgroundColor: Colors.grey.withOpacity(0.2), // Sin color de fondo
                 radius: 28, // Aumentado para un tamaño más grande
                 child: iconData == null
                     ? Icon(icon, color: color, size: 24) // Aumentado para mejor proporción

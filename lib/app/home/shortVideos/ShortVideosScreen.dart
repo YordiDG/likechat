@@ -11,6 +11,7 @@ import 'package:volume_controller/volume_controller.dart';
 import '../../APIS-Consumir/service/PexelsService.dart';
 import '../../Globales/estadoDark-White/DarkModeProvider.dart';
 import '../../camera/UserAvatar.dart';
+import '../camara/VideoCaptureScreen.dart';
 import 'LikeButton.dart';
 import 'Posts/PostClass.dart';
 import 'PreviewVideo/PublicarVideo/VideoPublishScreen.dart';
@@ -171,17 +172,18 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
                           color: _selectedIndex == 0
                               ? (isDarkMode ? Colors.white : Colors.black)
                               : Colors.grey,
-                          fontSize: 18,
+                          fontSize: 17,
                           fontWeight: _selectedIndex == 0
                               ? FontWeight.bold
-                              : FontWeight.normal,
+                              : FontWeight.w500,
                         ),
                         overflow: TextOverflow.ellipsis, // Agrega "..." si se corta
                       ),
                     ),
+                    SizedBox(height: 2),
                     Container(
                       height: 3.0,
-                      width: 50,
+                      width: 56,
                       color: _selectedIndex == 0 ? Colors.cyan : Colors.transparent,
                     ),
                   ],
@@ -207,10 +209,10 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
                           color: _selectedIndex == 1
                               ? (isDarkMode ? Colors.white : Colors.black)
                               : Colors.grey,
-                          fontSize: 18,
+                          fontSize: 17,
                           fontWeight: _selectedIndex == 1
                               ? FontWeight.bold
-                              : FontWeight.normal,
+                              : FontWeight.w500,
                         ),
                         overflow: TextOverflow.ellipsis, // Agrega "..." si se corta
                       ),
@@ -309,7 +311,7 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
     );
   }
 
-  // Método que muestra el modal del home de app bar
+// Método que muestra el modal del app bar
   void _showOptionsModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -356,9 +358,9 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
                     'Crear Publicación',
                     'Publica un nuevo contenido',
                     Colors.cyan,
-                    () {
+                        () {
                       Navigator.pop(context);
-                      showCreateDialog(context, 'Crear Publicación');
+                      _navigateToVideoScreen(context);
                     },
                   ),
                   _buildListTile(
@@ -367,9 +369,9 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
                     'Crear Video',
                     'Graba un nuevo video',
                     Colors.green,
-                    () {
+                        () {
                       Navigator.pop(context);
-                      _showVideoOptions(context);
+                      _navigateToVideoScreen(context);
                     },
                   ),
                   _buildLiveTile(context),
@@ -405,6 +407,14 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
     );
   }
 
+// Navegación a VideoScreen
+  void _navigateToVideoScreen(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => VideoCaptureScreen()),
+    );
+  }
+
 // Widget para un ListTile genérico
   Widget _buildListTile(BuildContext context, IconData icon, String title,
       String subtitle, Color iconColor, VoidCallback onTap) {
@@ -432,6 +442,7 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
       onTap: onTap,
     );
   }
+
 
 // Widget para el botón de 'Transmitir en Vivo'
   Widget _buildLiveTile(BuildContext context) {

@@ -35,51 +35,100 @@ class _GalleryPageState extends State<GalleryPage> {
     _checkPermissions();
   }
 
-  // Método para comprobar y solicitar permisos
   Future<void> _checkPermissions() async {
-    if (await Permission.photos.isGranted ||
-        await Permission.storage.isGranted) {
+    // Diferencia entre plataformas
+    final permission = Platform.isIOS
+        ? Permission.photos
+        : Permission.storage;
+
+    var status = await permission.status;
+
+    if (status.isGranted) {
       _loadAssets();
     } else {
-      var status = await Permission.photos.request();
+      status = await permission.request();
+
       if (status.isGranted) {
         _loadAssets();
       } else if (status.isDenied) {
-        print("Permiso de galería denegado");
+        // Mostrar diálogo explicando por qué necesitas permisos
+        _showPermissionDialog();
       } else if (status.isPermanentlyDenied) {
-        openAppSettings();
+        // Guiar al usuario a configuraciones de la app
+        await openAppSettings();
       }
     }
   }
 
-  // Método para cargar activos (imágenes y videos)
-  Future<void> _loadAssets() async {
-    // Obtiene todas las rutas de activos (fotos y videos)
-    final List<AssetPathEntity> assetPaths = await PhotoManager.getAssetPathList(onlyAll: true);
+  void _showPermissionDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Permiso Requerido'),
+        content: Text('Necesitamos acceso a tus fotos y videos para esta función.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await openAppSettings();
+            },
+            child: Text('Abrir Configuraciones'),
+          ),
+        ],
+      ),
+    );
+  }
 
-    if (assetPaths.isNotEmpty) {
+  Future<void> _loadAssets() async {
+    try {
+      final List<AssetPathEntity> assetPaths = await PhotoManager.getAssetPathList(onlyAll: true);
+
+      if (assetPaths.isEmpty) {
+        // Manejar caso donde no hay rutas de assets
+        print('No se encontraron rutas de assets');
+        return;
+      }
+
       _imagenes.clear();
       _videos.clear();
 
-      // Recorre cada ruta de activos
       for (var path in assetPaths) {
-        // Obtiene el conteo de activos de manera asíncrona
         final int assetCount = await path.assetCountAsync;
 
-        // Obtiene todos los activos en la ruta
-        final List<AssetEntity> assets = await path.getAssetListPaged(page: 0, size: assetCount);
+        if (assetCount == 0) continue; // Saltar rutas vacías
+
+        final List<AssetEntity> assets = await path.getAssetListPaged(
+            page: 0,
+            size: assetCount
+        );
 
         for (var asset in assets) {
-          // Clasifica los activos en imágenes y videos
-          if (asset.type == AssetType.video) {
-            _videos.add(asset);
-          } else if (asset.type == AssetType.image) {
-            _imagenes.add(asset);
+          switch (asset.type) {
+            case AssetType.video:
+              _videos.add(asset);
+              break;
+            case AssetType.image:
+              _imagenes.add(asset);
+              break;
+            default:
+              break;
           }
         }
       }
 
-      setState(() {});
+      setState(() {
+        // Verifica si hay assets
+        if (_imagenes.isEmpty && _videos.isEmpty) {
+          // Mostrar mensaje de que no hay contenido
+          print('No se encontraron imágenes ni videos');
+        }
+      });
+    } catch (e) {
+      print('Error al cargar assets: $e');
     }
   }
 
@@ -118,11 +167,11 @@ class _GalleryPageState extends State<GalleryPage> {
               color: isDarkMode ? Colors.grey.shade800.withOpacity(0.8) : Colors.grey.shade400.withOpacity(0.4),
               shape: BoxShape.circle,
             ),
-            padding: EdgeInsets.all(6),
+            padding: EdgeInsets.all(5),
             child: Icon(
               Icons.close,
               color: iconColor,
-              size: 18,
+              size: 20,
             ),
           ),
           onPressed: () {
@@ -135,15 +184,16 @@ class _GalleryPageState extends State<GalleryPage> {
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(4),
+                color: Colors.white.withOpacity(0.2),
                 border: Border.all(
                   color: isDarkMode ? Colors.grey.shade700 :  Colors.grey.shade400,
                   width: 0.8,
                 ),
               ),
-              padding: EdgeInsets.symmetric(vertical: 5, horizontal: 12),
+              padding: EdgeInsets.symmetric(vertical: 4, horizontal: 10),
               child: Text(
                 'Cancelar',
-                style: TextStyle(color: textColor, fontSize: 10),
+                style: TextStyle(color: textColor, fontSize: 11),
               ),
             ),
           )
@@ -193,10 +243,10 @@ class _GalleryPageState extends State<GalleryPage> {
                   Text(
                     category,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 14,
                       fontWeight: _selectedPage == index
                           ? FontWeight.bold
-                          : FontWeight.w500,
+                          : FontWeight.w600,
                       color: _selectedPage == index
                           ? textColor
                           : Colors.grey,
@@ -225,8 +275,8 @@ class _GalleryPageState extends State<GalleryPage> {
           ? Center(
         child: Lottie.asset(
           'lib/assets/loading/infinity_cyan.json',
-          width: 60,
-          height: 60,
+          width: 50,
+          height: 50,
         ),
       )
           : GridView.builder(
@@ -251,8 +301,8 @@ class _GalleryPageState extends State<GalleryPage> {
           ? Center(
         child: Lottie.asset(
           'lib/assets/loading/infinity_cyan.json',
-          width: 60,
-          height: 60,
+          width: 50,
+          height: 50,
         ),
       )
           : GridView.builder(
@@ -273,8 +323,8 @@ class _GalleryPageState extends State<GalleryPage> {
           ? Center(
         child: Lottie.asset(
           'lib/assets/loading/infinity_cyan.json',
-          width: 60,
-          height: 60,
+          width: 50,
+          height: 50,
         ),
       )
           : GridView.builder(
@@ -299,7 +349,6 @@ class _GalleryPageState extends State<GalleryPage> {
       );
     }
   }
-
 
 //seleccion de imagenes
   Widget _buildImageThumbnail(AssetEntity asset) {
@@ -397,15 +446,14 @@ class _GalleryPageState extends State<GalleryPage> {
           return Center(
             child: Lottie.asset(
               'lib/assets/loading/infinity_cyan.json',
-              width: 60,
-              height: 60,
+              width: 50,
+              height: 50,
             ), // Indicador de carga mientras se obtiene la imagen
           );
         },
       ),
     );
   }
-
 
   //detallede video
   Widget _buildVideoThumbnail(AssetEntity asset) {
@@ -544,8 +592,8 @@ class _GalleryPageState extends State<GalleryPage> {
         return Center(
           child: Lottie.asset(
             'lib/assets/loading/infinity_cyan.json',
-            width: 60,
-            height: 60,
+            width: 50,
+            height: 50,
           ),
         );
       },

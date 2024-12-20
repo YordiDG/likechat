@@ -70,7 +70,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                   icon: Icon(
                     Icons.arrow_back_ios_new,
                     color: iconColor,
-                    size: 23,
+                    size: 20,
                   ),
                   onPressed: () {
                     Navigator.of(context).pop();

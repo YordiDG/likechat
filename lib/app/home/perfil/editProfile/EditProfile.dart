@@ -108,12 +108,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           'Editar Perfil',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: isDarkMode ? Colors.white : Colors.black,
+            color: isDarkMode ? Colors.white : Colors.black, fontSize: 20
           ),
         ),
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios_new,
-              color: isDarkMode ? Colors.white : Colors.black),
+              color: isDarkMode ? Colors.white : Colors.black, size: 20,),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -155,7 +155,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 // Reemplazar el TextField de descripción con customDecoration
                 TextField(
                   controller: _descriptionController,
-                  maxLength: 60,
+                  maxLength: 100,
                   maxLines: null,
                   keyboardType: TextInputType.multiline,
                   textInputAction: TextInputAction.newline,

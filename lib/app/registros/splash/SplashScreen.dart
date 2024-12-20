@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:connectivity/connectivity.dart';
 import 'dart:io';
@@ -106,41 +107,58 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.cyan,
+      backgroundColor: Color(0xFF00E5FF),
       //backgroundColor: Color(0xFF0D0D55),
       body: Stack(
         children: [
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset('lib/assets/logo.png', height: 300),
-                SizedBox(height: 20),
-                Text(
-                  'LikeChat',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    //color: Color(0xFFD9F103),
-                  ),
+
+      Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset('lib/assets/splash/chaski.png', height: 220),
+          SizedBox(height: 1),
+          Text(
+            'LikeChat',
+            style: GoogleFonts.poppins(
+              fontSize: 40,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              letterSpacing: 1.5,
+              shadows: [
+                Shadow(
+                  offset: Offset(1, 1),
+                  blurRadius: 2,
+                  color: Colors.black.withOpacity(0.7),
                 ),
-                SizedBox(
-                  height: 130,
-                  width: 130,
-                  child: Lottie.asset('lib/assets/loading_animation.json'),
+                Shadow(
+                  offset: Offset(-2, -2),
+                  blurRadius: 1,
+                  color: Color(0xFF6A0DAD).withOpacity(0.8),
                 ),
               ],
             ),
           ),
-          if (_isCheckingConnection) // Mostramos el círculo de carga en la parte inferior si está verificando la conexión
+          SizedBox(
+            height: 60,
+            width: 60,
+            child: Lottie.asset('lib/assets/loading/infinity_cyan.json'),
+          ),
+        ],
+      ),
+    ),
+
+
+    if (_isCheckingConnection) // Mostramos el círculo de carga en la parte inferior si está verificando la conexión
             Positioned(
               bottom: 30,
               left: 0,
               right: 0,
               child: Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                child: Lottie.asset(
+                  'lib/assets/loading/infinity_cyan.json',
+                  width: 60,
+                  height: 60,
                 ),
               ),
             ),

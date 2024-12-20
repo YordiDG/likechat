@@ -94,6 +94,10 @@ dependencies:
   oauth2: ^2.0.3
   #no salir de la app_links:
   flutter_web_auth: ^0.5.0
+  #mas icono
+  icons_plus: ^5.0.0
+  #desenfoque
+  blur: ^4.0.0
 
   cached_network_image: ^3.4.0
   sqflite: ^2.3.3+1
@@ -153,6 +157,11 @@ flutter:
     - lib/assets/loading/infinity_cyan.json
     - lib/assets/loading/infinity_blue.json
     - lib/assets/loading/infinity.json
+    #splash inicio
+    - lib/assets/splash/logo_splash.png
+    - lib/assets/splash/logo_splash2.png
+    - lib/assets/splash/chaski.png
+
     - lib/assets/LikeChat.gif
     - lib/assets/download.json
     - lib/assets/download1.json

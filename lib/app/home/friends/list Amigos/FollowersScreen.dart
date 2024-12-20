@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -26,7 +29,7 @@ class _FollowersScreenState extends State<FollowersScreen> {
   Future<void> fetchFriends() async {
     try {
       final response =
-          await http.get(Uri.parse('https://randomuser.me/api/?results=50'));
+          await http.get(Uri.parse('https://randomuser.me/api/?results=100'));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
@@ -164,7 +167,7 @@ class _FollowersScreenState extends State<FollowersScreen> {
           icon: Icon(
             Icons.arrow_back_ios_new,
             color: isDarkMode ? Colors.white : Colors.black,
-            size: 22,
+            size: 20,
           ),
           onPressed: () {
             Navigator.pop(context);
@@ -183,7 +186,7 @@ class _FollowersScreenState extends State<FollowersScreen> {
                   },
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.pink,
+                      color: Colors.grey.shade700.withOpacity(0.8),
                       shape: BoxShape.circle,
                     ),
                     padding: EdgeInsets.all(3),
@@ -210,9 +213,39 @@ class _FollowersScreenState extends State<FollowersScreen> {
       ),
       body: filteredFriends.isEmpty
           ? Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(
-                    Colors.cyan), // Set the color to cyan
+              child: FutureBuilder<bool>(
+                future:
+                    _checkFileExists('lib/assets/loading/infinity_cyan.json'),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    // Muestra el loading hasta que se determine si el archivo existe.
+                    return Lottie.asset(
+                      'lib/assets/loading/infinity_cyan.json',
+                      width: 50,
+                      height: 50,
+                    );
+                  } else if (snapshot.hasError || !snapshot.data!) {
+                    // Si no se encuentra el archivo o hay un error, muestra el mensaje.
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.error, color: Colors.grey.shade400, size: 50),
+                        Text(
+                          'Amigo no encontrado',
+                          style:
+                              TextStyle(color: Colors.grey[400], fontWeight: FontWeight.w500, fontSize: 16),
+                        ),
+                      ],
+                    );
+                  } else {
+                    // Si todo está bien, muestra el JSON
+                    return Lottie.asset(
+                      'lib/assets/loading/infinity_cyan.json',
+                      width: 50,
+                      height: 50,
+                    );
+                  }
+                },
               ),
             )
           : ListView.builder(
@@ -237,7 +270,11 @@ class _FollowersScreenState extends State<FollowersScreen> {
                         ),
                         child: CircleAvatar(
                           radius: 30,
-                          backgroundImage: NetworkImage(friend['image']!),
+                          backgroundImage: FadeInImage.assetNetwork(
+                            placeholder: 'lib/assets/placeholder_user.jpg',  // Imagen de marcador de posición
+                            image: friend['image']!,  // Imagen que se cargará desde la red
+                            fit: BoxFit.cover,
+                          ).image,
                         ),
                       ),
                       SizedBox(width: 10),
@@ -319,6 +356,11 @@ class _FollowersScreenState extends State<FollowersScreen> {
               },
             ),
     );
+  }
+
+  Future<bool> _checkFileExists(String path) async {
+    final file = File(path);
+    return await file.exists();
   }
 
   void _showOptionsModal(BuildContext context, String followerId) {
@@ -431,5 +473,4 @@ class _FollowersScreenState extends State<FollowersScreen> {
       },
     );
   }
-
 }

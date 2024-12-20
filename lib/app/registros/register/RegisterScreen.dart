@@ -817,7 +817,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-
   //terminos y condiciones
   Widget _buildTermsAndPrivacyCheckbox() {
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
@@ -953,7 +952,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
     }
   }
-
 
 // Método para mostrar el diálogo de error
   void _showErrorDialog(String errorMessage) {

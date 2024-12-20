@@ -30,12 +30,8 @@ class _LikeButtonState extends State<Likes> {
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
     final isDarkMode = darkModeProvider.isDarkMode;
 
-    final textColor = isDarkMode ? Colors.white : Colors.black;
-    final iconColor = isDarkMode ? Colors.grey[400] : Colors.grey[700];
-    final backgroundColor = isDarkMode ? Colors.black : Colors.white;
-
     return Container(
-      color: backgroundColor,
+      color: Colors.transparent,
       padding: const EdgeInsets.all(8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -44,15 +40,15 @@ class _LikeButtonState extends State<Likes> {
             onTap: toggleLike,
             child: Icon(
               isLiked ? FontAwesomeIcons.solidHeart : FontAwesomeIcons.heart,
-              size: 23,
-              color: isLiked ? Colors.red : Colors.grey,
+              size: 24,
+              color: isLiked ? Colors.red : Colors.grey.shade200,
             ),
           ),
           const SizedBox(width: 8),
           Text(
             formatLikeCount(likeCount),
             style: TextStyle(
-              color: Colors.grey,
+              color: Colors.grey.shade200, fontWeight: FontWeight.w400
             ),
           ),
         ],

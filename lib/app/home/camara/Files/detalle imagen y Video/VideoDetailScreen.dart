@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:video_player/video_player.dart';
 import 'dart:io';
 import 'dart:async';
@@ -24,8 +25,10 @@ class VideoDetailGaleria extends StatefulWidget {
 class _AdvancedVideoPlayerState extends State<VideoDetailGaleria> {
   late VideoPlayerController _videoController;
   bool _showControls = false;
+  bool _showPlayPauseIcon = false;
   Timer? _controlsTimer;
   Timer? _positionUpdateTimer;
+  Timer? _playPauseIconTimer;
   ValueNotifier<Duration> _videoPositionNotifier = ValueNotifier(Duration.zero);
 
   bool _isSelected = false;
@@ -78,11 +81,26 @@ class _AdvancedVideoPlayerState extends State<VideoDetailGaleria> {
     setState(() {
       if (_videoController.value.isPlaying) {
         _videoController.pause();
+        _showPlayPauseIcon = true;
+        _playPauseIconTimer?.cancel(); // Prevent auto-hide for pause icon
       } else {
         _videoController.play();
+        _showPlayPauseIcon = true;
+        _setupPlayPauseIconAutoHide();
       }
       _showControls = true;
       _setupControlsAutoHide();
+    });
+  }
+
+  void _setupPlayPauseIconAutoHide() {
+    _playPauseIconTimer?.cancel();
+    _playPauseIconTimer = Timer(Duration(milliseconds: 500), () {
+      if (mounted) {
+        setState(() {
+          _showPlayPauseIcon = false;
+        });
+      }
     });
   }
 
@@ -104,6 +122,7 @@ class _AdvancedVideoPlayerState extends State<VideoDetailGaleria> {
     _videoController.dispose();
     _controlsTimer?.cancel();
     _positionUpdateTimer?.cancel();
+    _playPauseIconTimer?.cancel();
     _videoPositionNotifier.dispose();
     super.dispose();
   }
@@ -133,10 +152,31 @@ class _AdvancedVideoPlayerState extends State<VideoDetailGaleria> {
                       child: VideoPlayer(_videoController),
                     ),
                   )
-                      : CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      : Lottie.asset(
+                    'lib/assets/loading/infinity_cyan.json',
+                    width: 20,
+                    height: 20,
                   ),
-                  // Overlay controls (e.g., progress bar and play/pause button)
+                  // Play/Pause Icon Overlay
+                  if (_showPlayPauseIcon)
+                    Center(
+                      child: Container(
+                        width: 65,
+                        height: 65,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withOpacity(0.3),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          _videoController.value.isPlaying
+                              ? Icons.pause
+                              : Icons.play_arrow,
+                          color: Colors.white.withOpacity(0.4),
+                          size: 40,
+                        ),
+                      ),
+                    ),
+                  // Existing controls overlay
                   if (_showControls)
                     Positioned(
                       bottom: 0,
@@ -229,6 +269,10 @@ class _AdvancedVideoPlayerState extends State<VideoDetailGaleria> {
             right: 20,
             child: Row(
               children: [
+                Text(
+                  'Seleccionar',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 12),
+                ),
                 Checkbox(
                   value: _isSelected,
                   onChanged: (bool? value) {
@@ -238,10 +282,6 @@ class _AdvancedVideoPlayerState extends State<VideoDetailGaleria> {
                     widget.onSelect();
                   },
                   activeColor: Colors.cyan,
-                ),
-                Text(
-                  'Seleccionar',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 12),
                 ),
               ],
             ),

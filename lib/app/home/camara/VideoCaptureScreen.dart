@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lottie/lottie.dart';
@@ -73,37 +74,63 @@ class _VideoCaptureScreenState extends State<VideoCaptureScreen> {
   @override
   void initState() {
     super.initState();
-    initializeCamera();
-    _loadFirstImageFromGallery();
+    requestPermissions();
+    _loadAssets();
   }
 
-  void initializeCamera() async {
-    // Solicitar permisos de cámara
-    var status = await Permission.camera.status;
+  // Solicitar permisos para cámara y micrófono
+  void requestPermissions() async {
+    // Solicitar permiso de cámara
+    var cameraStatus = await Permission.camera.status;
+    var microphoneStatus = await Permission.microphone.status;
 
-    // Verificar si ya se ha otorgado el permiso
-    if (!status.isGranted) {
-      // Solicitar permiso si no ha sido otorgado
-      status = await Permission.camera.request();
-
-      // Si el usuario niega el permiso, puedes mostrar un mensaje o manejar el caso
-      if (!status.isGranted) {
-        print("Permiso de cámara no otorgado");
-        return;
-      }
+    // Verificar y solicitar permiso de cámara
+    if (!cameraStatus.isGranted) {
+      cameraStatus = await Permission.camera.request();
     }
 
-    // Ahora los permisos están garantizados, puedes continuar con la inicialización de la cámara
+    // Verificar y solicitar permiso de micrófono
+    if (!microphoneStatus.isGranted) {
+      microphoneStatus = await Permission.microphone.request();
+    }
+
+    // Verificar si ambos permisos fueron otorgados
+    if (cameraStatus.isGranted && microphoneStatus.isGranted) {
+      initializeCamera();
+    } else {
+      // Si algún permiso es denegado, muestra un mensaje
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text("Permisos requeridos"),
+          content: Text(
+              "La aplicación necesita permisos de cámara y micrófono para funcionar correctamente."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text("OK"),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  // Inicializar la cámara
+  void initializeCamera() async {
     cameras = await availableCameras();
     CameraDescription selectedCamera;
 
-    // Selecciona la cámara frontal o trasera en función de la variable _isFrontCamera
     if (_isFrontCamera) {
       selectedCamera = cameras!.firstWhere(
-          (camera) => camera.lensDirection == CameraLensDirection.front);
+        (camera) => camera.lensDirection == CameraLensDirection.front,
+      );
     } else {
       selectedCamera = cameras!.firstWhere(
-          (camera) => camera.lensDirection == CameraLensDirection.back);
+        (camera) => camera.lensDirection == CameraLensDirection.back,
+      );
     }
 
     // Desactiva el controlador anterior si existe
@@ -132,6 +159,51 @@ class _VideoCaptureScreenState extends State<VideoCaptureScreen> {
       _isFrontCamera = !_isFrontCamera;
     });
     initializeCamera(); // Vuelve a inicializar la cámara cuando se cambia
+  }
+
+  Future<void> _loadAssets() async {
+    try {
+      final List<AssetPathEntity> assetPaths =
+          await PhotoManager.getAssetPathList(onlyAll: true);
+
+      if (assetPaths.isEmpty) {
+        // Manejar caso donde no hay rutas de assets
+        print('No se encontraron rutas de assets');
+        return;
+      }
+
+      // Limpiamos cualquier imagen previa
+      _firstImage = null;
+
+      for (var path in assetPaths) {
+        final int assetCount = await path.assetCountAsync;
+
+        if (assetCount == 0) continue; // Saltar rutas vacías
+
+        // Obtener la lista de imágenes
+        final List<AssetEntity> assets =
+            await path.getAssetListPaged(page: 0, size: assetCount);
+
+        for (var asset in assets) {
+          // Verifica que sea una imagen
+          if (asset.type == AssetType.image) {
+            _firstImage = asset; // Guarda la primera imagen encontrada
+            break;
+          }
+        }
+
+        // Si ya se encontró la primera imagen, salimos del bucle
+        if (_firstImage != null) break;
+      }
+
+      setState(() {
+        if (_firstImage == null) {
+          print('No se encontraron imágenes');
+        }
+      });
+    } catch (e) {
+      print('Error al cargar assets: $e');
+    }
   }
 
   /* metodoso de grabacion **/
@@ -397,7 +469,6 @@ class _VideoCaptureScreenState extends State<VideoCaptureScreen> {
     );
   }
 
-
   /*Para fluxh*/
   Future<void> _requestPermissions() async {
     var status = await Permission.camera.request();
@@ -442,7 +513,6 @@ class _VideoCaptureScreenState extends State<VideoCaptureScreen> {
   }
 
   //para enfocar
-  // Método para activar/desactivar el enfoque táctil
   void _toggleFocusMode() {
     setState(() {
       _isFocusEnabled = !_isFocusEnabled; // Alterna el estado del enfoque
@@ -473,6 +543,7 @@ class _VideoCaptureScreenState extends State<VideoCaptureScreen> {
 
   Future<void> _usarMuestra() async {}
 
+  //filtros
   Widget _applyFilter(String filterName) {
     // Verificar que _cameraController esté inicializado
     if (_cameraController == null || !_cameraController!.value.isInitialized) {
@@ -532,6 +603,21 @@ class _VideoCaptureScreenState extends State<VideoCaptureScreen> {
           return _colorFilteredCameraPreview(Colors.white.withOpacity(0.5),
               BlendMode.lighten); // Brightens the image
 
+        case 'Vivid':
+          return _colorFilteredCameraPreview(
+              Colors.deepOrangeAccent.withOpacity(0.7),
+              BlendMode.overlay); // Brightens the image
+        // Nuevos filtros inspirados en TikTok
+        case 'Vivid':
+          return _colorFilteredCameraPreview(
+              Colors.deepOrangeAccent.withOpacity(0.7), BlendMode.overlay);
+        case 'Neon Glow':
+          return _colorFilteredCameraPreview(
+              Colors.cyan.withOpacity(0.9), BlendMode.screen);
+        case 'Cinemático': // Filtro inspirado en tonos de cine
+          return _colorFilteredCameraPreview(
+              Colors.deepOrange.withOpacity(0.4), BlendMode.overlay);
+
         default:
           // Filtro normal si no se encuentra coincidencia
           return CameraPreview(_cameraController!);
@@ -562,10 +648,173 @@ class _VideoCaptureScreenState extends State<VideoCaptureScreen> {
     'Amaro',
     'Valencia',
     'Lo-Fi',
-    'Brew', // TikTok filter
-    'Cool Blue', // TikTok filter
-    'Brighten' // TikTok filter
+    'Vivid', // Nuevo filtro
+    'Neon Glow', // Nuevo filtro
+    'Vintage', // Nuevo filtro
+    'Dreamy', // Nuevo filtro
+    'Cinematic', // Nuevo filtro
   ];
+
+  //categoria
+  final Map<String, List<String>> filterCategories = {
+    'Populares': [], // Mantener vacía ya que los filtros son dinámicos
+    'Crear': [],
+    'Nuevos AI': [],
+    'Herramienta': [],
+    'Navidad': [],
+    'Comedia': [],
+    'Interactivo': [],
+    'Ambiente': [],
+    'Paisaje': [],
+    'Edición': [],
+    'Animales': [],
+    'RA': [],
+    'Eventos': [],
+    'Música': [],
+  };
+
+  int _currentCategoryIndex = 0;
+
+  void _showFilterModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.black.withOpacity(0.2),
+      isScrollControlled: true,
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.4,
+          padding: const EdgeInsets.all(5.0),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.8),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(8),
+              topRight: Radius.circular(8),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 10.0),
+                    child: Text(
+                      'Selecciona un filtro',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.search, color: Colors.white),
+                    onPressed: () {
+                      // Acción al presionar el ícono de búsqueda
+                    },
+                  ),
+                ],
+              ),
+
+              // Carrusel de categorías
+              SizedBox(
+                height: 22,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: filterCategories.keys.length,
+                  itemBuilder: (context, index) {
+                    final category = filterCategories.keys.elementAt(index);
+                    bool isSelected = _currentCategoryIndex == index;
+
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _currentCategoryIndex =
+                              index; // Cambia la categoría seleccionada
+                        });
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          border: isSelected
+                              ? Border(
+                                  bottom:
+                                      BorderSide(color: Colors.white, width: 1))
+                              : null,
+                        ),
+                        child: Text(
+                          category,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isSelected ? Colors.white : Colors.grey,
+                            fontWeight:
+                                isSelected ? FontWeight.bold : FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 10),
+              Container(
+                height: 0.5,
+                color: Colors.grey.withOpacity(0.2),
+              ),
+
+              Expanded(
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    childAspectRatio: 0.8,
+                  ),
+                  itemCount: filterOptions.length, // Lista de filtros
+                  itemBuilder: (context, index) {
+                    final filterName = filterOptions[index];
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context); // Cierra el modal
+                        setState(() {
+                          _currentFilterIndex = index; // Actualiza el índice
+                        });
+                      },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8.0),
+                            child: Image.asset(
+                              'lib/assets/placeholder_filter.png',
+                              // Imagen del filtro
+                              width: 60,
+                              height: 60,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            filterName,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   void dispose() {
@@ -580,68 +829,44 @@ class _VideoCaptureScreenState extends State<VideoCaptureScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final darkModeProvider = Provider.of<DarkModeProvider>(context);
-    final isDarkMode = darkModeProvider.isDarkMode;
-    final textColor = darkModeProvider.textColor;
-    final iconColor = darkModeProvider.iconColor;
-    final backgroundColor = darkModeProvider.backgroundColor;
-
     // Establecer el estilo de la barra de estado
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: Colors.black,
       statusBarIconBrightness: Brightness.light,
       statusBarBrightness: Brightness.dark, // Para dispositivos iOS
     ));
+
     return Scaffold(
       body: Container(
         color: Colors.black,
         child: Stack(
           children: [
-            //double topPosition = MediaQuery.of(context).size.height > 600 ? 50.0 : 20.0;
-            Positioned(
-              top: MediaQuery.of(context).size.height *
-                  0.05, // 5% de la altura de la pantalla
-              left: 0,
-              right: 0,
-              child: GestureDetector(
-                onHorizontalDragUpdate: (details) {
-                  setState(() {
-                    double sensitivity = 10.0;
-                    if (details.primaryDelta != null) {
-                      if (details.primaryDelta! > sensitivity) {
-                        _currentFilterIndex =
-                            (_currentFilterIndex + 1) % filterOptions.length;
-                      } else if (details.primaryDelta! < -sensitivity) {
-                        _currentFilterIndex =
-                            (_currentFilterIndex - 1 + filterOptions.length) %
+            // Vista de la cámara, ocupando la pantalla hasta el carrusel
+            Positioned.fill(
+              top: 0,
+              bottom: MediaQuery.of(context).size.height * 0.15,
+              child: Stack(
+                children: [
+                  GestureDetector(
+                    onHorizontalDragUpdate: (details) {
+                      setState(() {
+                        double sensitivity = 10.0;
+                        if (details.primaryDelta != null) {
+                          if (details.primaryDelta! > sensitivity) {
+                            _currentFilterIndex = (_currentFilterIndex + 1) %
                                 filterOptions.length;
-                      }
-                    }
-                  });
-                },
-                child: Stack(
-                  children: [
-                    Center(
-                      child: AspectRatio(
-                        aspectRatio: 16 / 9, // Mantén la proporción 16:9
-                        child: _cameraController != null &&
-                                _cameraController!.value.isInitialized
-                            ? CameraPreview(_cameraController!)
-                            : Center(
-                                child: Lottie.asset(
-                                  'lib/assets/loading/infinity_cyan.json',
-                                  width: 1,
-                                  height: 1,
-                                ),
-                              ),
-                      ),
-                    ),
-
-                    // Aplica el filtro seleccionado sobre la vista previa de la cámara
-                    if (filterOptions.isNotEmpty)
-                      _applyFilter(filterOptions[_currentFilterIndex]),
-                  ],
-                ),
+                          } else if (details.primaryDelta! < -sensitivity) {
+                            _currentFilterIndex = (_currentFilterIndex -
+                                    1 +
+                                    filterOptions.length) %
+                                filterOptions.length;
+                          }
+                        }
+                      });
+                    },
+                    child: _applyFilter(filterOptions[_currentFilterIndex]),
+                  ),
+                ],
               ),
             ),
 
@@ -657,7 +882,7 @@ class _VideoCaptureScreenState extends State<VideoCaptureScreen> {
             // Opción para seleccionar stickers o subir contenido
             buildPhotoPicker(context),
 
-            //efectos
+            // Efectos
             buildFilterButton(context),
 
             // Carrusel de botones
@@ -669,6 +894,71 @@ class _VideoCaptureScreenState extends State<VideoCaptureScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildLabelCarousel() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.black,
+      ),
+      padding: EdgeInsets.symmetric(vertical: 30),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(_labels.length, (index) {
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _selectedPage = index;
+                    });
+
+                    // Si se selecciona "Album", navega a GalleryPage()
+                    if (_labels[index] == "Album") {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => GalleryPage()),
+                      );
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Column(
+                      children: [
+                        Text(
+                          _labels[index],
+                          style: TextStyle(
+                            fontWeight: _selectedPage == index
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: _selectedPage == index
+                                ? Colors.white
+                                : Colors.grey,
+                          ),
+                        ),
+                        if (_selectedPage == index)
+                          Container(
+                            height: 4,
+                            width: 4,
+                            margin: EdgeInsets.only(top: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -906,7 +1196,7 @@ class _VideoCaptureScreenState extends State<VideoCaptureScreen> {
       child: Column(
         children: [
           GestureDetector(
-            onTap: _pickImage,
+            onTap: _pickImage, // Aquí puedes manejar la selección de imagen
             child: Container(
               width: 37,
               height: 37,
@@ -917,23 +1207,42 @@ class _VideoCaptureScreenState extends State<VideoCaptureScreen> {
               ),
               child: _image != null
                   ? ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.file(
-                  _image!,
-                  width: 37,
-                  height: 37,
-                  fit: BoxFit.cover,
-                ),
-              )
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        _image!,
+                        width: 37,
+                        height: 37,
+                        fit: BoxFit.cover,
+                      ),
+                    )
                   : ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.asset(
-                  'lib/assets/placeholder-image.png',
-                  width: 37,
-                  height: 37,
-                  fit: BoxFit.cover,
-                ),
-              ),
+                      borderRadius: BorderRadius.circular(8),
+                      child: _firstImage != null
+                          ? FutureBuilder<Widget>(
+                              future: _firstImage!.thumbnailData.then((data) {
+                                return Image.memory(data!, fit: BoxFit.cover);
+                              }),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.done) {
+                                  return snapshot.data ?? Container();
+                                } else {
+                                  return Image.asset(
+                                    'lib/assets/placeholder-image.png',
+                                    width: 37,
+                                    height: 37,
+                                    fit: BoxFit.cover,
+                                  );
+                                }
+                              },
+                            )
+                          : Image.asset(
+                              'lib/assets/placeholder-image.png',
+                              width: 37,
+                              height: 37,
+                              fit: BoxFit.cover,
+                            ),
+                    ),
             ),
           ),
           SizedBox(height: 5),
@@ -957,30 +1266,6 @@ class _VideoCaptureScreenState extends State<VideoCaptureScreen> {
     );
   }
 
-  // Método para abrir la galería y seleccionar una imagen
-  Future<void> _loadFirstImageFromGallery() async {
-    final PermissionState permission = await PhotoManager.requestPermissionExtend();
-
-    if (permission.isAuth) {
-      // Obtener todos los assets de tipo imagen
-      final List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(type: RequestType.image);
-      if (albums.isNotEmpty) {
-        // Cargar solo la primera imagen (página 0, tamaño 1)
-        final List<AssetEntity> images = await albums[0].getAssetListPaged(page: 0, size: 1);
-        if (images.isNotEmpty) {
-          final File? file = await images.first.file; // Obtener el archivo físico
-          setState(() {
-            _firstImage = images.first;
-            _image = file;
-          });
-        }
-      }
-    } else {
-      // Manejar falta de permisos
-      PhotoManager.openSetting();
-    }
-  }
-
   Future<void> _pickImage() async {
     final XFile? pickedImage = await _picker.pickImage(
       source: ImageSource.gallery,
@@ -996,13 +1281,12 @@ class _VideoCaptureScreenState extends State<VideoCaptureScreen> {
         MaterialPageRoute(
           builder: (context) => EditImageScreen(
             file: selectedImage, // Pasa el archivo seleccionado
-            isVideo: false,      // Indica que no es un video
+            isVideo: false, // Indica que no es un video
           ),
         ),
       );
     }
   }
-
 
   //metodos de efectos
   Widget buildFilterButton(BuildContext context) {
@@ -1012,7 +1296,10 @@ class _VideoCaptureScreenState extends State<VideoCaptureScreen> {
       child: Column(
         children: [
           GestureDetector(
-            onTap: () {},
+            onTap: () {
+              // Llama al método para mostrar el modal de filtros
+              _showFilterModal(context);
+            },
             child: Container(
               width: 46,
               height: 46,
@@ -1058,12 +1345,12 @@ class _VideoCaptureScreenState extends State<VideoCaptureScreen> {
       child: Row(
         children: [
           CircleAvatar(
-            radius: 20, // Aumenta el tamaño del círculo
+            radius: 24, // Aumenta el tamaño del círculo
             backgroundColor: Colors.black.withOpacity(0.3),
             child: Icon(
               iconData,
               color: iconColor ?? Colors.white,
-              size: 25, // Aumenta el tamaño del ícono
+              size: 30, // Aumenta el tamaño del ícono
             ),
           ),
           SizedBox(width: 6),
@@ -1151,74 +1438,6 @@ class _VideoCaptureScreenState extends State<VideoCaptureScreen> {
 
   final List<String> _labels = ["Album", "Foto", "Video", "Short", "LIVE"];
 
-  Widget _buildLabelCarousel() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(10),
-          topRight: Radius.circular(10),
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(height: 12),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(_labels.length, (index) {
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedPage = index;
-                    });
-
-                    // Si se selecciona "Album", navega a GalleryPage()
-                    if (_labels[index] == "Album") {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => GalleryPage()),
-                      );
-                    }
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Column(
-                      children: [
-                        Text(
-                          _labels[index],
-                          style: TextStyle(
-                            fontWeight: _selectedPage == index
-                                ? FontWeight.bold
-                                : FontWeight.bold,
-                            color: _selectedPage == index
-                                ? Colors.white
-                                : Colors.grey,
-                          ),
-                        ),
-                        if (_selectedPage == index)
-                          Container(
-                            height: 4,
-                            width: 4,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ),
-          SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
-
   //controles de grabacion
   Widget buildRecordingControls(BuildContext context) {
     return Stack(
@@ -1272,7 +1491,8 @@ class _VideoCaptureScreenState extends State<VideoCaptureScreen> {
                     color: _getButtonColorBasedOnMode(),
                   ),
                   child: _selectedPage == 3 &&
-                          _selectedButton == 1 // Cámara en la pestaña "Historia"
+                          _selectedButton ==
+                              1 // Cámara en la pestaña "Historia"
                       ? Icon(
                           Icons.history_edu,
                           color: Colors.white,
@@ -1542,7 +1762,7 @@ class _VideoCaptureScreenState extends State<VideoCaptureScreen> {
         color: isSelected ? Colors.white : Colors.black.withOpacity(0.2),
         borderRadius: BorderRadius.circular(15),
         border:
-        isSelected ? Border.all(color: Colors.grey.withOpacity(0.2)) : null,
+            isSelected ? Border.all(color: Colors.grey.withOpacity(0.2)) : null,
       ),
       child: TextButton(
         onPressed: onPressed,
@@ -1562,8 +1782,6 @@ class _VideoCaptureScreenState extends State<VideoCaptureScreen> {
       ),
     );
   }
-
-
 }
 
 // CustomPainter para el progreso circular de grabación

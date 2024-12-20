@@ -20,6 +20,7 @@ class MenuConfiguration extends StatefulWidget {
 }
 
 class _MenuConfigurationState extends State<MenuConfiguration> {
+
   @override
   Widget build(BuildContext context) {
     // Accede al proveedor de modo oscuro
@@ -28,11 +29,11 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
     final isDarkMode = darkModeProvider.isDarkMode;
 
     // Colores según el modo
-    final backgroundColor = isDarkMode ? Colors.black : Colors.white;
+    final backgroundColor = isDarkMode ? Colors.black : Colors.grey.shade200;
     final appBarColor = isDarkMode ? Colors.black : Colors.white;
     final textColor = isDarkMode ? Colors.white : Colors.black;
     final tileColor = isDarkMode ? Colors.black12 : Colors.grey[100]!;
-    final sectionHeaderColor = isDarkMode ? Colors.black54 : Colors.grey[200]!;
+    final sectionHeaderColor = isDarkMode ? Colors.black : Colors.grey.shade200;
 
     final fontSize =
         fontSizeProvider.fontSize; // Obtén el tamaño de fuente del proveedor
@@ -40,16 +41,26 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: appBarColor,
-        title: Text(
-          'Configuración',
-          style: TextStyle(
-              fontWeight: FontWeight.bold, color: textColor, fontSize: 21),
-        ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, color: textColor),
+          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: textColor),
           onPressed: () {
             Navigator.pop(context);
           },
+        ),
+        title: Row(
+          children: [
+            SizedBox(
+              width: 30,
+            ),
+            Text(
+              'Configuración',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: textColor,
+                fontSize: 19,
+              ),
+            ),
+          ],
         ),
       ),
       body: SafeArea(
@@ -61,359 +72,435 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
               SectionHeader(
                   title: 'Ajustes y Privacidad',
                   backgroundColor: sectionHeaderColor,
-                  textColor: textColor,
-                  fontSize: fontSize),
-              MenuTile(
-                icon: Icons.account_circle,
-                title: 'Cuenta',
-                tileColor: tileColor,
-                textColor: textColor,
-                fontSize: fontSize,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => Cuenta(
-                            tileColor: tileColor,
-                            textColor: textColor,
-                            fontSize: fontSize)),
-                  );
-                },
-              ),
-              MenuTile(
-                icon: Icons.lock,
-                title: 'Privacidad',
-                tileColor: tileColor,
-                textColor: textColor,
-                fontSize: fontSize,
-                onTap: () {
-                  // Navegar a la pantalla de configuración de privacidad
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => Scaffold(
-                        appBar: AppBar(
-                          title: Text('Privacidad',
-                              style: TextStyle(color: textColor)),
-                          backgroundColor: tileColor,
-                        ),
-                        body: PrivacySettings(
-                          switchActiveColor: Colors.cyan,
-                          titleColor: textColor,
-                          sectionTitleColor: Colors.grey.shade600,
-                          descriptionColor: Colors.grey,
-                          sectionBackgroundColor:
-                              isDarkMode ? Colors.black : Colors.grey.shade100,
-                          titleFontSize: 14.0,
-                          // Letras más pequeñas
-                          sectionTitleFontSize: 16.0,
-                          descriptionFontSize: 11.0, // Descripción más pequeña
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-              MenuTile(
-                icon: Icons.security,
-                title: 'Seguridad',
-                tileColor: tileColor,
-                textColor: textColor,
-                fontSize: fontSize,
-                onTap: () {
-                  // Navegar a la pantalla de configuración de seguridad
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => Scaffold(
-                        appBar: AppBar(
-                          title: Text('Seguridad',
-                              style: TextStyle(color: textColor)),
-                          backgroundColor: tileColor,
-                        ),
-                        body: SecuritySettings(
-                          titleColor: textColor,
-                          sectionTitleColor:
-                              isDarkMode ? Colors.white : Colors.grey.shade700,
-                          descriptionColor: Colors.grey,
-                          titleFontSize: 14.0,
-                          sectionTitleFontSize: 16.0,
-                          descriptionFontSize: 11.0,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-              MenuTile(
-                icon: Icons.lock_open,
-                title: 'Permisos',
-                tileColor: tileColor,
-                textColor: textColor,
-                fontSize: fontSize,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PermissionsSettings(
-                        tileColor: textColor,
+                  textColor: Colors.grey,
+                  fontSize: 12),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                  decoration: BoxDecoration(
+                    color: isDarkMode ? Colors.grey.shade900 : Colors.white,
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  child: Column(
+                    children: [
+                      MenuTile(
+                        icon: Icons.account_circle,
+                        title: 'Cuenta',
+                        tileColor: Colors.transparent,
                         textColor: textColor,
-                        sectionTitleColor:
-                            isDarkMode ? Colors.white : Colors.black,
-                        titleColor: isDarkMode ? Colors.white : Colors.black,
-                        descriptionColor: Colors.grey,
-                        titleFontSize: fontSize,
-                        sectionTitleFontSize: fontSize + 1,
-                        descriptionFontSize: fontSize - 4,
+                        fontSize: fontSize,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => Cuenta(
+                                    tileColor: tileColor,
+                                    textColor: textColor,
+                                    fontSize: fontSize)),
+                          );
+                        },
                       ),
-                    ),
-                  );
-                },
-              ),
-              MenuTile(
-                icon: Icons.monetization_on,
-                title: 'Saldo',
-                tileColor: tileColor,
-                textColor: textColor,
-                fontSize: fontSize,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => MonetizationScreen(),
-                    ),
-                  );
-                },
-              ),
-              MenuTile(
-                icon: Icons.share,
-                title: 'Compartir perfil',
-                tileColor: tileColor,
-                textColor: textColor,
-                fontSize: fontSize,
-                onTap: () {
-                  _showShareDialog(context);
-                },
-              ),
-              MenuTile(
-                icon: Icons.block,
-                title: 'Bloqueos',
-                tileColor: tileColor,
-                textColor: textColor,
-                fontSize: fontSize,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => BlockScreen(
-                        tileColor: Colors.grey.shade200,
-                        textColor: Colors.black,
-                        fontSize: 16.0,
+                      MenuTile(
+                        icon: Icons.lock,
+                        title: 'Privacidad',
+                        tileColor: Colors.transparent,
+                        textColor: textColor,
+                        fontSize: fontSize,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Scaffold(
+                                appBar: AppBar(
+                                  title: Text('Privacidad',
+                                      style: TextStyle(color: textColor)),
+                                  backgroundColor: tileColor,
+                                ),
+                                body: PrivacySettings(
+                                  switchActiveColor: Colors.cyan,
+                                  titleColor: textColor,
+                                  sectionTitleColor: Colors.grey.shade600,
+                                  descriptionColor: Colors.grey,
+                                  sectionBackgroundColor: isDarkMode
+                                      ? Colors.black
+                                      : Colors.grey.shade100,
+                                  titleFontSize: 14.0,
+                                  sectionTitleFontSize: 16.0,
+                                  descriptionFontSize: 11.0,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    ),
-                  );
-                },
-              ),
-              MenuTile(
-                  icon: Icons.account_balance_wallet,
-                  title: 'Estado de cuenta',
-                  tileColor: tileColor,
-                  textColor: textColor,
-                  fontSize: fontSize,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EstadoDeCuentaScreen(),
+                      MenuTile(
+                        icon: Icons.security,
+                        title: 'Seguridad',
+                        tileColor: Colors.transparent,
+                        textColor: textColor,
+                        fontSize: fontSize,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Scaffold(
+                                appBar: AppBar(
+                                  title: Text('Seguridad',
+                                      style: TextStyle(color: textColor)),
+                                  backgroundColor: tileColor,
+                                ),
+                                body: SecuritySettings(
+                                  titleColor: textColor,
+                                  sectionTitleColor: isDarkMode
+                                      ? Colors.white
+                                      : Colors.grey.shade700,
+                                  descriptionColor: Colors.grey,
+                                  titleFontSize: 14.0,
+                                  sectionTitleFontSize: 16.0,
+                                  descriptionFontSize: 11.0,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  }),
-              MenuTile(
-                icon: Icons.video_camera_back_rounded,
-                title: 'Snippets',
-                tileColor: tileColor,
-                textColor: textColor,
-                fontSize: fontSize,
-                onTap: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => VideoListScreen()));
-                },
+                      MenuTile(
+                        icon: Icons.lock_open,
+                        title: 'Permisos',
+                        tileColor: Colors.transparent,
+                        textColor: textColor,
+                        fontSize: fontSize,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PermissionsSettings(
+                                tileColor: textColor,
+                                textColor: textColor,
+                                sectionTitleColor:
+                                    isDarkMode ? Colors.white : Colors.black,
+                                titleColor:
+                                    isDarkMode ? Colors.white : Colors.black,
+                                descriptionColor: Colors.grey,
+                                titleFontSize: fontSize,
+                                sectionTitleFontSize: fontSize + 1,
+                                descriptionFontSize: fontSize - 4,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      MenuTile(
+                        icon: Icons.monetization_on,
+                        title: 'Saldo',
+                        tileColor: Colors.transparent,
+                        textColor: textColor,
+                        fontSize: fontSize,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MonetizationScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      MenuTile(
+                        icon: Icons.reply,
+                        title: 'Compartir perfil',
+                        tileColor: Colors.transparent,
+                        textColor: textColor,
+                        fontSize: fontSize,
+                        onTap: () {
+                          _showShareDialog(context);
+                        },
+                      ),
+                      MenuTile(
+                        icon: Icons.live_tv,
+                        title: 'LIVE',
+                        tileColor: Colors.transparent,
+                        textColor: textColor,
+                        fontSize: fontSize,
+                        onTap: () {},
+                      ),
+                      MenuTile(
+                        icon: Icons.block,
+                        title: 'Bloqueos',
+                        tileColor: Colors.transparent,
+                        textColor: textColor,
+                        fontSize: fontSize,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => BlockScreen(
+                                tileColor: Colors.grey.shade200,
+                                textColor: Colors.black,
+                                fontSize: 16.0,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      MenuTile(
+                        icon: Icons.account_balance_wallet,
+                        title: 'Estado de cuenta',
+                        tileColor: Colors.transparent,
+                        textColor: textColor,
+                        fontSize: fontSize,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EstadoDeCuentaScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      MenuTile(
+                        icon: Icons.video_camera_back_rounded,
+                        title: 'Snippets',
+                        tileColor: Colors.transparent,
+                        textColor: textColor,
+                        fontSize: fontSize,
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => VideoListScreen()));
+                        },
+                      ),
+                    ],
+                  ),
+                ),
               ),
               SectionHeader(
                   title: 'Contenido y Pantalla',
                   backgroundColor: sectionHeaderColor,
-                  textColor: textColor,
-                  fontSize: fontSize),
-              MenuTile(
-                icon: Icons.language,
-                title: 'Idioma',
-                tileColor: tileColor,
-                textColor: textColor,
-                fontSize: fontSize,
-                onTap: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => LanguageSelectionWidget()));
-                },
-              ),
-              MenuTile(
-                icon: Icons.text_fields,
-                title: 'Tamaño de Fuente',
-                tileColor: tileColor,
-                textColor: textColor,
-                fontSize: fontSize,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => FontSizeScreen()),
-                  );
-                },
-              ),
-              MenuTile(
-                icon: Icons.accessibility,
-                title: 'Accesibilidad',
-                tileColor: tileColor,
-                textColor: textColor,
-                fontSize: fontSize,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AccessibilitySettings(
-                        tileColor: tileColor,
-                        textColor: textColor,
-                        sectionTitleColor: textColor,
-                        titleColor: textColor,
-                        descriptionColor: textColor,
-                        titleFontSize: fontSize,
-                        sectionTitleFontSize: fontSize,
-                        descriptionFontSize: fontSize,
+                  textColor: Colors.grey,
+                  fontSize: 12),
+              Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10.0),
+                  child: Container(
+
+                      padding: EdgeInsets.symmetric(horizontal: 8.0),
+                      decoration: BoxDecoration(
+                        color: isDarkMode ? Colors.grey.shade900 : Colors.white,
+                        borderRadius: BorderRadius.circular(12.0),
                       ),
-                    ),
-                  );
-                },
-              ),
-              MenuTile(
-                  icon: Icons.notifications,
-                  title: 'Notificaciones',
-                  tileColor: tileColor,
-                  textColor: textColor,
-                  fontSize: fontSize),
-              MenuTile(
-                  icon: Icons.settings,
-                  title: 'Preferencias de Actividades',
-                  tileColor: tileColor,
-                  textColor: textColor,
-                  fontSize: fontSize),
-              MenuTile(
-                  icon: Icons.center_focus_strong,
-                  title: 'Centro de Actividades',
-                  tileColor: tileColor,
-                  textColor: textColor,
-                  fontSize: fontSize),
+                      child: Column(children: [
+                        MenuTile(
+                          icon: Icons.language,
+                          title: 'Idioma',
+                          tileColor: tileColor,
+                          textColor: textColor,
+                          fontSize: fontSize,
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        LanguageSelectionWidget()));
+                          },
+                        ),
+                        MenuTile(
+                          icon: Icons.text_increase_outlined,
+                          title: 'Tamaño de Fuente',
+                          tileColor: tileColor,
+                          textColor: textColor,
+                          fontSize: fontSize,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => FontSizeScreen()),
+                            );
+                          },
+                        ),
+                        MenuTile(
+                          icon: Icons.accessibility,
+                          title: 'Accesibilidad',
+                          tileColor: tileColor,
+                          textColor: textColor,
+                          fontSize: fontSize,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AccessibilitySettings(
+                                  tileColor: tileColor,
+                                  textColor: textColor,
+                                  sectionTitleColor: textColor,
+                                  titleColor: textColor,
+                                  descriptionColor: textColor,
+                                  titleFontSize: fontSize,
+                                  sectionTitleFontSize: fontSize,
+                                  descriptionFontSize: fontSize,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        MenuTile(
+                            icon: Icons.notifications,
+                            title: 'Notificaciones',
+                            tileColor: tileColor,
+                            textColor: textColor,
+                            fontSize: fontSize),
+                        MenuTile(
+                            icon: Icons.settings,
+                            title: 'Preferencias de Actividades',
+                            tileColor: tileColor,
+                            textColor: textColor,
+                            fontSize: fontSize),
+                        MenuTile(
+                            icon: Icons.center_focus_strong,
+                            title: 'Centro de Actividades',
+                            tileColor: tileColor,
+                            textColor: textColor,
+                            fontSize: fontSize),
+                      ]))),
               SectionHeader(
                   title: 'Publicidad',
                   backgroundColor: sectionHeaderColor,
-                  textColor: textColor,
-                  fontSize: fontSize),
-              MenuTile(
-                  icon: Icons.payment,
-                  title: 'Pagos',
-                  tileColor: tileColor,
-                  textColor: textColor,
-                  fontSize: fontSize),
-              MenuTile(
-                  icon: Icons.ad_units,
-                  title: 'Anuncios',
-                  tileColor: tileColor,
-                  textColor: textColor,
-                  fontSize: fontSize),
-              MenuTile(
-                  icon: Icons.assessment,
-                  title: 'Estadísticas',
-                  tileColor: tileColor,
-                  textColor: textColor,
-                  fontSize: fontSize),
+                  textColor: Colors.grey,
+                  fontSize: 12),
+              Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10.0),
+                  child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8.0),
+                      decoration: BoxDecoration(
+                        color: isDarkMode ? Colors.grey.shade900 : Colors.white,
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      child: Column(children: [
+                        MenuTile(
+                            icon: Icons.payment,
+                            title: 'Pagos',
+                            tileColor: tileColor,
+                            textColor: textColor,
+                            fontSize: fontSize),
+                        MenuTile(
+                            icon: Icons.ad_units,
+                            title: 'Anuncios',
+                            tileColor: tileColor,
+                            textColor: textColor,
+                            fontSize: fontSize),
+                        MenuTile(
+                            icon: Icons.assessment,
+                            title: 'Estadísticas',
+                            tileColor: tileColor,
+                            textColor: textColor,
+                            fontSize: fontSize),
+                      ]))),
               SectionHeader(
                   title: 'Almacenamiento',
                   backgroundColor: sectionHeaderColor,
-                  textColor: textColor,
-                  fontSize: fontSize),
-              MenuTile(
-                  icon: Icons.storage,
-                  title: 'Liberar espacio',
-                  tileColor: tileColor,
-                  textColor: textColor,
-                  fontSize: fontSize),
-              MenuTile(
-                  icon: Icons.data_usage,
-                  title: 'Ahorro de datos',
-                  tileColor: tileColor,
-                  textColor: textColor,
-                  fontSize: fontSize),
-              MenuTile(
-                  icon: Icons.image,
-                  title: 'Calidad de imagen y video',
-                  tileColor: tileColor,
-                  textColor: textColor,
-                  fontSize: fontSize),
+                  textColor: Colors.grey,
+                  fontSize: 12),
+              Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10.0),
+                  child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8.0),
+                      decoration: BoxDecoration(
+                        color: isDarkMode ? Colors.grey.shade900 : Colors.white,
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      child: Column(children: [
+                        MenuTile(
+                            icon: Icons.storage,
+                            title: 'Liberar espacio',
+                            tileColor: tileColor,
+                            textColor: textColor,
+                            fontSize: fontSize),
+                        MenuTile(
+                            icon: Icons.data_usage,
+                            title: 'Ahorro de datos',
+                            tileColor: tileColor,
+                            textColor: textColor,
+                            fontSize: fontSize),
+                        MenuTile(
+                            icon: Icons.image,
+                            title: 'Calidad de imagen y video',
+                            tileColor: tileColor,
+                            textColor: textColor,
+                            fontSize: fontSize),
+                      ]))),
               SectionHeader(
                   title: 'Ayuda e Información',
                   backgroundColor: sectionHeaderColor,
-                  textColor: textColor,
-                  fontSize: fontSize),
-              MenuTile(
-                  icon: Icons.report_problem,
-                  title: 'Informar de un problema',
-                  tileColor: tileColor,
-                  textColor: textColor,
-                  fontSize: fontSize),
-              MenuTile(
-                  icon: Icons.help,
-                  title: 'Ayuda',
-                  tileColor: tileColor,
-                  textColor: textColor,
-                  fontSize: fontSize),
-              MenuTile(
-                  icon: Icons.description,
-                  title: 'Términos y condiciones',
-                  tileColor: tileColor,
-                  textColor: textColor,
-                  fontSize: fontSize),
-              MenuTile(
-                  icon: Icons.info,
-                  title: 'Sobre nosotros',
-                  tileColor: tileColor,
-                  textColor: textColor,
-                  fontSize: fontSize),
+                  textColor: Colors.grey,
+                  fontSize: 12),
+              Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10.0),
+                  child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8.0),
+                      decoration: BoxDecoration(
+                        color: isDarkMode ? Colors.grey.shade900 : Colors.white,
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      child: Column(children: [
+                        MenuTile(
+                            icon: Icons.report_problem,
+                            title: 'Informar de un problema',
+                            tileColor: tileColor,
+                            textColor: textColor,
+                            fontSize: fontSize),
+                        MenuTile(
+                            icon: Icons.help,
+                            title: 'Ayuda',
+                            tileColor: tileColor,
+                            textColor: textColor,
+                            fontSize: fontSize),
+                        MenuTile(
+                            icon: Icons.description,
+                            title: 'Términos y condiciones',
+                            tileColor: tileColor,
+                            textColor: textColor,
+                            fontSize: fontSize),
+                        MenuTile(
+                            icon: Icons.info,
+                            title: 'Sobre nosotros',
+                            tileColor: tileColor,
+                            textColor: textColor,
+                            fontSize: fontSize),
+                      ]))),
               SectionHeader(
                   title: 'Inicio de Sesión',
                   backgroundColor: sectionHeaderColor,
-                  textColor: textColor,
-                  fontSize: fontSize),
-              MenuTile(
-                icon: Icons.switch_account,
-                title: 'Cambiar cuenta',
-                tileColor: tileColor,
-                textColor: textColor,
-                fontSize: fontSize,
-                onTap: () {
-                  Navigator.pushNamed(context, '/login');
-                },
-              ),
-              MenuTile(
-                icon: Icons.exit_to_app,
-                title: 'Cerrar sesión',
-                tileColor: tileColor,
-                textColor: textColor,
-                fontSize: fontSize,
-                onTap: () {
-                  Navigator.pushNamed(context, '/login');
-                },
-              ),
+                  textColor: Colors.grey,
+                  fontSize: 12),
+              Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10.0),
+                  child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8.0),
+                      decoration: BoxDecoration(
+                        color: isDarkMode ? Colors.grey.shade900 : Colors.white,
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      child: Column(children: [
+                        MenuTile(
+                          icon: Icons.switch_account,
+                          title: 'Cambiar cuenta',
+                          tileColor: tileColor,
+                          textColor: textColor,
+                          fontSize: fontSize,
+                          onTap: () {
+                            Navigator.pushNamed(context, '/login');
+                          },
+                        ),
+                        MenuTile(
+                          icon: Icons.exit_to_app,
+                          title: 'Cerrar sesión',
+                          tileColor: tileColor,
+                          textColor: textColor,
+                          fontSize: fontSize,
+                          onTap: () {
+                            Navigator.pushNamed(context, '/login');
+                          },
+                        ),
+                      ]))),
               Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: Row(
@@ -421,11 +508,11 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
                   children: [
                     Row(
                       children: [
-                        SizedBox(width: 6.0),
+                        SizedBox(width: 15.0),
                         Icon(
                           isDarkMode ? Icons.wb_sunny : Icons.nightlight_round,
                           color: isDarkMode ? Colors.white : Colors.black,
-                          size: 25.0,
+                          size: 20.0,
                         ),
                         SizedBox(width: 8.0),
                         Padding(
@@ -433,14 +520,13 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
                           child: Text(
                             'Modo ${isDarkMode ? "claro" : "oscuro"}',
                             style: TextStyle(
-                              color: textColor,
-                            ),
+                                color: textColor, fontWeight: FontWeight.w500),
                           ),
                         ),
                       ],
                     ),
                     Transform.scale(
-                      scale: 0.95,
+                      scale: 0.8,
                       child: Switch(
                         value: isDarkMode,
                         onChanged: (value) {
@@ -462,6 +548,7 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 11,
+                    fontWeight: FontWeight.w500,
                     fontFamily: 'Arial',
                     color: isDarkMode ? Colors.grey[400] : Colors.grey[800],
                   ),
@@ -473,6 +560,7 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
       ),
     );
   }
+
   //metodo de compartir perfil
   void _showShareDialog(BuildContext context) {
     showDialog(
@@ -504,11 +592,13 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
             TextButton(
               onPressed: () {
                 final String shareText = 'Mira mi perfil en LikeChat!';
-                final String shareLink = 'https://www.likechat.com/yordigonzales';
+                final String shareLink =
+                    'https://www.likechat.com/yordigonzales';
 
                 // Usar el paquete share_plus para compartir
                 Share.share('$shareText\n$shareLink');
-                Navigator.of(context).pop(); // Cierra el diálogo después de compartir
+                Navigator.of(context)
+                    .pop(); // Cierra el diálogo después de compartir
               },
               child: Text(
                 'Compartir',
@@ -560,7 +650,8 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                backgroundColor: MaterialStateProperty.all<Color>(Colors.transparent),
+                backgroundColor:
+                    MaterialStateProperty.all<Color>(Colors.transparent),
               ),
             ),
           ],
@@ -586,7 +677,7 @@ class SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: backgroundColor,
-      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 30.0),
       child: Text(
         title,
         style: TextStyle(
@@ -609,7 +700,7 @@ class MenuTile extends StatelessWidget {
     required this.title,
     required this.tileColor,
     required this.textColor,
-    this.fontSize = 16.0, // Tamaño de fuente predeterminado
+    this.fontSize = 11.0, // Tamaño de fuente predeterminado
     this.onTap,
   });
 
@@ -618,16 +709,22 @@ class MenuTile extends StatelessWidget {
     return Container(
       color: tileColor,
       child: ListTile(
-        leading: Icon(icon, color: textColor.withOpacity(0.7)),
-        title: Text(
-          title,
-          style: TextStyle(
-            color: textColor,
-            fontSize: fontSize,
-          ),
+        title: Row(
+          children: [
+            SizedBox(width: 5),
+            Icon(icon, size: 19, color: Colors.grey), // El ícono
+            SizedBox(width: 6),
+            Text(
+              title,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
-        trailing: Icon(Icons.arrow_forward_ios,
-            size: 16.0, color: textColor.withOpacity(0.7)),
+        trailing: Icon(Icons.arrow_forward_ios, size: 11.0, color: Colors.grey),
         onTap: onTap,
       ),
     );

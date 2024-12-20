@@ -26,12 +26,8 @@ class EditImageScreen extends StatefulWidget {
 }
 
 class _EditImageScreenState extends State<EditImageScreen>
-    with TickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   VideoPlayerController? _controller;
-
-  late AnimationController _animationController;
-  late Animation<double> _rotationAnimation;
-  late Animation<double> _scaleAnimation;
 
   //variables de texto
   String _displayText = '';
@@ -46,74 +42,80 @@ class _EditImageScreenState extends State<EditImageScreen>
 
   bool isZoomed = false;
 
+  final String _lyricText = 'Añadir Música';
+  late AnimationController _animationController;
+  late String _currentLyric = '';
+  bool _isWriting = true;
+
   @override
   void initState() {
     super.initState();
 
-    if (widget.isVideo) {
-      _controller = VideoPlayerController.file(widget.file)
-        ..initialize().then((_) {
-          setState(() {});
-          _controller!.play();
-        });
-    }
-
-    // Controlador de animación
+    // Configuración del controlador de animación
     _animationController = AnimationController(
-      duration: Duration(seconds: 1), // Duración del zoom
+      duration: const Duration(seconds: 2), // Ajusta la duración de la animación
       vsync: this,
     );
 
-    // Animación de escala
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.15, // Un pequeño zoom hacia adelante
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
-
-    // Configurar un temporizador para repetir el efecto
-    Timer.periodic(Duration(seconds: 3), (timer) {
-      if (!_animationController.isAnimating) {
-        _animationController.forward().then((_) {
-          // Reiniciar la animación al finalizar
-          _animationController.reset();
-        });
-      }
-    });
+    // Iniciar el ciclo de letras
+    _startLyricCycle();
   }
 
   @override
   void dispose() {
-    if (_controller != null) {
-      _controller!.dispose();
-    }
-
     _animationController.dispose();
     super.dispose();
+  }
+
+// Método para el ciclo de letras
+  void _startLyricCycle() {
+    // Añade un listener para manejar el estado de la animación
+    _animationController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        // Cuando la animación se completa, espera 5 segundos y luego desaparece
+        Future.delayed(const Duration(seconds: 10), () {
+          if (mounted) {
+            setState(() {
+              _isWriting = false;
+            });
+            _animationController.reset();  // Resetea la animación (texto desaparece)
+          }
+        });
+      }
+
+      if (status == AnimationStatus.dismissed) {
+        // Cuando la animación ha desaparecido completamente
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) {
+            setState(() {
+              _isWriting = true;
+            });
+            _animationController.forward(); // Empieza a escribir de nuevo
+          }
+        });
+      }
+    });
+
+    // Inicia la primera animación (escribir)
+    _animationController.forward();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          // Contenido principal (imagen o video)
-          Positioned.fill(
-            child: GestureDetector(
-              onDoubleTap: () {
-                setState(() {
-                  isZoomed =
-                      !isZoomed; // Alterna el estado de zoom al hacer doble toque
-                });
-              },
+      body: Container(
+        color: Colors.black, // Establece el fondo negro
+        child: Stack(
+          children: [
+            // Contenido principal (imagen o video)
+            Positioned.fill(
               child: InteractiveViewer(
                 panEnabled: isZoomed,
                 scaleEnabled: true,
                 minScale: 1.0,
+                // Escala mínima
                 maxScale: 3.0,
-                // Ajusta el nivel máximo de zoom aquí
+                // Limita el zoom a 1x, sin posibilidad de ampliación
                 child: widget.isVideo
                     ? _controller != null && _controller!.value.isInitialized
                         ? AspectRatio(
@@ -123,26 +125,26 @@ class _EditImageScreenState extends State<EditImageScreen>
                         : Center(child: CircularProgressIndicator())
                     : Image.file(
                         widget.file,
-                        fit: BoxFit.cover,
+                        fit: BoxFit.contain,
                       ),
               ),
             ),
-          ),
-          // Flecha de regreso
-          buildCloseButton(context),
-          // Botón de música
-          buildAddMusicButton(context),
-          buildConfiguration(context),
-          // Carrusel de opciones
-          Stack(
-            children: [
-              // Carrusel de opciones
-              buidlBotonesCarrucel(context),
-              // Botones finales
-              buildBottomBar(context),
-            ],
-          ),
-        ],
+            // Flecha de regreso
+            buildCloseButton(context),
+            // Botón de música
+            buildAddMusicButton(context),
+            buildConfiguration(context),
+            // Carrusel de opciones
+            Stack(
+              children: [
+                // Carrusel de opciones
+                buidlBotonesCarrucel(context),
+                // Botones finales
+                buildBottomBar(context),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -342,7 +344,6 @@ class _EditImageScreenState extends State<EditImageScreen>
   }
 
 //metodo de musica
-  // Método para mostrar el modal de música
   void _showMusicModal(BuildContext context) {
     showDialog(
       context: context,
@@ -362,7 +363,7 @@ class _EditImageScreenState extends State<EditImageScreen>
           onTap: () => _showMusicModal(context),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.grey.withOpacity(0.2),
               borderRadius: BorderRadius.circular(7),
               border: Border.all(
                 color: Colors.grey.shade800,
@@ -382,19 +383,23 @@ class _EditImageScreenState extends State<EditImageScreen>
                 AnimatedBuilder(
                   animation: _animationController,
                   builder: (context, child) {
-                    return Transform(
-                      alignment: Alignment.center,
-                      transform: Matrix4.identity()
-                        ..scale(_scaleAnimation.value),
-                      child: Opacity(
-                        opacity: 1.0,
+                    // Calcula el texto a mostrar basado en la animación
+                    String displayedText = _isWriting
+                        ? _lyricText.substring(0, (_animationController.value * _lyricText.length).toInt())
+                        : ''; // Deja el texto vacío cuando no está escribiendo
+
+                    return Opacity(
+                      opacity: _isWriting ? 1.0 : 0.0, // Controla la visibilidad del texto
+                      child: SizedBox(
+                        width: 83,
                         child: Text(
-                          'Añadir Música',
+                          displayedText,
                           style: TextStyle(
                             fontSize: 11,
                             color: Colors.white,
                             fontWeight: FontWeight.w500,
                           ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     );
@@ -416,10 +421,10 @@ class _EditImageScreenState extends State<EditImageScreen>
       left: 20, // Ajusta la distancia desde el borde izquierdo
       child: SafeArea(
         child: Container(
-          width: 32,
-          height: 32,
+          width: 35,
+          height: 35,
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.grey.withOpacity(0.3),
             shape: BoxShape.circle,
           ),
           child: Center(
@@ -523,14 +528,15 @@ class _EditImageScreenState extends State<EditImageScreen>
   //configuracion
   Widget buildConfiguration(BuildContext context) {
     return Positioned(
-      top: MediaQuery.of(context).padding.top + 1, // Ajuste para el margen superior
+      top: MediaQuery.of(context).padding.top, // Ajuste para el margen superior
       right: 20, // Ajuste para el margen derecho
       child: SafeArea(
         child: GestureDetector(
           onTap: () {
             showModalBottomSheet(
               context: context,
-              isScrollControlled: true, // Permite que el modal ocupe más espacio si es necesario
+              isScrollControlled: true,
+              // Permite que el modal ocupe más espacio si es necesario
               backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -564,10 +570,10 @@ class _EditImageScreenState extends State<EditImageScreen>
             );
           },
           child: Container(
-            width: 40,
-            height: 40,
+            width: 35,
+            height: 35,
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.white.withOpacity(0.2),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -580,7 +586,6 @@ class _EditImageScreenState extends State<EditImageScreen>
       ),
     );
   }
-
 
   //metodo de icono
   Widget _buildEditOption(IconData icon, String label, VoidCallback onPressed) {

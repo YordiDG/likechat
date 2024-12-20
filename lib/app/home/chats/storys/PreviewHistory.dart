@@ -105,7 +105,7 @@ class _PreviewHistoryState extends State<PreviewHistory> {
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                iconSize: 28.0,
+                iconSize: 26.0,
               ),
             ),
           ),
@@ -124,86 +124,91 @@ class _PreviewHistoryState extends State<PreviewHistory> {
   Widget _buildBottomIcons() {
     if (_showIcons) {
       return Positioned(
-        bottom: 20.0,
+        bottom: 0.0,
         left: 0,
         right: 0,
-        child: SizedBox(
-          height: 60.0,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(horizontal: 20.0),
-            children: [
-              _buildEditButton(
-                icon: Icons.image,
-                onPressed: () => _pickImage(),
-                tooltip: 'Añadir Fotos',
+        child: Container(
+          color: Colors.grey.shade200.withOpacity(0.2),
+          child: SizedBox(
+            height: 65.0, // Ajustamos la altura para un mejor aspecto
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Distribuir los íconos equitativamente
+                children: [
+                  _buildEditButton(
+                    icon: Icons.image,
+                    onPressed: () => _pickImage(),
+                    tooltip: 'Add Fotos',
+                  ),
+                  _buildEditButton(
+                    icon: Icons.crop,
+                    onPressed: () {
+                      // Implementar funcionalidad de recorte
+                    },
+                    tooltip: 'Recortar',
+                  ),
+                  _buildEditButton(
+                    icon: Icons.text_fields,
+                    onPressed: () {
+                      TextEditorHandler().openTextEditor(context, _setText);
+                    },
+                    tooltip: 'Texto',
+                  ),
+                  _buildEditButton(
+                    icon: Icons.music_note,
+                    onPressed: () => _showMusicModal(context),
+                    tooltip: 'Música',
+                  ),
+                  _buildEditButton(
+                    icon: Icons.filter_alt_outlined,
+                    onPressed: () {
+                      // Implementar funcionalidad de filtro
+                    },
+                    tooltip: 'Filtros',
+                  ),
+                  _buildEditButton(
+                    icon: Icons.emoji_emotions,
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (context) => StickerModal(),
+                      );
+                    },
+                    tooltip: 'Stickers',
+                  ),
+                  _buildEditButton(
+                    icon: Icons.brush,
+                    onPressed: () {
+                      String imagePath = widget.images[0].path;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DrawingPage(imagePath: imagePath),
+                        ),
+                      );
+                    },
+                    tooltip: 'Dibujo',
+                  ),
+                  _buildEditButton(
+                    icon: Icons.adjust,
+                    onPressed: () {
+                      // Implementar funcionalidad de ajuste
+                    },
+                    tooltip: 'Ajustes',
+                  ),
+                ],
               ),
-              _buildEditButton(
-                icon: Icons.crop,
-                onPressed: () {
-                  // Implementar funcionalidad de recorte
-                },
-                tooltip: 'Recortar',
-              ),
-              _buildEditButton(
-                icon: Icons.text_fields,
-                onPressed: () {
-                  TextEditorHandler().openTextEditor(context, _setText);
-                },
-                tooltip: 'Texto',
-              ),
-              _buildEditButton(
-                icon: Icons.music_note,
-                onPressed: () => _showMusicModal(context),
-                tooltip: 'Música',
-              ),
-              _buildEditButton(
-                icon: Icons.filter_alt_outlined,
-                onPressed: () {
-                  // Implementar funcionalidad de filtro
-                },
-                tooltip: 'Filtros',
-              ),
-              _buildEditButton(
-                icon: Icons.emoji_emotions,
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (context) => StickerModal(),
-                  );
-                },
-                tooltip: 'Stickers',
-              ),
-              _buildEditButton(
-                icon: Icons.brush,
-                onPressed: () {
-
-                  String imagePath = widget.images[0].path;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => DrawingPage(imagePath: imagePath),
-                    ),
-                  );
-                },
-                tooltip: 'Dibujo',
-              ),
-              _buildEditButton(
-                icon: Icons.adjust,
-                onPressed: () {
-                  // Implementar funcionalidad de ajuste
-                },
-                tooltip: 'Ajustes',
-              ),
-            ],
+            ),
           ),
         ),
       );
     } else {
-      return SizedBox.shrink(); // Return an empty widget if _showIcons is false
+      return SizedBox.shrink(); // Retorna un widget vacío si _showIcons es falso
     }
   }
+
 
   // maneja el carrucel de imagens
   Widget _buildImagePageView() {
@@ -409,7 +414,6 @@ class _PreviewHistoryState extends State<PreviewHistory> {
     }
   }
 
-
   // Method boton de comentario
   Widget _buildFloatingActionButton() {
     return Positioned(
@@ -593,16 +597,8 @@ class _PreviewHistoryState extends State<PreviewHistory> {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        width: 70.0,
-        // Ancho fijo para todos los botones
-        height: 80.0,
-        // Alto fijo para todos los botones
-        margin: EdgeInsets.symmetric(horizontal: 3.0),
-        padding: EdgeInsets.all(8.0),
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.7),
-          borderRadius: BorderRadius.circular(8.0),
-        ),
+        margin: EdgeInsets.symmetric(horizontal: 12.0), // Espaciado entre botones
+        padding: EdgeInsets.symmetric(vertical: 6.0), // Ajustamos el padding para mejor distribución
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -610,23 +606,21 @@ class _PreviewHistoryState extends State<PreviewHistory> {
               message: tooltip,
               child: Icon(
                 icon,
-                size: 25.0,
+                size: 33,
                 color: Colors.white,
               ),
             ),
-            SizedBox(height: 5.0),
+            SizedBox(height: 4.0),
             Flexible(
               fit: FlexFit.loose,
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  tooltip,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 13.0,
-                  ),
-                  textAlign: TextAlign.center,
+              child: Text(
+                tooltip,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12.0,
+                  fontWeight: FontWeight.w600,
                 ),
+                textAlign: TextAlign.center,
               ),
             ),
           ],
@@ -634,6 +628,7 @@ class _PreviewHistoryState extends State<PreviewHistory> {
       ),
     );
   }
+
 
   //cargar fotos de galeria:
   Future<void> _pickImage() async {

@@ -1,5 +1,6 @@
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import '../../Globales/estadoDark-White/DarkModeProvider.dart';
@@ -35,7 +36,13 @@ class _LoginScreenState extends State<LoginScreen> {
     final isDarkMode = darkModeProvider.isDarkMode;
     final textColor = darkModeProvider.textColor;
     final iconColor = darkModeProvider.iconColor;
-    final backgroundColor = darkModeProvider.backgroundColor;
+
+    // Personalización de la barra de estado (status bar)
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: isDarkMode ? Colors.black : Colors.cyan,
+      statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.light,
+      statusBarBrightness: isDarkMode ? Brightness.dark : Brightness.light,
+    ));
 
     final borderColor =
         darkModeProvider.isDarkMode ? Colors.cyan : Colors.black;
@@ -58,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     SizedBox(
                       height: 200,
-                      child: Image.asset('lib/assets/logo.png'),
+                      child: Image.asset('lib/assets/splash/chaski.png'),
                     ),
                     SizedBox(height: 20),
                     _buildEmailField(
@@ -230,7 +237,7 @@ class _LoginScreenState extends State<LoginScreen> {
         '¿Olvidaste tu contraseña?',
         style: TextStyle(
           color: isDarkMode ? Colors.cyan : Color(0xFF068C8C),
-          fontSize: 13,
+          fontSize: 12,
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -284,15 +291,15 @@ class _LoginScreenState extends State<LoginScreen> {
           text: '¿No tienes una cuenta? ',
           style: TextStyle(
             color: textColor,
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
           ),
           children: [
             TextSpan(
               text: 'Regístrate',
               style: TextStyle(
                 color: isDarkMode ? Colors.cyan : Color(0xFF068C8C),
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),
             ),

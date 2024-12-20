@@ -33,9 +33,9 @@ class _EtiquetaButtonState extends State<EtiquetaButton> {
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.BOTTOM,
       timeInSecForIosWeb: 1,
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.grey.shade700,
       textColor: Colors.white,
-      fontSize: 16.0,
+      fontSize: 14.0,
     );
   }
 
@@ -44,8 +44,8 @@ class _EtiquetaButtonState extends State<EtiquetaButton> {
     return IconButton(
       icon: Icon(
         isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-        color: isBookmarked ? Colors.orange : Colors.grey,
-        size: 28,
+        color: isBookmarked ? Colors.orange : Colors.grey.shade200,
+        size: 25,
       ),
       onPressed: toggleBookmark,
     );

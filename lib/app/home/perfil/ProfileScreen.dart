@@ -338,7 +338,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                       color: isDarkMode
                                                           ? Colors.black
                                                           : Colors.white,
-                                                      width: 2.0,
+                                                      width: 1.8,
                                                     ),
                                                   ),
                                                   child: Padding(
@@ -348,7 +348,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                     child: Icon(
                                                       Icons.camera_alt,
                                                       color: Colors.white,
-                                                      size: 15,
+                                                      size: 18,
                                                     ),
                                                   ),
                                                 ),
@@ -561,7 +561,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       if (socialLinks.isNotEmpty) {
                         // Verificar si hay al menos un enlace válido
                         String validLink = socialLinks.firstWhere(
-                          (link) => Uri.tryParse(link)?.hasAbsolutePath == true,
+                              (link) => Uri.tryParse(link)?.hasAbsolutePath == true,
                           orElse: () => '',
                         );
 
@@ -574,69 +574,69 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         }
                       }
                     },
-                    child: socialLinks.isNotEmpty
+                    child: socialLinks.isNotEmpty && socialLinks.any(
+                          (link) => Uri.tryParse(link)?.hasAbsolutePath == true,
+                    )
                         ? Container(
-                            width: double.infinity,
-                            padding: EdgeInsets.all(12),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              // Centrar contenido
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              // Alineación vertical
-                              children: [
-                                for (int i = 0;
-                                    i < socialLinks.length;
-                                    i++) ...[
-                                  GestureDetector(
-                                    onTap: () {
-                                      if (Uri.tryParse(socialLinks[i])
-                                              ?.hasAbsolutePath ==
-                                          true) {
-                                        _openLink(socialLinks[i]);
-                                      } else {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                              content: Text('URL inválida')),
-                                        );
-                                      }
-                                    },
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          _getSocialIcon(socialLinks[i]),
-                                          size: 25,
-                                          color: _getSocialIconColor(
-                                              socialLinks[i]),
-                                        ),
-                                        SizedBox(height: 4),
-                                        Text(
-                                          _getSocialPlatformName(
-                                              socialLinks[i]),
-                                          style: TextStyle(
-                                              fontSize: 9, color: Colors.grey),
-                                        ),
-                                      ],
+                      width: double.infinity,
+                      // Reducir el padding para evitar espacio innecesario debajo
+                      padding: EdgeInsets.symmetric(horizontal: 8), // Ajustado para evitar espacio adicional
+                      child: Column(
+                        children: [
+                          Text(
+                            'Redes Sociales',
+                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w400),
+                          ),
+                          SizedBox(height: 6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center, // Alineación vertical centrada
+                            children: [
+                              for (int i = 0; i < socialLinks.length; i++) ...[
+                                GestureDetector(
+                                  onTap: () {
+                                    if (Uri.tryParse(socialLinks[i])?.hasAbsolutePath == true) {
+                                      _openLink(socialLinks[i]);
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('URL inválida')),
+                                      );
+                                    }
+                                  },
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min, // Evita que la columna ocupe más espacio del necesario
+                                    children: [
+                                      Icon(
+                                        _getSocialIcon(socialLinks[i]),
+                                        size: 25,
+                                        color: _getSocialIconColor(socialLinks[i]),
+                                      ),
+                                      SizedBox(height: 4), // Espacio controlado entre icono y texto
+                                      Text(
+                                        _getSocialPlatformName(socialLinks[i]),
+                                        style: TextStyle(fontSize: 9, color: Colors.grey),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (i < socialLinks.length - 1)
+                                  Container(
+                                    height: 30,
+                                    alignment: Alignment.center,
+                                    child: VerticalDivider(
+                                      thickness: 0.2,
+                                      width: 15,
+                                      color: Colors.grey.shade400,
                                     ),
                                   ),
-                                  if (i < socialLinks.length - 1)
-                                    Container(
-                                      height: 30,
-                                      // Altura suficiente para que el Divider sea visible
-                                      alignment: Alignment.center,
-                                      child: VerticalDivider(
-                                        thickness: 0.2,
-                                        width: 15,
-                                        color: Colors.grey.shade400,
-                                      ),
-                                    ),
-                                ],
                               ],
-                            ),
-                          )
-                        : SizedBox.shrink(),
-                  ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    )
+                        : SizedBox.shrink(), // Oculta el contenedor si no hay enlaces válidos
+                  )
                 ],
               ),
             ),
@@ -691,7 +691,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 7.0),
+      padding: EdgeInsets.symmetric(horizontal: 16.0),
       decoration: BoxDecoration(
         color: isDarkMode ? Colors.black : Colors.white,
         // Ajustar el color del contenedor según el modo
@@ -814,7 +814,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     if (_showFavorite)
                       Container(
-                        height: 1.0, // Ajusta el grosor de la línea
+                        height: 1.4, // Ajusta el grosor de la línea
                         width: 60.0,
                         color: isDarkMode
                             ? Colors.cyan
@@ -899,10 +899,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     const apiKey = 'KAEVuNf8VCwEGTHfxOhWN3gfGvKyU4e2dkE5HOcRM1M';
 
     // imagenes multiples
-    const query = 'travel, food';
+    const querys = ['travel', 'mountains',
+      'education', 'flowers', 'food', 'nature', ];
     final response = await http.get(
       Uri.parse(
-          'https://api.unsplash.com/search/photos?query=$query&client_id=$apiKey&per_page=25'),
+          'https://api.unsplash.com/search/photos?query=$querys&client_id=$apiKey&per_page=20'),
     );
 
     if (response.statusCode == 200) {
@@ -922,6 +923,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildGalleryContent() {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+
     if (_imageUrls.isEmpty) {
       return Center(
         child: Column(
@@ -948,8 +952,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       physics: NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
-        mainAxisSpacing: 0.5,
-        crossAxisSpacing: 0.5,
+        mainAxisSpacing: 0.2,
+        crossAxisSpacing: 0.2,
       ),
       itemCount: _imageUrls.length,
       itemBuilder: (context, index) {
@@ -967,18 +971,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           },
           child: Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(2.0),
-              border: Border.all(color: Colors.white, width: 1.0),
+              border: Border.all(color: isDarkMode ? Colors.black : Colors.white, width: 0.4),
               image: DecorationImage(
                 image: NetworkImage(_imageUrls[index])
                   ..resolve(ImageConfiguration()).addListener(
                     ImageStreamListener(
-                      (ImageInfo image, bool synchronousCall) {},
+                          (ImageInfo image, bool synchronousCall) {},
                       onError: (error, stackTrace) {
-                        // Manejar el error aquí
                         setState(() {
-                          _imageUrls[index] =
-                              'assets/logo.png'; // Ruta del placeholder
+                          _imageUrls[index] = 'assets/logo.png'; // Ruta del placeholder
                         });
                       },
                     ),
@@ -986,11 +987,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 fit: BoxFit.cover,
               ),
             ),
+            child: Stack(
+              children: [
+                Positioned(
+                  top: 4.0,
+                  right: 4.0,
+                  child: Icon(
+                    Icons.image,
+                    size: 19,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
     );
   }
+
 
   Future<void> _fetchVideos(String query) async {
     const apiKey =
@@ -998,7 +1013,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     final response = await http.get(
       Uri.parse(
-          'https://api.pexels.com/videos/search?query=$query&per_page=45'),
+          'https://api.pexels.com/videos/search?query=$query&per_page=35'),
       headers: {
         'Authorization': apiKey,
       },

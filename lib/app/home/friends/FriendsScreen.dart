@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import '../../Globales/estadoDark-White/DarkModeProvider.dart';
 import 'list Amigos/FollowersScreen.dart';
@@ -187,7 +188,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
                   child: Text(
                     'Sugerencias de Amistad',
                     style: TextStyle(
-                      fontWeight: FontWeight.bold, // Texto en negrita
+                      fontWeight: FontWeight.bold,
+                      color:  isDarkMode ? Colors.white : Colors.grey.shade700// Texto en negrita
                     ),
                   ),
                 ),
@@ -315,8 +317,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
                     'Más Populares',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: isDarkMode ? Colors.white : Colors.black,
+                      fontSize: 15,
+                      color: isDarkMode ? Colors.white : Colors.grey.shade700,
                     ),
                   ),
                   SizedBox(width: 7),
@@ -338,7 +340,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                         _isExpanded
                             ? Icons.keyboard_arrow_up
                             : Icons.keyboard_arrow_down,
-                        color: isDarkMode ? Colors.white : Colors.cyan,
+                        color: isDarkMode ? Colors.white : Colors.grey.shade600,
                         size: 20,
                       ),
                     ),
@@ -356,11 +358,11 @@ class _FriendsScreenState extends State<FriendsScreen> {
                     padding: EdgeInsets.symmetric(horizontal: 8),
                     foregroundColor: isDarkMode ? Colors.white : Colors.black,
                   ),
-                  icon: Icon(Icons.visibility_outlined, size: 14),
-                  label: Text(
+                  icon: Text(
                     'Ver Más',
-                    style: TextStyle(fontSize: 11),
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
                   ),
+                  label: Icon(Icons.keyboard_arrow_right, size: 15),
                   onPressed: () {
                     // Acción del botón
                   },
@@ -535,7 +537,21 @@ class _FriendsScreenState extends State<FriendsScreen> {
   }
 
   //metodo de lista de friends
-  Widget buildFriendList(List<Map<String, dynamic>> friends, bool isDarkMode) {
+  Widget buildFriendList(
+      List<Map<String, dynamic>>? friends, bool isDarkMode) {
+    // Verifica si la lista de amigos es nula o vacía.
+    if (friends == null) {
+      // Muestra el indicador de carga si los datos aún no están disponibles.
+      return Center(
+        child: Lottie.asset(
+          'lib/assets/loading/infinity_cyan.json',
+          width: 50,
+          height: 50,
+        ),
+      );
+    }
+
+    // Muestra la lista si los datos están cargados.
     return SingleChildScrollView(
       child: Column(
         children: friends.map((user) {
@@ -556,10 +572,11 @@ class _FriendsScreenState extends State<FriendsScreen> {
                   ),
                   child: CircleAvatar(
                     radius: 26,
-                    backgroundImage: NetworkImage(
-                      user['photoUrl'] ??
-                          'https://example.com/default_photo.jpg',
-                    ),
+                    backgroundImage: user['photoUrl'] != null &&
+                        user['photoUrl']!.isNotEmpty
+                        ? NetworkImage(user['photoUrl']!)
+                        : AssetImage('lib/assets/placeholder_user.jpg')
+                    as ImageProvider,
                   ),
                 ),
                 SizedBox(width: 8),
@@ -590,47 +607,44 @@ class _FriendsScreenState extends State<FriendsScreen> {
                 ),
                 SizedBox(width: 8),
                 SizedBox(
-                    height: 30,
-                    width: 83,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: user['isFollowing']
-                            ? Color(0xFFF2F2F2)
-                            : Colors.cyan,
-                        // Fondo gris claro cuando no está siguiendo
-                        padding: EdgeInsets.zero,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(6),
-                          // Bordes redondeados de 8
-                          side: BorderSide(
-                            color: user['isFollowing']
-                                ? Colors.grey
-                                : Colors.transparent,
-                            // Sin borde cuando no está siguiendo
-                            width: 0.6,
-                          ),
+                  height: 30,
+                  width: 83,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: user['isFollowing']
+                          ? Color(0xFFF2F2F2)
+                          : Colors.cyan,
+                      padding: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        side: BorderSide(
+                          color: user['isFollowing']
+                              ? Colors.grey
+                              : Colors.transparent,
+                          width: 0.6,
                         ),
                       ),
-                      onPressed: () {
-                        setState(() {
-                          user['isFollowing'] = !user['isFollowing'];
-                        });
-                      },
-                      child: Center(
-                        child: Text(
-                          user['isFollowing'] ? 'Siguiendo' : 'Seguir',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: user['isFollowing']
-                                ? Colors.black
-                                : Colors.white,
-                            // Blanco cuando está siguiendo, negro cuando no
-                            fontWeight: FontWeight.w600,
-                            fontFamily: 'Roboto', // Fuente bonita
-                          ),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        user['isFollowing'] = !user['isFollowing'];
+                      });
+                    },
+                    child: Center(
+                      child: Text(
+                        user['isFollowing'] ? 'Siguiendo' : 'Seguir',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: user['isFollowing']
+                              ? Colors.black
+                              : Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'Roboto',
                         ),
                       ),
-                    )),
+                    ),
+                  ),
+                ),
                 SizedBox(width: 16),
               ],
             ),
@@ -639,4 +653,5 @@ class _FriendsScreenState extends State<FriendsScreen> {
       ),
     );
   }
+
 }

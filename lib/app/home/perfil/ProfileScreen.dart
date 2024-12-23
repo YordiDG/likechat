@@ -49,7 +49,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _fetchImages();
-    _fetchVideos('movies, nature, travel, food, cities, travel');
+    _fetchVideos('food, travel, cities, nature, street food, landmarks');
     _loadProfileImage();
     socialLinks = [];
   }
@@ -931,7 +931,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(height: 30.0),
+            SizedBox(height: 40.0),
             Icon(
               Icons.photo,
               size: 70,
@@ -1045,7 +1045,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(height: 30.0),
+            SizedBox(height: 40.0),
             Icon(Icons.videocam_off_rounded, size: 70, color: Colors.grey),
             SizedBox(height: 10),
             Text('No hay videos disponibles',

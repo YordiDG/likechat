@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -299,7 +300,7 @@ class _FriendsModalState extends State<FriendsModal> {
                     itemCount: friends.length,
                     options: CarouselOptions(
                       height: 98,
-                      viewportFraction: 0.2,
+                      viewportFraction: 0.18, //uni o separar la fraccion de amigos
                       enableInfiniteScroll: true,
                       autoPlayInterval: Duration(seconds: 3),
                       padEnds: false,
@@ -315,11 +316,11 @@ class _FriendsModalState extends State<FriendsModal> {
                                 color: isDarkMode
                                     ? Colors.grey.shade800
                                     : Colors.grey.shade300,
-                                width: 0.3,
+                                width: 0.8,
                               ),
                             ),
                             child: CircleAvatar(
-                              radius: 27,
+                              radius: 26,
                               backgroundImage:
                               NetworkImage(friend['image']!),
                             ),
@@ -365,60 +366,8 @@ class _FriendsModalState extends State<FriendsModal> {
                     ),
                   ),
                   SizedBox(height: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            _buildAppIconEvent(
-                              FontAwesomeIcons.solidFlag,
-                              Colors.grey.withOpacity(0.2),
-                              "Denunciar",
-                              _reportPost,
-                            ),
-                            _buildAppIconEvent(
-                              FontAwesomeIcons.solidHeart,
-                              Colors.grey.withOpacity(0.2),
-                              "Me gusta",
-                              _likePost,
-                            ),
-                            _buildAppIconEvent(
-                              FontAwesomeIcons.solidBookmark,
-                              Colors.grey.withOpacity(0.2),
-                              "Guardar contenido",
-                              _savePost,
-                            ),
-                            _buildAppIconEvent(
-                              FontAwesomeIcons.solidStar,
-                              Colors.grey.withOpacity(0.2),
-                              "Agregar a favoritos",
-                              _favoritePost,
-                            ),
-                            _buildAppIconEvent(
-                              FontAwesomeIcons.retweet,
-                              Colors.grey.withOpacity(0.2),
-                              "Reaccionar",
-                              _reactToPost,
-                            ),
-                            _buildAppIconEvent(
-                              FontAwesomeIcons.userPlus,
-                              Colors.grey.withOpacity(0.2),
-                              "Seguir",
-                              _followUser,
-                            ),
-                            _buildAppIconEvent(
-                              FontAwesomeIcons.solidBell,
-                              Colors.grey.withOpacity(0.2),
-                              "Notificacion",
-                              _toggleNotifications,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                  //iconos de compartir
+                  _iconosShare(),
 
                   SizedBox(height: 8),
                   Divider(
@@ -435,25 +384,41 @@ class _FriendsModalState extends State<FriendsModal> {
                     ),
                   ),
                   SizedBox(height: 10),
-                  Wrap(
-                    alignment: WrapAlignment.start, // Alinea los íconos al inicio
-                    spacing: 10,  // Ajusta el espacio entre los íconos
-                    runSpacing: 10, // Espacio entre filas
-                    children: [
-                      _buildAppIconLink(FontAwesomeIcons.link, Colors.cyan, "Copiar Enlace", _copyLink),
-                      _buildAppIconLink(FontAwesomeIcons.reply, Colors.blue, "Compartir", _shareLink),
-                      ...installedApps.map((app) {
-                        return _buildAppIcon(
-                          null,
-                          Colors.transparent, // Sin fondo
-                          app.appName,
-                              () {
-                            DeviceApps.openApp(app.packageName);
-                          },
-                          iconData: MemoryImage(app.icon!),
-                        );
-                      }).toList(),
-                    ],
+
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        // Los iconos de las apps sin fondo adicional
+                        ...installedApps.map((app) {
+                          return _buildAppIcon(
+                            null,
+                            Colors.transparent, // Sin fondo para las apps
+                            app.appName,
+                                () {
+                              DeviceApps.openApp(app.packageName);
+                            },
+                            iconData: MemoryImage(app.icon!),
+                          );
+                        }).toList(),
+
+                        // Botón 'Copiar Enlace' con fondo
+                        _buildAppIconLink(
+                          FontAwesomeIcons.link,
+                          Colors.cyan,
+                          "Copiar Enlace",
+                          _copyLink,
+                        ),
+
+                        // Botón 'Más' con fondo
+                        _buildAppIconLink(
+                          FontAwesomeIcons.plus,
+                          Colors.blue,
+                          "Más",
+                          _shareLink,
+                        ),
+                      ],
+                    ),
                   ),
                   SizedBox(height: 10),
                 ],
@@ -465,6 +430,7 @@ class _FriendsModalState extends State<FriendsModal> {
     );
   }
 
+  //herramientas de interaccion
   Widget _buildAppIconEvent(
       IconData? icon,
       Color color,
@@ -481,15 +447,15 @@ class _FriendsModalState extends State<FriendsModal> {
     return GestureDetector(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 3.0),
+        padding: const EdgeInsets.symmetric(horizontal: 4.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
-              height: 45,
-              width: 45,
+              height: 50,
+              width: 50,
               margin: EdgeInsets.only(bottom: 4),
               decoration: BoxDecoration(
                 color: color,
@@ -500,7 +466,7 @@ class _FriendsModalState extends State<FriendsModal> {
                   ? Icon(
                 icon,
                 color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
-                size: 20,
+                size: 22,
               )
                   : ClipOval(
                 child: Image(
@@ -535,42 +501,107 @@ class _FriendsModalState extends State<FriendsModal> {
     );
   }
 
+  //metodo de iconos de interaccion
+  Widget _iconosShare (){
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              _buildAppIconEvent(
+                FontAwesomeIcons.solidFlag,
+                Colors.grey.withOpacity(0.2),
+                "Denunciar",
+                _reportPost,
+              ),
+              SizedBox(width: 2,),
+              _buildAppIconEvent(
+                FontAwesomeIcons.solidHeart,
+                Colors.grey.withOpacity(0.2),
+                "Me gusta",
+                _likePost,
+              ),
+              SizedBox(width: 2),
+              _buildAppIconEvent(
+                FontAwesomeIcons.solidBookmark,
+                Colors.grey.withOpacity(0.2),
+                "Guardar contenido",
+                _savePost,
+              ),
+              SizedBox(width: 2,),
+              _buildAppIconEvent(
+                FontAwesomeIcons.solidStar,
+                Colors.grey.withOpacity(0.2),
+                "Agregar a favoritos",
+                _favoritePost,
+              ),
+              SizedBox(width: 2,),
+              _buildAppIconEvent(
+                FontAwesomeIcons.retweet,
+                Colors.grey.withOpacity(0.2),
+                "Reaccionar",
+                _reactToPost,
+              ),
+              SizedBox(width: 2,),
+              _buildAppIconEvent(
+                FontAwesomeIcons.userPlus,
+                Colors.grey.withOpacity(0.2),
+                "Seguir",
+                _followUser,
+              ),
+              SizedBox(width: 2,),
+              _buildAppIconEvent(
+                FontAwesomeIcons.solidBell,
+                Colors.grey.withOpacity(0.2),
+                "Notificacion",
+                _toggleNotifications,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildAppIconLink(
       IconData? icon, Color color, String label, VoidCallback onTap,
       {ImageProvider? iconData}) {
     return GestureDetector(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6.0),  // Menos padding
+        padding: const EdgeInsets.symmetric(horizontal: 6.0),
         child: SizedBox(
-          width: 70,  // Asegura que todos los íconos tengan el mismo tamaño
+          width: 60, // Asegura que todos los íconos tengan el mismo tamaño
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               CircleAvatar(
                 backgroundColor: color,
-                radius: 26,  // Aumentado para un tamaño más grande
+                radius: 25, // Ajusta el tamaño del fondo circular
                 child: iconData == null
-                    ? Icon(icon, color: Colors.white, size: 24) // Aumentado para mejor proporción
+                    ? Icon(icon, color: Colors.white, size: 26) // Ajusta el tamaño del icono
                     : ClipOval(
                   child: Image(
                     image: iconData,
                     fit: BoxFit.cover,
-                    width: 50,
-                    height: 50,
+                    width: 40, // Ajusta el tamaño de la imagen
+                    height: 40, // Ajusta el tamaño de la imagen
                   ),
                 ),
               ),
-              SizedBox(height: 5),
+              const SizedBox(height: 6),
               SizedBox(
-                width: 70,
+                height: 36, // Espacio fijo para el texto
                 child: Text(
                   label,
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      fontSize: 11, fontWeight: FontWeight.w500),
+                  textAlign: TextAlign.center, // Alineación centrada
+                  maxLines: 2, // Permite que el texto ocupe dos líneas si es necesario
+                  overflow: TextOverflow.ellipsis, // Asegura que no se desborde
                 ),
               ),
             ],
@@ -586,36 +617,46 @@ class _FriendsModalState extends State<FriendsModal> {
     return GestureDetector(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6.0), // Menos padding
-        child: Container(
-          width: 70,
+        padding: const EdgeInsets.symmetric(horizontal: 6.0),
+        child: SizedBox(
+          width: 60, // Asegura que todos los íconos tengan el mismo tamaño
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              CircleAvatar(
-                backgroundColor: Colors.grey.withOpacity(0.2), // Sin color de fondo
-                radius: 28, // Aumentado para un tamaño más grande
-                child: iconData == null
-                    ? Icon(icon, color: color, size: 24) // Aumentado para mejor proporción
-                    : ClipOval(
-                  child: Image(
-                    image: iconData,
-                    fit: BoxFit.cover,
-                    width: 60,
-                    height: 60,
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.grey, // Color gris para el borde
+                    width: 0.2, // Grosor del borde
+                  ),
+                ),
+                child: CircleAvatar(
+                  backgroundColor: color,
+                  radius: 25,
+                  child: iconData == null
+                      ? Icon(icon, color: Colors.white, size: 28)
+                      : ClipOval(
+                    child: Image(
+                      image: iconData,
+                      fit: BoxFit.cover,
+                      width: 50,
+                      height: 50,
+                    ),
                   ),
                 ),
               ),
-              SizedBox(height: 5),
+              const SizedBox(height: 6),
               SizedBox(
-                width: 70,
+                height: 36,
                 child: Text(
                   label,
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
+                  style: const TextStyle(
+                      fontSize: 11, fontWeight: FontWeight.w500),
                   textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -624,6 +665,7 @@ class _FriendsModalState extends State<FriendsModal> {
       ),
     );
   }
+
 
   //metodos
 

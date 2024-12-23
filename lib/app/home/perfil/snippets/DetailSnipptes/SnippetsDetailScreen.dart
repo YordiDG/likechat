@@ -8,6 +8,7 @@ import 'package:video_player/video_player.dart';
 import 'package:provider/provider.dart';
 import '../../../../Globales/estadoDark-White/DarkModeProvider.dart';
 import '../../../shortVideos/Posts/eventos/ComentariosPost.dart';
+import '../../../shortVideos/Posts/eventos/ShareButton.dart';
 
 class VideoDetailScreen extends StatefulWidget {
   final List<String> videoUrls;
@@ -282,6 +283,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
               ],
             ),
           ),
+
         ],
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../app/APIS-Consumir/Deezer-API-Musica/MusicModal.dart';
+import '../app/Globales/Connections/NetworkProvider.dart';
 import '../app/Globales/estadoDark-White/DarkModeProvider.dart';
 import '../app/Globales/estadoDark-White/Fuentes/FontSizeProvider.dart';
 import '../app/home/notificaction/NotificationsScreen.dart';
@@ -13,13 +14,29 @@ import '../app/registros/providers/CodeVerificationScreen.dart';
 import '../app/registros/register/RegisterScreen.dart';
 import '../app/registros/splash/SplashScreen.dart';
 import 'HomeScreen.dart';
-//import 'package:flutter_localizations/flutter_localizations.dart';
 
 class LikeChatApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Consumer3<DarkModeProvider, FontSizeProvider, LocalizationProvider>(
-      builder: (context, darkModeProvider, fontSizeProvider, localizationProvider, child) {
+    return Consumer4<DarkModeProvider, FontSizeProvider, LocalizationProvider, NetworkProvider>(
+      builder: (context, darkModeProvider, fontSizeProvider, localizationProvider, networkProvider, child) {
+        // Widget para mostrar cuando no hay conexión
+        Widget noConnectionBanner = networkProvider.isConnected ? SizedBox() : Container(
+          color: Colors.red,
+          padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top, bottom: 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.signal_wifi_off, color: Colors.white),
+              SizedBox(width: 8),
+              Text(
+                'Sin conexión a Internet',
+                style: TextStyle(color: Colors.white, fontSize: 14),
+              ),
+            ],
+          ),
+        );
+
         return MaterialApp(
           title: 'LikeChat',
           theme: ThemeData(
@@ -93,6 +110,20 @@ class LikeChatApp extends StatelessWidget {
           locale: localizationProvider.currentLocale,
           supportedLocales: AppTranslations.supportedLocales,
           themeMode: darkModeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+          builder: (context, child) {
+            // Envolver la app con un Stack para mostrar el banner de sin conexión
+            return Stack(
+              children: [
+                child!,
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: noConnectionBanner,
+                ),
+              ],
+            );
+          },
           initialRoute: '/',
           routes: {
             '/': (context) => SplashScreen(),
@@ -111,4 +142,3 @@ class LikeChatApp extends StatelessWidget {
     );
   }
 }
-

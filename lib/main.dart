@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'LikePrincipal/LikeChatApp.dart';
+import 'app/Globales/Connections/NetworkProvider.dart';
 import 'app/Globales/estadoDark-White/DarkModeProvider.dart';
 import 'app/Globales/estadoDark-White/Fuentes/FontSizeProvider.dart';
 import 'app/home/perfil/configuration/clasesImpl/idioma/AppTranslations.dart';
@@ -15,6 +16,7 @@ void main() {
         ChangeNotifierProvider(create: (context) => DarkModeProvider()),
         ChangeNotifierProvider(create: (context) => FontSizeProvider()),
         ChangeNotifierProvider(create: (context) => LocalizationProvider()),
+        ChangeNotifierProvider(create: (context) => NetworkProvider()),
       ],
       child: LikeChatApp(),
     ),

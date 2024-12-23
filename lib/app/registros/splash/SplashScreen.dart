@@ -11,7 +11,8 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   int _retryCount = 0;
-  bool _isCheckingConnection = false; // Variable para controlar el estado de verificación
+  bool _isCheckingConnection =
+      false; // Variable para controlar el estado de verificación
 
   @override
   void initState() {
@@ -47,7 +48,8 @@ class _SplashScreenState extends State<SplashScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(7.0), // Radio del borde del diálogo
+          borderRadius:
+              BorderRadius.circular(7.0), // Radio del borde del diálogo
         ),
         title: Text(
           'Sin Conexión de Internet',
@@ -111,45 +113,37 @@ class _SplashScreenState extends State<SplashScreen> {
       //backgroundColor: Color(0xFF0D0D55),
       body: Stack(
         children: [
-
-      Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset('lib/assets/splash/chaski.png', height: 220),
-          SizedBox(height: 1),
-          Text(
-            'LikeChat',
-            style: GoogleFonts.poppins(
-              fontSize: 40,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-              letterSpacing: 1.5,
-              shadows: [
-                Shadow(
-                  offset: Offset(1, 1),
-                  blurRadius: 2,
-                  color: Colors.black.withOpacity(0.7),
-                ),
-                Shadow(
-                  offset: Offset(-2, -2),
-                  blurRadius: 1,
-                  color: Color(0xFF6A0DAD).withOpacity(0.8),
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset('lib/assets/splash/chaski.png', height: 220),
+                SizedBox(height: 1),
+                Text(
+                  'LikeChat',
+                  style: GoogleFonts.poppins(
+                    fontSize: 40,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: 1.5,
+                    shadows: [
+                      Shadow(
+                        offset: Offset(1, 1),
+                        blurRadius: 2,
+                        color: Colors.black.withOpacity(0.7),
+                      ),
+                      Shadow(
+                        offset: Offset(-2, -2),
+                        blurRadius: 1,
+                        color: Color(0xFF6A0DAD).withOpacity(0.8),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
-          SizedBox(
-            height: 60,
-            width: 60,
-            child: Lottie.asset('lib/assets/loading/infinity_cyan.json'),
-          ),
-        ],
-      ),
-    ),
-
-
-    if (_isCheckingConnection) // Mostramos el círculo de carga en la parte inferior si está verificando la conexión
+          if (_isCheckingConnection) // Mostramos el círculo de carga en la parte inferior si está verificando la conexión
             Positioned(
               bottom: 30,
               left: 0,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
+import '../../APIS-Consumir/UserRamdom/FriendService.dart';
 import '../../Globales/estadoDark-White/DarkModeProvider.dart';
 import 'list Amigos/FollowersScreen.dart';
 import 'package:http/http.dart' as http;
@@ -67,6 +68,21 @@ class _FriendsScreenState extends State<FriendsScreen> {
   List<Map<String, dynamic>> friends = [];
   bool isDarkMode = false;
 
+  // Instanciamos el servicio
+  final FriendService friendService = FriendService();
+
+  int _selectedIndex = 0;
+  final List<String> _items = [
+    "Populares",
+    "Videos",
+    "Post",
+    "Fotos",
+    "Sonidos",
+    "LIVE",
+    "Hashtags"
+  ];
+
+
   @override
   void initState() {
     super.initState();
@@ -75,37 +91,21 @@ class _FriendsScreenState extends State<FriendsScreen> {
         followStatus[suggestion['id']!] = false;
       }
     }
-    fetchFriends();
+    _loadFriends();
   }
 
-  Future<void> fetchFriends() async {
+  // Llamamos al servicio para obtener los amigos
+  void _loadFriends() async {
     try {
-      final response =
-          await http.get(Uri.parse('https://randomuser.me/api/?results=50'));
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          friends = (data['results'] as List)
-              .map<Map<String, dynamic>>((dynamic user) {
-            return {
-              "name": "${user['name']['first']} ${user['name']['last']}",
-              "username": user['login']['username'],
-              "photoUrl": user['picture']['medium'],
-              "id": user['login']['uuid'],
-              "followers": (user['dob']['age'] * 10).toString(),
-              // Mock followers count
-              "isFollowing": false,
-              // Initial follow state
-            };
-          }).toList();
-        });
-      } else {
-        throw Exception('Failed to load friends');
-      }
+      List<Map<String, dynamic>> fetchedFriends = await friendService.fetchFriends();
+      setState(() {
+        friends = fetchedFriends;
+      });
     } catch (error) {
       print('Error: $error');
     }
   }
+
 
   void toggleFollow(String friendId) {
     setState(() {
@@ -116,25 +116,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
     });
   }
 
-  void sendFriendRequest(String friendId) {
-    // Lógica para enviar solicitud de amistad
-  }
 
-  void cancelFriendRequest(String friendId) {
-    // Lógica para cancelar solicitud de amistad
-  }
-
-  bool isFollowingF(String friendId) {
-    // Lógica para verificar si está siguiendo
-    return true; // Ejemplo: siempre devuelve true
-  }
-
-  bool followsYou(String friendId) {
-    // Lógica para verificar si te sigue
-    return true; // Ejemplo: siempre devuelve true
-  }
-
-
+  @override
   @override
   Widget build(BuildContext context) {
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
@@ -169,6 +152,63 @@ class _FriendsScreenState extends State<FriendsScreen> {
             ),
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(30), // Altura total del carrusel con la línea
+          child: Column(
+            children: [
+              Container(
+                height: 40,
+                color: backgroundColor, // Fondo del carrusel
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _items.length,
+                  itemBuilder: (context, index) {
+                    final bool isSelected = index == _selectedIndex;
+
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedIndex = index;
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0), // Menos espacio horizontal
+                        alignment: Alignment.center,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              _items[index],
+                              style: TextStyle(
+                                fontSize: 15, // Tamaño ligeramente más compacto
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                color: isSelected ? Colors.black : Colors.grey,
+                              ),
+                            ),
+                            SizedBox(height: 2), // Espacio entre el texto y la línea reducido
+                            Container(
+                              height: 2, // Línea más delgada
+                              width: 40, // Ancho ligeramente reducido
+                              decoration: BoxDecoration(
+                                color: isSelected ? Colors.cyan : Colors.transparent,
+                                borderRadius: BorderRadius.circular(1), // Bordes redondeados
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              Divider(
+                color: Colors.grey.shade300,
+                thickness: 0.4, // Grosor de la línea global
+                height: 1, // Espacio vertical mínimo del Divider
+              ),
+            ],
+          ),
+        ),
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -177,10 +217,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 buildSearchField(context, isDarkMode),
-
-                // Más Populares Section
                 _buildPopularSection(constraints, isDarkMode),
-
                 SizedBox(height: 18),
                 Container(
                   margin: EdgeInsets.only(left: 5.0),
@@ -189,12 +226,10 @@ class _FriendsScreenState extends State<FriendsScreen> {
                     'Sugerencias de Amistad',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color:  isDarkMode ? Colors.white : Colors.grey.shade700// Texto en negrita
+                      color: isDarkMode ? Colors.white : Colors.grey.shade700,
                     ),
                   ),
                 ),
-
-                // Sugerencias de Amistad Section
                 buildFriendList(friends, isDarkMode),
               ],
             ),

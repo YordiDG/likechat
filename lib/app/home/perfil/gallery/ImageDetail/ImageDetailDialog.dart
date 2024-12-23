@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
+import '../../../../APIS-Consumir/UserRamdom/FriendService.dart';
 import '../../../../Globales/estadoDark-White/DarkModeProvider.dart';
 import 'package:http/http.dart' as http;
 
@@ -36,13 +37,15 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
   late int _currentIndex;
   List<int> _likeCounts = []; // Nuevo: contador de likes para cada imagen
   List<bool> _likedImages = [];
-  List<Map<String, String>> friends = [];
   List<ApplicationWithIcon> installedApps = [];
   bool isLoading = true;
 
   bool _showHeart = false;
   late AnimationController _heartAnimationController;
   late Animation<double> _heartAnimation;
+
+  // Instanciamos el servicio
+  List<Map<String, dynamic>> friends = [];
 
   @override
   void initState() {
@@ -67,7 +70,45 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
     );
 
     fetchFriends();
+
   }
+
+  // Método para obtener los amigos desde la API
+  Future<void> fetchFriends() async {
+    print('🛠 FetchFriends: Iniciando la solicitud a la API...');
+    try {
+      final response =
+      await http.get(Uri.parse('https://randomuser.me/api/?results=50'));
+
+      print('📡 FetchFriends: Respuesta recibida con código ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        print('✅ FetchFriends: Datos decodificados correctamente');
+        print('🔍 FetchFriends: Primer elemento de los datos -> ${data['results'][0]}');
+
+        setState(() {
+          friends = (data['results'] as List).map((user) {
+            return {
+              "name": "${user['name']['first']} ${user['name']['last']}",
+              "image": user['picture']['medium'],
+            };
+          }).toList();
+          isLoading = false;
+        });
+
+        print('🎯 FetchFriends: Amigos cargados correctamente. Total: ${friends.length}');
+      } else {
+        throw Exception('❌ FetchFriends: Error al obtener los amigos. Código: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('❗ FetchFriends: Error -> $error');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
 
   @override
   void dispose() {
@@ -321,7 +362,7 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
                           color: _likedImages[index]
                               ? Color(0xFFFF0000)
                               : Colors.white,
-                          size: 30,
+                          size: 28,
                         ),
                         SizedBox(width: 8),
                         Text(
@@ -380,33 +421,6 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
     );
   }
 
-// Método para obtener los amigos desde la API
-  Future<void> fetchFriends() async {
-    try {
-      final response =
-          await http.get(Uri.parse('https://randomuser.me/api/?results=50'));
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          friends = (data['results'] as List).map<Map<String, String>>((user) {
-            return {
-              "name": "${user['name']['first']} ${user['name']['last']}",
-              "image": user['picture']['medium'],
-            };
-          }).toList();
-          isLoading = false;
-        });
-      } else {
-        throw Exception('Failed to load friends');
-      }
-    } catch (error) {
-      print('Error: $error');
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
 // Método para mostrar las opciones en el modal
   void mostrarOpcionesModal(
       BuildContext context, bool isDarkMode, Color textColor, Color iconColor) {
@@ -414,7 +428,7 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
       context: context,
       isScrollControlled: false,
       backgroundColor:
-          isDarkMode ? Colors.grey.shade900.withOpacity(0.8) : Colors.white,
+      isDarkMode ? Colors.grey.shade900.withOpacity(0.8) : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -428,7 +442,7 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
               Container(
                 decoration: BoxDecoration(
                   color:
-                      isDarkMode ? Colors.grey.shade900 : Colors.grey.shade100,
+                  isDarkMode ? Colors.grey.shade900 : Colors.grey.shade100,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(13)),
                 ),
                 child: Row(
@@ -484,58 +498,72 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
               Expanded(
                 child: isLoading
                     ? Center(
-                        child: Lottie.asset(
-                          'lib/assets/loading/infinity_cyan.json',
-                          width: 60,
-                          height: 60,
-                        ),
-                      ) // Muestra un indicador de carga mientras se obtienen los amigos
+                  child: Lottie.asset(
+                    'lib/assets/loading/infinity_cyan.json',
+                    width: 60,
+                    height: 60,
+                  ),
+                )
+                    : friends.isEmpty
+                    ? Center(
+                  child: Text(
+                    'No se encontraron amigos.',
+                    style: TextStyle(fontSize: 16, color: Colors.red),
+                  ),
+                )
                     : GridView.builder(
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 4, // Muestra 4 elementos por fila
-                          crossAxisSpacing: 8.0, // Espacio entre columnas
-                          mainAxisSpacing: 2.0, // Espacio entre filas
-                          childAspectRatio:
-                              0.8, // Ajusta el tamaño de cada ítem
-                        ),
-                        itemCount: friends.length,
-                        itemBuilder: (context, index) {
-                          final friend =
-                              friends[index]; // Obtén los datos de cada amigo
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Column(
-                              children: [
-                                CircleAvatar(
-                                  radius: 30,
-                                  backgroundImage:
-                                      NetworkImage(friend['image'] ?? ''),
-                                  backgroundColor: isDarkMode
-                                      ? Colors.grey.shade700
-                                      : Colors.grey.shade300,
-                                ),
-                                SizedBox(height: 8),
-                                // Nombre con texto grande, en dos líneas y elipses si es largo
-                                Expanded(
-                                  // Esto asegura que el texto se ajuste sin desbordamiento
-                                  child: Text(
-                                    friend['name'] ?? 'Nombre no disponible',
-                                    style: TextStyle(
-                                      fontSize: 12, // Tamaño grande
-                                      color: textColor,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                    maxLines: 2, // Permitir 2 líneas
-                                    overflow: TextOverflow
-                                        .ellipsis, // Elipses si excede
-                                  ),
-                                ),
-                              ],
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    crossAxisSpacing: 8.0,
+                    mainAxisSpacing: 2.0,
+                    childAspectRatio: 0.77,
+                  ),
+                  itemCount: friends.length,
+                  itemBuilder: (context, index) {
+                    final friend = friends[index];
+                    print('👤 Mostrando amigo: ${friend['name']}');
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min, // Ajusta el tamaño al contenido
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.grey,
+                                width: 0.3,
+                              ),
                             ),
-                          );
-                        },
+                            child: CircleAvatar(
+                              radius: 35,
+                              backgroundImage: NetworkImage(friend['image'] ?? ''),
+                              backgroundColor: isDarkMode
+                                  ? Colors.grey.shade700
+                                  : Colors.grey.shade300,
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Flexible(
+                            child: Text(
+                              friend['name'] ?? 'Nombre no disponible',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: textColor,
+                              ),
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
+                    );
+                  },
+                ),
               ),
+
 
               Container(
                 color: isDarkMode ? Colors.grey.shade900 : Colors.grey.shade200,
@@ -546,8 +574,6 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       SizedBox(width: 4),
-                      _crearOpcionModal(Icons.link, 'Copiar\nenlace'),
-                      _crearOpcionModal(Icons.reply, 'Compartir\n'),
                       _crearOpcionModal(Icons.crop, 'Crear un\nsticker'),
                       _crearOpcionModal(Icons.campaign, 'Promocionar'),
                       _crearOpcionModal(
@@ -558,7 +584,7 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
                       _crearOpcionModal(Icons.bookmark, 'Guardar'),
                       _crearOpcionModal(Icons.history, 'Añadir a\nhistoria'),
                       _crearOpcionModal(
-                          FontAwesomeIcons.comment, 'Desactivar\ncomentarios'),
+                          FontAwesomeIcons.commentDots, 'Desactivar\ncomentarios'),
                       _crearOpcionModal(Icons.edit, 'Editar'),
                       _crearOpcionModal(Icons.bar_chart, 'Ver\nestadísticas'),
                       _crearOpcionModal(Icons.push_pin, 'Fijar en\nperfil'),
@@ -583,17 +609,17 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 1.0),
       child: SizedBox(
-        width: 60, // Tamaño fijo para cada ítem
+        width: 67, // Tamaño fijo para cada ítem
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CircleAvatar(
-              radius: 23,
+              radius: 27,
               backgroundColor:
-                  isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.white,
+              isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.white,
               child: Icon(icon,
-                  size: 23,
-                  color: isDarkMode ? Colors.white70 : Colors.black87),
+                  size: 27,
+                  color: Colors.grey.shade700),
             ),
             SizedBox(height: 4),
             SizedBox(

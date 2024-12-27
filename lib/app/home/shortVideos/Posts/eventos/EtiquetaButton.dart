@@ -44,8 +44,8 @@ class _EtiquetaButtonState extends State<EtiquetaButton> {
     return IconButton(
       icon: Icon(
         isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-        color: isBookmarked ? Colors.orange : Colors.grey.shade200,
-        size: 25,
+        color: isBookmarked ? Colors.orange : Colors.grey ,
+        size: 24,
       ),
       onPressed: toggleBookmark,
     );

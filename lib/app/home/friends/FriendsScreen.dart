@@ -1,11 +1,10 @@
+// friends_screen.dart
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import '../../APIS-Consumir/UserRamdom/FriendService.dart';
 import '../../Globales/estadoDark-White/DarkModeProvider.dart';
 import 'list Amigos/FollowersScreen.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class FriendsScreen extends StatefulWidget {
   @override
@@ -13,111 +12,41 @@ class FriendsScreen extends StatefulWidget {
 }
 
 class _FriendsScreenState extends State<FriendsScreen> {
-  bool isFollowing = false; // Si está siguiendo al usuario
-  bool isVisible = true;
-
-  bool _isExpanded = true;
-
-  final Map<String, bool> followStatus = {};
-
-  final List<Map<String, String>> friendSuggestions = [
-    {
-      'id': '1',
-      'name': 'Shakira 🔰',
-      'followers': '1 mill.',
-      'photo':
-          'https://aws-modapedia.vogue.es/prod/designs/v1/assets/640x853/2107.jpg'
-    },
-    {
-      'id': '2',
-      'name': 'Luis Miguel Sanches Vasques🔰',
-      'followers': '390 mil',
-      'photo':
-          'https://luismigueloficial.com/themes/lm/assets/images/1990_s_2_mov.jpg'
-    },
-    {
-      'id': '3',
-      'name': 'Karla Valencia🔰',
-      'followers': '450 mil',
-      'photo':
-          'https://i.pinimg.com/originals/fc/41/4e/fc414e7865671a12c2bc48bca6f853f8.jpg'
-    },
-    {
-      'id': '4',
-      'name': 'Ms. Beast🔰',
-      'followers': '968 mil',
-      'photo':
-          'https://phantom-marca.unidadeditorial.es/e1f833f26f1aa2b4bf939023aa647318/resize/828/f/jpg/assets/multimedia/imagenes/2023/09/29/16960062923732.jpg'
-    },
-    {
-      'id': '5',
-      'name': 'Juan Salas🔰',
-      'followers': '2,7 mill.',
-      'photo':
-          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrFy-8v9FKczW9fVVumfld08w34E-chItXwg&s'
-    },
-    {
-      'id': '6',
-      'name': 'Luis fonsi🔰',
-      'followers': '3,1 mill.',
-      'photo':
-          'https://i.scdn.co/image/ab67616d0000b273ef0d4234e1a645740f77d59c'
-    },
-  ];
-
-  List<Map<String, dynamic>> friends = [];
-  bool isDarkMode = false;
-
-  // Instanciamos el servicio
-  final FriendService friendService = FriendService();
-
   int _selectedIndex = 0;
   final List<String> _items = [
     "Populares",
     "Videos",
     "Post",
+    "Amigos",
     "Fotos",
     "Sonidos",
     "LIVE",
     "Hashtags"
   ];
 
-
-  @override
-  void initState() {
-    super.initState();
-    for (var suggestion in friendSuggestions) {
-      if (suggestion['id'] != null) {
-        followStatus[suggestion['id']!] = false;
-      }
+  Widget _getSelectedSection(int index) {
+    switch (index) {
+      case 0:
+        return PopularesSection();
+      case 1:
+        return VideosSection();
+      case 2:
+        return PostSection();
+      case 3:
+        return AmigosSection();
+      case 4:
+        return FotosSection();
+      case 5:
+        return SonidosSection();
+      case 6:
+        return LiveSection();
+      case 7:
+        return HashtagsSection();
+      default:
+        return Container();
     }
-    _loadFriends();
   }
 
-  // Llamamos al servicio para obtener los amigos
-  void _loadFriends() async {
-    try {
-      List<Map<String, dynamic>> fetchedFriends = await friendService.fetchFriends();
-      setState(() {
-        friends = fetchedFriends;
-      });
-    } catch (error) {
-      print('Error: $error');
-    }
-  }
-
-
-  void toggleFollow(String friendId) {
-    setState(() {
-      if (followStatus[friendId] != null) {
-        followStatus[friendId] = !followStatus[friendId]!;
-        print('Estado cambiado para $friendId: ${followStatus[friendId]}');
-      }
-    });
-  }
-
-
-  @override
   @override
   Widget build(BuildContext context) {
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
@@ -127,12 +56,17 @@ class _FriendsScreenState extends State<FriendsScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: backgroundColor,
-        title: Text(
-          'Amigos',
-          style: TextStyle(
-            color: isDarkMode ? Colors.white : Colors.black,
-            fontWeight: FontWeight.w500,
-          ),
+        title: Row(
+          children: [
+            Text(
+              'Novedades',
+              style: TextStyle(
+                color: isDarkMode ? Colors.white : Colors.black,
+                fontWeight: FontWeight.w500,
+                fontSize: 18,
+              ),
+            ),
+          ],
         ),
         actions: [
           Padding(
@@ -153,12 +87,12 @@ class _FriendsScreenState extends State<FriendsScreen> {
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(30), // Altura total del carrusel con la línea
+          preferredSize: Size.fromHeight(30),
           child: Column(
             children: [
               Container(
-                height: 40,
-                color: backgroundColor, // Fondo del carrusel
+                height: 30,
+                color: backgroundColor,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: _items.length,
@@ -172,7 +106,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                         });
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0), // Menos espacio horizontal
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         alignment: Alignment.center,
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -180,18 +114,18 @@ class _FriendsScreenState extends State<FriendsScreen> {
                             Text(
                               _items[index],
                               style: TextStyle(
-                                fontSize: 15, // Tamaño ligeramente más compacto
+                                fontSize: 14,
                                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                                 color: isSelected ? Colors.black : Colors.grey,
                               ),
                             ),
-                            SizedBox(height: 2), // Espacio entre el texto y la línea reducido
+                            SizedBox(height: 2),
                             Container(
-                              height: 2, // Línea más delgada
-                              width: 40, // Ancho ligeramente reducido
+                              height: 2,
+                              width: 40,
                               decoration: BoxDecoration(
                                 color: isSelected ? Colors.cyan : Colors.transparent,
-                                borderRadius: BorderRadius.circular(1), // Bordes redondeados
+                                borderRadius: BorderRadius.circular(1),
                               ),
                             ),
                           ],
@@ -203,56 +137,122 @@ class _FriendsScreenState extends State<FriendsScreen> {
               ),
               Divider(
                 color: Colors.grey.shade300,
-                thickness: 0.4, // Grosor de la línea global
-                height: 1, // Espacio vertical mínimo del Divider
+                thickness: 0.4,
+                height: 1,
               ),
             ],
           ),
         ),
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                buildSearchField(context, isDarkMode),
-                _buildPopularSection(constraints, isDarkMode),
-                SizedBox(height: 18),
-                Container(
-                  margin: EdgeInsets.only(left: 5.0),
-                  padding: EdgeInsets.all(10.0),
-                  child: Text(
-                    'Sugerencias de Amistad',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: isDarkMode ? Colors.white : Colors.grey.shade700,
-                    ),
-                  ),
-                ),
-                buildFriendList(friends, isDarkMode),
-              ],
-            ),
-          );
-        },
-      ),
+      body: _getSelectedSection(_selectedIndex),
+    );
+  }
+}
+
+// section_screens/amigos_section.dart
+
+
+class AmigosSection extends StatefulWidget {
+  @override
+  _AmigosSectionState createState() => _AmigosSectionState();
+}
+
+class _AmigosSectionState extends State<AmigosSection> {
+  List<Map<String, dynamic>> friends = [];
+  final FriendService friendService = FriendService();
+  bool isFollowing = false; // Si está siguiendo al usuario
+  bool isVisible = true;
+
+  bool _isExpanded = true;
+
+  final Map<String, bool> followStatus = {};
+
+  bool isDarkMode = false;
+
+  final List<Map<String, String>> friendSuggestions = [
+    {
+      'id': '1',
+      'name': 'Shakira 🔰',
+      'followers': '1 mill.',
+      'photo':
+      'https://aws-modapedia.vogue.es/prod/designs/v1/assets/640x853/2107.jpg'
+    },
+    {
+      'id': '2',
+      'name': 'Luis Miguel Sanches Vasques🔰',
+      'followers': '390 mil',
+      'photo':
+      'https://luismigueloficial.com/themes/lm/assets/images/1990_s_2_mov.jpg'
+    },
+    {
+      'id': '3',
+      'name': 'Karla Valencia🔰',
+      'followers': '450 mil',
+      'photo':
+      'https://i.pinimg.com/originals/fc/41/4e/fc414e7865671a12c2bc48bca6f853f8.jpg'
+    },
+    {
+      'id': '4',
+      'name': 'Ms. Beast🔰',
+      'followers': '968 mil',
+      'photo':
+      'https://phantom-marca.unidadeditorial.es/e1f833f26f1aa2b4bf939023aa647318/resize/828/f/jpg/assets/multimedia/imagenes/2023/09/29/16960062923732.jpg'
+    },
+    {
+      'id': '5',
+      'name': 'Juan Salas🔰',
+      'followers': '2,7 mill.',
+      'photo':
+      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrFy-8v9FKczW9fVVumfld08w34E-chItXwg&s'
+    },
+    {
+      'id': '6',
+      'name': 'Luis fonsi🔰',
+      'followers': '3,1 mill.',
+      'photo':
+      'https://i.scdn.co/image/ab67616d0000b273ef0d4234e1a645740f77d59c'
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFriends();
+  }
+
+  void _loadFriends() async {
+    try {
+      List<Map<String, dynamic>> fetchedFriends = await friendService.fetchFriends();
+      setState(() {
+        friends = fetchedFriends;
+      });
+    } catch (error) {
+      print('Error: $error');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        return SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              buildSearchField(context, isDarkMode),
+              _buildPopularSection(constraints, isDarkMode),
+              SizedBox(height: 18),
+              buildFriendList(friends, isDarkMode),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  InputDecoration customDecoration(String label) {
-    return InputDecoration(
-      labelText: label,
-      labelStyle: TextStyle(color: Colors.cyan),
-      enabledBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: Colors.cyan),
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: Colors.cyan),
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-    );
-  }
 
   //metodo de search
   Widget buildSearchField(BuildContext context, bool isDarkMode) {
@@ -571,6 +571,14 @@ class _FriendsScreenState extends State<FriendsScreen> {
     );
   }
 
+  void toggleFollow(String friendId) {
+    setState(() {
+      if (followStatus[friendId] != null) {
+        followStatus[friendId] = !followStatus[friendId]!;
+        print('Estado cambiado para $friendId: ${followStatus[friendId]}');
+      }
+    });
+  }
   //metodo de lista de friends
   Widget buildFriendList(
       List<Map<String, dynamic>>? friends, bool isDarkMode) {
@@ -688,5 +696,60 @@ class _FriendsScreenState extends State<FriendsScreen> {
       ),
     );
   }
+}
 
+// Crear los demás archivos de sección con contenido vacío:
+class PopularesSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+
+// section_screens/videos_section.dart
+class VideosSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+
+// section_screens/post_section.dart
+class PostSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+
+// section_screens/fotos_section.dart
+class FotosSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+
+// section_screens/sonidos_section.dart
+class SonidosSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+
+// section_screens/live_section.dart
+class LiveSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+
+// section_screens/hashtags_section.dart
+class HashtagsSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
 }

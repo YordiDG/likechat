@@ -2,6 +2,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import '../../../APIS-Consumir/DaoPost/PostDatabase.dart';
 import '../../../Globales/estadoDark-White/DarkModeProvider.dart';
 import '../../../Globales/expandetext/ExpandableText.dart';
 import 'OpenCamara/preview/PreviewScreen.dart';
@@ -16,12 +17,16 @@ class PostClass extends StatefulWidget {
   _PostClassState createState() => _PostClassState();
 }
 
-class _PostClassState extends State<PostClass> {
+class _PostClassState extends State<PostClass> with SingleTickerProviderStateMixin {
   TextEditingController _searchController = TextEditingController();
   TextEditingController _descriptionController = TextEditingController();
   String? _imagePath;
-  List<Post> _publishedPosts = [];
+  List<Post> _posts = [];
   bool _permissionsDeniedMessageShown = false;
+  late AnimationController _likeAnimationController;
+  late Animation<double> _likeScaleAnimation;
+  int _currentImageIndex = 0;
+  Map<int, bool> _showLikeAnimation = {};
 
   bool isLiked = false;
   int likeCount = 10;
@@ -29,26 +34,50 @@ class _PostClassState extends State<PostClass> {
   bool _isSearchBarVisible = true;
   double _lastScrollOffset = 0.0;
 
-  void _toggleLike() {
-    setState(() {
-      isLiked = !isLiked;
-      likeCount += isLiked ? 1 : -1; // Incrementa o decrementa el contador
-    });
-  }
+  final PostDatabase _postDatabase = PostDatabase.instance;
 
   @override
   void initState() {
     super.initState();
+    _loadPosts();
+    _likeAnimationController = AnimationController(
+      duration: Duration(milliseconds: 400),
+      vsync: this,
+    );
+
+    _likeScaleAnimation = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.0, end: 1.4)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: 60.0,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.4, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeIn)),
+        weight: 40.0,
+      ),
+    ]).animate(_likeAnimationController);
+  }
+
+  @override
+  void dispose() {
+    _likeAnimationController.dispose();
+    super.dispose();
+  }
+
+  void _toggleLike() {
+    setState(() {
+      isLiked = !isLiked;
+      likeCount += isLiked ? 1 : -1;
+    });
   }
 
   void _onScroll(double offset) {
     if (offset > _lastScrollOffset && _isSearchBarVisible) {
-      // Ocultar barra de búsqueda cuando se desliza hacia arriba
       setState(() {
         _isSearchBarVisible = false;
       });
     } else if (offset < _lastScrollOffset && !_isSearchBarVisible) {
-      // Mostrar barra de búsqueda cuando se desliza hacia abajo
       setState(() {
         _isSearchBarVisible = true;
       });
@@ -56,121 +85,8 @@ class _PostClassState extends State<PostClass> {
     _lastScrollOffset = offset;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final darkModeProvider = Provider.of<DarkModeProvider>(context);
-    final isDarkMode = darkModeProvider.isDarkMode;
-    final textColor = darkModeProvider.textColor;
-    final iconColor = darkModeProvider.iconColor;
-    final backgroundColor = darkModeProvider.backgroundColor;
-
-    return Scaffold(
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              AnimatedContainer(
-                duration: Duration(milliseconds: 300),
-                height: _isSearchBarVisible ? 50.0 : 0.0,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14.0, vertical: 8.0),
-                  child: Container(
-                    color: Colors.transparent,
-                    height: 38.0,
-                    child: TextField(
-                      controller: _searchController,
-                      cursorColor: Colors.cyan,
-                      decoration: InputDecoration(
-                        hintText: 'Buscar amigo',
-                        hintStyle: TextStyle(
-                            color: isDarkMode
-                                ? Colors.grey[500]
-                                : Colors.grey[700],
-                            fontSize: 12.0),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide:
-                              BorderSide(color: Colors.white, width: 0.8),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide: BorderSide(
-                              color:
-                                  isDarkMode ? Colors.grey : Colors.grey[400]!,
-                              width: 0.8),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide:
-                              BorderSide(color: Colors.cyan, width: 0.8),
-                        ),
-                        filled: true,
-                        fillColor: backgroundColor,
-                        contentPadding: EdgeInsets.symmetric(
-                            vertical: 10.0, horizontal: 10.0),
-                        prefixIcon: Icon(Icons.search, color: iconColor),
-                      ),
-                      style: TextStyle(color: textColor),
-                      onChanged: (value) {
-                        // Acción de búsqueda en tiempo real
-                      },
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: NotificationListener<ScrollNotification>(
-                  onNotification: (scrollNotification) {
-                    if (scrollNotification is ScrollUpdateNotification) {
-                      _onScroll(scrollNotification.metrics.pixels);
-                    }
-                    return false;
-                  },
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _buildPublishedPostCards(),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Positioned(
-            bottom: 38.0,
-            right: 18.0,
-            child: Container(
-              width: 55.0,
-              height: 55.0,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                color: Colors.cyan,
-              ),
-              child: FloatingActionButton(
-                onPressed: () {
-                  _showImageSourceSelection();
-                },
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                child: Icon(
-                  Icons.camera_alt,
-                  color: Colors.white,
-                  size: 35.0,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showImageSourceSelection() {
-    final darkModeProvider =
-        Provider.of<DarkModeProvider>(context, listen: false);
+    final darkModeProvider = Provider.of<DarkModeProvider>(context, listen: false);
     final isDarkMode = darkModeProvider.isDarkMode;
     final textColor = darkModeProvider.textColor;
 
@@ -194,7 +110,7 @@ class _PostClassState extends State<PostClass> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: 25), // Espaciado entre el título y las opciones
+              SizedBox(height: 25),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -225,14 +141,12 @@ class _PostClassState extends State<PostClass> {
     required ImageSource source,
     required Color color,
   }) {
-    // Usar listen: false para evitar problemas fuera del árbol de widgets
-    final darkModeProvider =
-        Provider.of<DarkModeProvider>(context, listen: false);
+    final darkModeProvider = Provider.of<DarkModeProvider>(context, listen: false);
     final textColor = darkModeProvider.textColor;
 
     return GestureDetector(
       onTap: () {
-        Navigator.pop(context); // Cerrar el BottomSheet
+        Navigator.pop(context);
         _selectImage(source: source);
       },
       child: Column(
@@ -241,7 +155,7 @@ class _PostClassState extends State<PostClass> {
           Container(
             padding: EdgeInsets.all(8.0),
             decoration: BoxDecoration(
-              color: color, // Color de fondo del círculo
+              color: color,
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -270,7 +184,6 @@ class _PostClassState extends State<PostClass> {
       setState(() {
         _imagePath = pickedImage.path;
       });
-      // Navegar a la pantalla de vista previa
       Navigator.of(context).push(MaterialPageRoute(
         builder: (context) => PreviewScreen(
           imagePath: _imagePath!,
@@ -281,25 +194,22 @@ class _PostClassState extends State<PostClass> {
     }
   }
 
-  void _publishPost() {
+  void _publishPost() async {
     String description = _descriptionController.text;
-    List<String> imagePaths = _imagePath != null
-        ? [_imagePath!]
-        : []; // Convierte a lista si no es nulo
+    List<String> imagePaths = _imagePath != null ? [_imagePath!] : [];
 
     if (description.isNotEmpty || imagePaths.isNotEmpty) {
-      // Crear un nuevo post
-      Post newPost = Post(description: description, imagePaths: imagePaths);
+      Post newPost = Post(
+        description: description,
+        imagePaths: imagePaths,
+      );
 
-      // Agregar el post publicado a la lista
-      setState(() {
-        _publishedPosts.add(newPost);
-        _descriptionController.clear();
-        _imagePath = null;
-      });
+      await PostDatabase.instance.createPost(newPost);
+      await _loadPosts(); // Recargar los posts
 
-      // Volver a la pantalla principal
-      Navigator.of(context).pop();
+      _descriptionController.clear();
+      _imagePath = null;
+      Navigator.pop(context);
     }
   }
 
@@ -312,9 +222,8 @@ class _PostClassState extends State<PostClass> {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: _publishedPosts.map((post) {
-        int _currentIndex = 0; // Inicializar el índice del carrusel
-
+      children: List.generate(_posts.length, (postIndex) {
+        final post = _posts[postIndex];
         return Container(
           margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
           decoration: BoxDecoration(
@@ -358,7 +267,7 @@ class _PostClassState extends State<PostClass> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  'Yordi Gonzales',
+                                  post.userName.isEmpty ? 'Usuario' : post.userName,
                                   style: TextStyle(
                                     fontSize: 15.0,
                                     fontWeight: FontWeight.bold,
@@ -370,7 +279,7 @@ class _PostClassState extends State<PostClass> {
                               ),
                               SizedBox(width: 8.0),
                               Text(
-                                '• 1 min',
+                                '• ${post.timeAgo}',
                                 style: TextStyle(
                                   fontSize: 12.0,
                                   color: Colors.grey[600],
@@ -382,9 +291,7 @@ class _PostClassState extends State<PostClass> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () {
-                        _showPostOptionsBottomSheet(context);
-                      },
+                      onPressed: () => _showPostOptionsBottomSheet(context, post), // Pasar el post actual
                       icon: Icon(Icons.more_vert, size: 25.0, color: iconColor),
                     ),
                   ],
@@ -402,68 +309,64 @@ class _PostClassState extends State<PostClass> {
                   ),
                 ),
               if (post.imagePaths.isNotEmpty)
-                Column(
+                Stack(
+                  alignment: Alignment.center,
                   children: [
-                    // Contador en la parte superior
-                    if (post.imagePaths.length > 1)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Text(
-                          '${_currentIndex + 1}/${post.imagePaths.length}',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 14.0,
-                            fontWeight: FontWeight.bold,
+                    Column(
+                      children: [
+                        if (post.imagePaths.length > 1)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              '${_currentImageIndex + 1}/${post.imagePaths.length}',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 14.0,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        GestureDetector(
+                          onDoubleTapDown: (details) {
+                            _handleDoubleTap(postIndex);
+                          },
+                          child: post.imagePaths.length > 1
+                              ? CarouselSlider(
+                            options: CarouselOptions(
+                              height: MediaQuery.of(context).size.width * 0.8,
+                              viewportFraction: 1.0,
+                              enableInfiniteScroll: false,
+                              autoPlay: false,
+                              onPageChanged: (index, reason) {
+                                setState(() {
+                                  _currentImageIndex = index;
+                                });
+                              },
+                            ),
+                            items: post.imagePaths.map((path) {
+                              return Image.file(
+                                File(path),
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              );
+                            }).toList(),
+                          )
+                              : Image.file(
+                            File(post.imagePaths.first),
+                            width: double.infinity,
+                            fit: BoxFit.cover,
                           ),
                         ),
-                      ),
-
-                    // Carrusel
-                    ClipRRect(
-                      child: post.imagePaths.length > 1
-                          ? CarouselSlider(
-                              options: CarouselOptions(
-                                height: MediaQuery.of(context).size.width * 0.8,
-                                viewportFraction: 1.0,
-                                enableInfiniteScroll: false,
-                                autoPlay: false,
-                                onPageChanged: (index, reason) {
-                                  _currentIndex = index; // Actualizar índice
-                                },
-                              ),
-                              items: post.imagePaths.map((path) {
-                                return Image.file(
-                                  File(path),
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                );
-                              }).toList(),
-                            )
-                          : Image.file(
-                              File(post.imagePaths.first),
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                            ),
+                      ],
                     ),
-
-                    // Indicadores de puntos debajo
-                    if (post.imagePaths.length > 1)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: post.imagePaths.asMap().entries.map((entry) {
-                          return Container(
-                            width: 8.0,
-                            height: 8.0,
-                            margin: EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 4.0),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: _currentIndex == entry.key
-                                  ? Colors.white
-                                  : Colors.grey.withOpacity(0.5),
-                            ),
-                          );
-                        }).toList(),
+                    if (_showLikeAnimation[postIndex] ?? false)
+                      ScaleTransition(
+                        scale: _likeScaleAnimation,
+                        child: Icon(
+                          Icons.favorite,
+                          color: Colors.white,
+                          size: 40.0,
+                        ),
                       ),
                   ],
                 ),
@@ -474,12 +377,17 @@ class _PostClassState extends State<PostClass> {
                   children: [
                     Row(
                       children: [
-                        Likes(),
+                        // Ejemplo de uso en el widget padre
+                        Likes(
+                          post: post,
+                          onLikeUpdated: _updatePost,
+                        ),
                       ],
                     ),
                     Row(
                       children: [
                         ComentariosPost(),
+                        SizedBox(width: 10),
                         ShareButton(),
                         EtiquetaButton(),
                       ],
@@ -490,53 +398,259 @@ class _PostClassState extends State<PostClass> {
             ],
           ),
         );
-      }).toList(),
+      }),
     );
   }
 
-  // Método para mostrar menú de opciones de la publicación
-  void _showPostOptionsBottomSheet(BuildContext context) {
+  Future<void> _loadPosts() async {
+    try {
+      final posts = await _postDatabase.getAllPosts();
+      setState(() {
+        _posts = posts;
+      });
+    } catch (e) {
+      print('Error loading posts: $e');
+    }
+  }
+
+  void _updatePost(Post updatedPost) {
+    setState(() {
+      final index = _posts.indexWhere((post) => post.id == updatedPost.id);
+      if (index != -1) {
+        _posts[index] = updatedPost;
+      }
+    });
+  }
+
+  void _handleDoubleTap(int postIndex) {
+    _handleLike(_posts[postIndex]);
+    setState(() {
+      _showLikeAnimation[postIndex] = true;
+    });
+    _likeAnimationController.forward(from: 0.0).then((_) {
+      setState(() {
+        _showLikeAnimation[postIndex] = false;
+      });
+    });
+  }
+
+  void _handleLike(Post post) {
+    setState(() {
+      post.isLiked = !post.isLiked;
+      post.likeCount += post.isLiked ? 1 : -1;
+    });
+
+    // Optional: Update the post in the database
+    PostDatabase.instance.updatePost(post);
+  }
+
+  void _showPostOptionsBottomSheet(BuildContext context, Post postToEdit) {  // Agregar el parámetro Post
     showModalBottomSheet(
-        context: context,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(17)),
-        ),
-        builder: (context) {
-          return Container(
-            padding: EdgeInsets.symmetric(vertical: 20, horizontal: 15),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Opciones de publicación',
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                SizedBox(height: 20),
-                ListTile(
-                  leading: Icon(Icons.edit),
-                  title: Text('Editar publicación'),
-                  onTap: () {
-                    // Lógica de edición
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(17)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: EdgeInsets.symmetric(vertical: 20, horizontal: 15),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Opciones de publicación',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 20),
+              ListTile(
+                leading: Icon(Icons.edit),
+                title: Text('Editar publicación'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Aquí puedes agregar la lógica para editar
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.delete),
+                title: Text('Eliminar publicación'),
+                onTap: () async {
+                  print('postToEdit: $postToEdit');  // Verifica si el objeto es null
+                  if (postToEdit != null && postToEdit.id != null) {
+                    await PostDatabase.instance.deletePost(postToEdit.id!);
+                    await _loadPosts();
                     Navigator.pop(context);
-                  },
+                  } else {
+                    print('El objeto postToEdit o su ID es nulo');
+                  }
+                },
+              )
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final backgroundColor = darkModeProvider.backgroundColor;
+
+    return Scaffold(
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              AnimatedContainer(
+                duration: Duration(milliseconds: 300),
+                height: _isSearchBarVisible ? 50.0 : 0.0,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14.0,
+                    vertical: 8.0,
+                  ),
+                  child: _buildSearchBar(isDarkMode, backgroundColor),
                 ),
-                ListTile(
-                  leading: Icon(Icons.delete),
-                  title: Text('Eliminar publicación'),
-                  onTap: () {
-                    // Lógica de eliminación
-                    Navigator.pop(context);
+              ),
+              Expanded(
+                child: NotificationListener<ScrollNotification>(
+                  onNotification: (scrollNotification) {
+                    if (scrollNotification is ScrollUpdateNotification) {
+                      _onScroll(scrollNotification.metrics.pixels);
+                    }
+                    return false;
                   },
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildPublishedPostCards(),
+                      ],
+                    ),
+                  ),
                 ),
-              ],
+              ),
+            ],
+          ),
+          Positioned(
+            bottom: 38.0,
+            right: 18.0,
+            child: _buildCameraButton(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Continuación de la clase _PostClassState
+  Widget _buildSearchBar(bool isDarkMode, Color backgroundColor) {
+    return Container(
+      color: Colors.transparent,
+      height: 38.0,
+      child: TextField(
+        controller: _searchController,
+        cursorColor: Colors.cyan,
+        decoration: InputDecoration(
+          hintText: 'Buscar amigo',
+          hintStyle: TextStyle(
+            color: isDarkMode ? Colors.grey[500] : Colors.grey[700],
+            fontSize: 12.0,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10.0),
+            borderSide: BorderSide(color: Colors.white, width: 0.8),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10.0),
+            borderSide: BorderSide(
+              color: isDarkMode ? Colors.grey : Colors.grey[400]!,
+              width: 0.8,
             ),
-          );
-        });
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10.0),
+            borderSide: BorderSide(color: Colors.cyan, width: 0.8),
+          ),
+          filled: true,
+          fillColor: backgroundColor,
+          contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+          prefixIcon: Icon(
+            Icons.search,
+            color: isDarkMode ? Colors.grey[400] : Colors.grey[700],
+          ),
+        ),
+        style: TextStyle(
+          color: isDarkMode ? Colors.white : Colors.black,
+        ),
+        onChanged: (value) {
+          // Implementar lógica de búsqueda aquí
+        },
+      ),
+    );
+  }
+
+  Widget _buildCameraButton() {
+    return Container(
+      width: 55.0,
+      height: 55.0,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: Colors.cyan,
+      ),
+      child: FloatingActionButton(
+        onPressed: _showImageSourceSelection,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Icon(
+          Icons.camera_alt,
+          color: Colors.white,
+          size: 35.0,
+        ),
+      ),
+    );
   }
 }
 
+// Clase Post actualizada con todos los campos necesarios
 class Post {
+  final int? id;
   final String description;
   final List<String> imagePaths;
+  final DateTime createdAt;
+  final String userName;
+  final String userAvatar;
+  bool isLiked;  // Added back
+  int likeCount; // Added back
 
-  Post({required this.description, required this.imagePaths});
+  Post({
+    this.id,
+    required this.description,
+    required this.imagePaths,
+    DateTime? createdAt,
+    this.userName = '',
+    this.userAvatar = 'lib/assets/avatar.png',
+    this.isLiked = false,  // Default value
+    this.likeCount = 0,    // Default value
+  }) : this.createdAt = createdAt ?? DateTime.now();
+
+  String get timeAgo {
+    final now = DateTime.now();
+    final difference = now.difference(createdAt);
+
+    if (difference.inMinutes < 1) {
+      return 'Ahora';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes} min';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours}h';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}d';
+    } else if (difference.inDays < 30) {
+      return '${(difference.inDays / 7).floor()}sem';
+    } else if (difference.inDays < 365) {
+      return '${(difference.inDays / 30).floor()}m';
+    } else {
+      return '${(difference.inDays / 365).floor()}a';
+    }
+  }
 }

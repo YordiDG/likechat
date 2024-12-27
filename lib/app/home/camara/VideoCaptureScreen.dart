@@ -1,8 +1,6 @@
 import 'dart:math';
 import 'dart:ui';
-
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:lottie/lottie.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:provider/provider.dart';
@@ -13,15 +11,11 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:async'; // Para manejar el temporizador
 import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:video_player/video_player.dart';
 import '../../APIS-Consumir/Deezer-API-Musica/MusicModal.dart';
 import '../../APIS-Consumir/Tenor API/StickerModal.dart';
-import '../../Globales/estadoDark-White/DarkModeProvider.dart';
-import '../shortVideos/Posts/OpenCamara/preview/PreviewScreen.dart';
 import 'Editar_Files/EditImageScreen.dart';
 import 'Editar_Files/EditVideoScreen.dart';
 import 'Files/GalleryPage.dart';
-import 'FilterCarousel.dart';
 
 class VideoCaptureScreen extends StatefulWidget {
   @override

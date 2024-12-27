@@ -13,6 +13,17 @@ import 'package:provider/provider.dart';
 import '../../../../Globales/estadoDark-White/DarkModeProvider.dart';
 
 class ShareButton extends StatelessWidget {
+  final int shareCount = 99999;
+
+  String formatShareCount(int count) {
+    if (count >= 1000000) {
+      return '${(count ~/ 1000000)} mill.';
+    } else if (count >= 1000) {
+      return '${(count ~/ 1000)} mil';
+    }
+    return count.toString();
+  }
+
   void _showFriendsModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -25,7 +36,6 @@ class ShareButton extends StatelessWidget {
         initialChildSize: 0.5,
         minChildSize: 0.3,
         maxChildSize: 0.5,
-        // Ajustado a 2/4 de la pantalla (50%)
         builder: (context, scrollController) {
           return FriendsModal(scrollController: scrollController);
         },
@@ -35,16 +45,31 @@ class ShareButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      icon: Icon(
-        FontAwesomeIcons.paperPlane,
-        color: Colors.grey.shade200,
-        size: 20,
+    return GestureDetector(
+      onTap: () => _showFriendsModal(context),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            FontAwesomeIcons.paperPlane,
+            color: Colors.grey ,
+            size: 21,
+          ),
+          SizedBox(width: 4), // Espaciado entre el icono y el contador
+          Text(
+            formatShareCount(shareCount),
+            style: TextStyle(
+              color: Colors.grey ,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
-      onPressed: () => _showFriendsModal(context),
     );
   }
 }
+
 
 class FriendsModal extends StatefulWidget {
   final ScrollController scrollController;

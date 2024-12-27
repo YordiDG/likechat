@@ -22,7 +22,7 @@ class LikeChatApp extends StatelessWidget {
       builder: (context, darkModeProvider, fontSizeProvider, localizationProvider, networkProvider, child) {
         // Widget para mostrar cuando no hay conexión
         Widget noConnectionBanner = networkProvider.isConnected ? SizedBox() : Container(
-          color: Colors.red,
+          color: Colors.grey.shade800,
           padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top, bottom: 4),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,

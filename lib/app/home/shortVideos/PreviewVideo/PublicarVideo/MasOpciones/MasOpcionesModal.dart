@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../../../Globales/estadoDark-White/DarkModeProvider.dart';
 
 class MasOpcionesModal extends StatefulWidget {
   @override
@@ -11,7 +13,7 @@ class _MasOpcionesModalState extends State<MasOpcionesModal>
   bool allowStickers = false;
   bool allowDuos = true;
 
-  bool isPromoting = false; // Estado para la animación del botón
+  bool isPromoting = false;
   late AnimationController _controller;
 
   @override
@@ -31,175 +33,153 @@ class _MasOpcionesModalState extends State<MasOpcionesModal>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color(0xFF121212),// Fondo del AppBar gris claro
-        centerTitle: true, // Centra el título
-        title: Text(
-          'Más opciones',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-            fontSize: 18,
-          ),
-        ),
-        elevation: 0, // Elimina la línea de sombra debajo del AppBar
-        automaticallyImplyLeading: false, // Elimina la flecha de retroceso
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Divider(height: 0.1, color: Colors.grey),
-            ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Colors.lightBlueAccent,
-                // Fondo negro con poca opacidad
-                child: Icon(Icons.more_time,
-                    color: Colors.white, size: 23), // Icono más pequeño
-              ),
-              contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
-              title: Text(
-                'Permitir que otros lo suban a su historia',
-                style: TextStyle(fontSize: 15.0, fontWeight: FontWeight.w600),
-              ),
-              trailing: Transform.scale(
-                scale: 0.9, // Escala del Switch para ajustar tamaño
-                child: Switch(
-                  value: allowOthersToUpload,
-                  onChanged: (value) {
-                    setState(() {
-                      allowOthersToUpload = value;
-                    });
-                  },
-                  activeColor: Colors.white,
-                  // Color de fondo cuando activado
-                  activeTrackColor: Colors.lightBlueAccent,
-                  // Color del riel cuando activado
-                  inactiveThumbColor: Colors.grey,
-                  // Color del pulgar cuando desactivado
-                  inactiveTrackColor: Colors.grey
-                      .withOpacity(0.5), // Color del riel cuando desactivado
-                ),
-              ),
-            ),
-            ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Colors.lightBlueAccent,
-                child:
-                    Icon(Icons.emoji_emotions, color: Colors.white, size: 23),
-              ),
-              contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
-              title: Text(
-                'Permitir stickers',
-                style: TextStyle(fontSize: 15.0, fontWeight: FontWeight.w600),
-              ),
-              trailing: Transform.scale(
-                scale: 0.9, // Escala del Switch para ajustar tamaño
-                child: Switch(
-                  value: allowStickers,
-                  onChanged: (value) {
-                    setState(() {
-                      allowStickers = value;
-                    });
-                  },
-                  activeColor: Colors.white,
-                  // Color de fondo cuando activado
-                  activeTrackColor: Colors.lightBlueAccent,
-                  // Color del riel cuando activado
-                  inactiveThumbColor: Colors.grey,
-                  // Color del pulgar cuando desactivado
-                  inactiveTrackColor: Colors.grey
-                      .withOpacity(0.5), // Color del riel cuando desactivado
-                ),
-              ),
-            ),
-            ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Colors.lightBlueAccent,
-                child: Icon(Icons.all_inclusive, color: Colors.white, size: 23),
-              ),
-              contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
-              title: Text(
-                'Permitir duos',
-                style: TextStyle(fontSize: 15.0, fontWeight: FontWeight.w600),
-              ),
-              trailing: Transform.scale(
-                scale: 0.9, // Escala del Switch para ajustar tamaño
-                child: Switch(
-                  value: allowDuos,
-                  onChanged: (value) {
-                    setState(() {
-                      allowDuos = value;
-                    });
-                  },
-                  activeColor: Colors.white,
-                  activeTrackColor: Colors.lightBlueAccent,
-                  // Color del riel cuando activado
-                  inactiveThumbColor: Colors.grey,
-                  // Color del pulgar cuando desactivado
-                  inactiveTrackColor: Colors.grey
-                      .withOpacity(0.5), // Color del riel cuando desactivado
-                ),
-              ),
-            ),
-            SizedBox(height: 20.0),
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-              child: Text(
-                'Ajustes Avanzados',
-                style: TextStyle(
-                  fontSize: 14.0,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
-                ),
-              ),
-            ),
-            Center(
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  return Transform.translate(
-                    offset: Offset(0, _controller.value * 10),
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          isPromoting =
-                              !isPromoting; // Cambia el estado de la animación
-                        });
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+    final iconColor = darkModeProvider.iconColor;
+    final backgroundColor = darkModeProvider.backgroundColor;
 
-                        // Aquí puedes manejar la lógica para promocionar contenido
-                        // Por ejemplo, abrir otra pantalla o ejecutar alguna acción
-                      },
-                      icon: Icon(
-                        Icons.campaign,
-                        size: 28,
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(13.0), // Borde redondeado
+      ),
+      backgroundColor: backgroundColor,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Línea decorativa en la parte superior
+            Container(
+              width: 50,
+              height: 6,
+              margin: EdgeInsets.only(bottom: 16.0),
+              decoration: BoxDecoration(
+                color: Colors.lightBlueAccent,
+                borderRadius: BorderRadius.circular(3.0),
+              ),
+            ),
+
+            // Título del modal
+            Text(
+              'Más opciones',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: textColor,
+              ),
+            ),
+
+            SizedBox(height: 20.0),
+
+            // Opciones del modal
+            _buildOption(
+              icon: Icons.more_time,
+              title: 'Permitir que otros lo suban a su historia',
+              switchValue: allowOthersToUpload,
+              onChanged: (value) {
+                setState(() {
+                  allowOthersToUpload = value;
+                });
+              },
+            ),
+            _buildOption(
+              icon: Icons.emoji_emotions,
+              title: 'Permitir stickers',
+              switchValue: allowStickers,
+              onChanged: (value) {
+                setState(() {
+                  allowStickers = value;
+                });
+              },
+            ),
+            _buildOption(
+              icon: Icons.all_inclusive,
+              title: 'Permitir duos',
+              switchValue: allowDuos,
+              onChanged: (value) {
+                setState(() {
+                  allowDuos = value;
+                });
+              },
+            ),
+
+            SizedBox(height: 20.0),
+
+            // Botón para promocionar contenido
+            AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                return Transform.translate(
+                  offset: Offset(0, _controller.value * 10),
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        isPromoting = !isPromoting;
+                      });
+                    },
+                    icon: Icon(
+                      Icons.campaign,
+                      size: 28,
+                      color: Colors.white,
+                    ),
+                    label: Text(
+                      'Promocionar Contenido',
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
-                      label: Text(
-                        'Promocionar Contenido',
-                        style: TextStyle(
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.lightBlueAccent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                              8.0), // Reducir el radio del borde
-                        ),
-                        padding: EdgeInsets.symmetric(
-                            vertical: 12.0, horizontal: 24.0),
-                      ),
                     ),
-                  );
-                },
-              ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.lightBlueAccent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(13.0),
+                      ),
+                      padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
+                    ),
+                  ),
+                );
+              },
             ),
+
+            SizedBox(height: 10.0),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildOption({
+    required IconData icon,
+    required String title,
+    required bool switchValue,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          CircleAvatar(
+            backgroundColor: Colors.lightBlueAccent,
+            child: Icon(icon, color: Colors.white, size: 20),
+          ),
+          SizedBox(width: 16.0),
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(fontSize: 15.0, fontWeight: FontWeight.w600),
+            ),
+          ),
+          Switch(
+            value: switchValue,
+            onChanged: onChanged,
+            activeColor: Colors.white,
+            activeTrackColor: Colors.lightBlueAccent,
+            inactiveThumbColor: Colors.grey,
+            inactiveTrackColor: Colors.grey.withOpacity(0.5),
+          ),
+        ],
       ),
     );
   }

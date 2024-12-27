@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../../APIS-Consumir/DaoPost/PostDatabase.dart';
 import '../../../APIS-Consumir/Deezer-API-Musica/MusicModal.dart';
 import '../../../APIS-Consumir/Tenor API/StickerModal.dart';
 import '../../shortVideos/Posts/OpenCamara/preview/PreviewScreen.dart';
@@ -245,11 +246,28 @@ class _EditImageScreenState extends State<EditImageScreen>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            // En EditImageScreen, actualiza el botón de publicar:
             Expanded(
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => PostClass()));
+                onPressed: () async {
+                  // Crear un nuevo post con la imagen actual
+                  Post newPost = Post(
+                    description: _descriptionController.text,
+                    imagePaths: [widget.file.path],
+                    createdAt: DateTime.now(),
+                  );
+
+                  // Guardar en la base de datos
+                  await PostDatabase.instance.createPost(newPost);
+
+                  // Navegar de vuelta a PostClass y actualizar la lista
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PostClass(),
+                    ),
+                        (route) => false,
+                  );
                 },
                 style: buttonStyle(Colors.white, Colors.black),
                 child: Row(
@@ -269,26 +287,18 @@ class _EditImageScreenState extends State<EditImageScreen>
             Expanded(
               child: ElevatedButton(
                 onPressed: () {
-                  if (_imagePath != null) {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => PreviewScreen(
-                          imagePath: _imagePath!,
-                          descriptionController: _descriptionController,
-                          onPublish: _publishPost,
-                        ),
+                  // Ya tenemos el archivo en widget.file, así que podemos usarlo directamente
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => PreviewScreen(
+                        imagePath: widget.file.path, // Usamos el path del archivo existente
+                        descriptionController: _descriptionController,
+                        onPublish: _publishPost,
                       ),
-                    );
-                  } else {
-                    // Mostrar un mensaje de error si no se ha tomado una foto
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text(
-                              "Por favor, toma una foto antes de continuar.")),
-                    );
-                  }
+                    ),
+                  );
                 },
-                style: buttonStyle(Colors.cyan, Colors.white),
+                style: buttonStyle(Color(0xFF9B30FF), Colors.white),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -363,7 +373,7 @@ class _EditImageScreenState extends State<EditImageScreen>
           onTap: () => _showMusicModal(context),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.grey.withOpacity(0.2),
+              color: Colors.black.withOpacity(0.3),
               borderRadius: BorderRadius.circular(7),
               border: Border.all(
                 color: Colors.grey.shade800,
@@ -424,7 +434,7 @@ class _EditImageScreenState extends State<EditImageScreen>
           width: 35,
           height: 35,
           decoration: BoxDecoration(
-            color: Colors.grey.withOpacity(0.3),
+            color: Colors.black.withOpacity(0.3),
             shape: BoxShape.circle,
           ),
           child: Center(
@@ -471,7 +481,7 @@ class _EditImageScreenState extends State<EditImageScreen>
                             ),
                             SizedBox(height: 10),
                             Text(
-                              "Si sales ahora, el video se descartará y no se descargará. ¿Deseas continuar?",
+                              "Si sales ahora, se perderán los cambios. ¿Deseas continuar?",
                               style: TextStyle(
                                   fontSize: 13, color: Colors.grey[600]),
                               textAlign: TextAlign.center,
@@ -573,7 +583,7 @@ class _EditImageScreenState extends State<EditImageScreen>
             width: 35,
             height: 35,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.black.withOpacity(0.3),
               shape: BoxShape.circle,
             ),
             child: Icon(

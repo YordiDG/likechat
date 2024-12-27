@@ -99,6 +99,10 @@ dependencies:
   icons_plus: ^5.0.0
   #desenfoque
   blur: ^4.0.0
+  #hasheo verif. de image_editor
+  crypto: ^3.0.3
+  convert: ^3.1.2
+
 
   cached_network_image: ^3.4.0
   sqflite: ^2.3.3+1

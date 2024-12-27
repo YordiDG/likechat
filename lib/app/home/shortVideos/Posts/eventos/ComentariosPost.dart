@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../APIS-Consumir/Tenor API/StickerModal.dart';
 import '../../../../Globales/estadoDark-White/DarkModeProvider.dart';
+import '../OpenCamara/preview/configuracion/EtiquetasAmigos/FriendsModal.dart';
 
 class ComentariosPost extends StatelessWidget {
   final int commentCount;
@@ -49,14 +53,14 @@ class ComentariosPost extends StatelessWidget {
         children: [
           Icon(
             FontAwesomeIcons.commentDots,
-            color: Colors.grey.shade200,
-            size: 29,
+            color: Colors.grey,
+            size: 24,
           ),
-          SizedBox(width: 5), // Espacio mínimo entre el icono y el texto
+          SizedBox(width: 4), // Espacio mínimo entre el icono y el texto
           Text(
             formatCommentCount(commentCount),
             style: TextStyle(
-              color: Colors.grey.shade200,
+              color: Colors.grey,
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
@@ -65,6 +69,22 @@ class ComentariosPost extends StatelessWidget {
       ),
     );
   }
+}
+
+class Comment {
+  final String username;
+  final String text;
+  int likes;
+  bool isLiked;
+  bool isDisliked;
+
+  Comment({
+    required this.username,
+    required this.text,
+    this.likes = 0,
+    this.isLiked = false,
+    this.isDisliked = false,
+  });
 }
 
 class ComentariosPostModal extends StatefulWidget {
@@ -77,8 +97,6 @@ class ComentariosPostModal extends StatefulWidget {
 }
 
 class _ComentariosPostModalState extends State<ComentariosPostModal> {
-  bool isLiked = false;
-  bool isDisliked = false;
   late int commentCount;
   final textController = TextEditingController();
 
@@ -105,6 +123,30 @@ class _ComentariosPostModalState extends State<ComentariosPostModal> {
       return '${(count ~/ 1000)} mil';
     }
     return count.toString();
+  }
+
+  void handleLikePressed(int index) {
+    setState(() {
+      comments[index].isLiked = !comments[index].isLiked;
+      if (comments[index].isLiked) {
+        comments[index].likes++;
+        comments[index].isDisliked = false;
+      } else {
+        comments[index].likes--;
+      }
+    });
+  }
+
+  void handleDislikePressed(int index) {
+    setState(() {
+      comments[index].isDisliked = !comments[index].isDisliked;
+      if (comments[index].isDisliked) {
+        if (comments[index].isLiked) {
+          comments[index].likes--;
+        }
+        comments[index].isLiked = false;
+      }
+    });
   }
 
   @override
@@ -175,29 +217,25 @@ class _ComentariosPostModalState extends State<ComentariosPostModal> {
           Divider(thickness: 0.2, color: Colors.grey),
           // Lista de comentarios
           Expanded(
-            child: ListView.builder(
-              itemCount: comments.length,
-              itemBuilder: (context, index) {
-                final comment = comments[index];
-                return CommentItem(
-                  comment: comment,
-                  isDarkMode: isDarkMode,
-                  onLikePressed: () {
-                    setState(() {
-                      isLiked = !isLiked;
-                      if (isLiked) isDisliked = false;
-                    });
-                  },
-                  onDislikePressed: () {
-                    setState(() {
-                      isDisliked = !isDisliked;
-                      if (isDisliked) isLiked = false;
-                    });
-                  },
-                  isLiked: isLiked,
-                  isDisliked: isDisliked,
-                );
-              },
+            child: Container(
+              constraints: BoxConstraints.expand(),
+              child: ListView.builder(
+                shrinkWrap: true,
+                physics: AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.zero,
+                itemCount: comments.length,
+                itemBuilder: (context, index) {
+                  final comment = comments[index];
+                  return CommentItem(
+                    comment: comment,
+                    isDarkMode: isDarkMode,
+                    onLikePressed: () => handleLikePressed(index),
+                    onDislikePressed: () => handleDislikePressed(index),
+                    isLiked: comment.isLiked,
+                    isDisliked: comment.isDisliked,
+                  );
+                },
+              ),
             ),
           ),
           // Campo de comentario
@@ -225,7 +263,7 @@ class _ComentariosPostModalState extends State<ComentariosPostModal> {
 }
 
 // Widget para cada comentario individual
-class CommentItem extends StatelessWidget {
+class CommentItem extends StatefulWidget {
   final Comment comment;
   final bool isDarkMode;
   final VoidCallback onLikePressed;
@@ -243,88 +281,129 @@ class CommentItem extends StatelessWidget {
   });
 
   @override
+  _CommentItemState createState() => _CommentItemState();
+}
+
+class _CommentItemState extends State<CommentItem> {
+  bool _isExpanded = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CircleAvatar(
-            radius: 14.0,
-            backgroundColor: Colors.cyan[200],
-            child: Text(
-              comment.username[0].toUpperCase(),
-              style: TextStyle(fontSize: 12),
+    return Container(
+      constraints: BoxConstraints(minHeight: 50),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 14.0,
+              backgroundColor: Colors.cyan[200],
+              child: Text(
+                widget.comment.username[0].toUpperCase(),
+                style: TextStyle(fontSize: 12),
+              ),
             ),
-          ),
-          SizedBox(width: 12),
-          FractionallySizedBox(
-            widthFactor: 0.8, // Establece el ancho al 80% de la pantalla
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      '${comment.username} ',
+            SizedBox(width: 12),
+            Expanded(
+              flex: 80,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${widget.comment.username} ',
+                          style: GoogleFonts.roboto(
+                            fontWeight: FontWeight.bold,
+                            color: widget.isDarkMode ? Colors.white : Colors.black,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                      LikeButton(
+                        isLiked: widget.isLiked,
+                        onPressed: widget.onLikePressed,
+                      ),
+                      SizedBox(width: 8),
+                      DislikeButton(
+                        isDisliked: widget.isDisliked,
+                        onPressed: widget.onDislikePressed,
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 4),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _isExpanded = !_isExpanded;
+                      });
+                    },
+                    child: Text(
+                      widget.comment.text,
                       style: GoogleFonts.roboto(
-                        fontWeight: FontWeight.bold,
-                        color: isDarkMode ? Colors.white : Colors.black,
+                        color: widget.isDarkMode ? Colors.grey[300] : Colors.black87,
                         fontSize: 13,
                       ),
+                      maxLines: _isExpanded ? null : 3,
+                      overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
                     ),
-                    Spacer(),
-                    LikeButton(
-                      isLiked: isLiked,
-                      onPressed: onLikePressed,
-                    ),
-                    SizedBox(width: 8),
-                    DislikeButton(
-                      isDisliked: isDisliked,
-                      onPressed: onDislikePressed,
-                    ),
-                  ],
-                ),
-                Text(
-                  comment.text,
-                  style: GoogleFonts.roboto(
-                    color: isDarkMode ? Colors.grey[300] : Colors.black87,
-                    fontSize: 13,
                   ),
-                ),
-                Row(
-                  children: [
-                    Text(
-                      'Hace 2h',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    SizedBox(width: 12),
+                  if (widget.comment.text.length > 100)
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        setState(() {
+                          _isExpanded = !_isExpanded;
+                        });
+                      },
                       child: Text(
-                        'Responder',
+                        _isExpanded ? 'Ver menos' : 'Ver más',
                         style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 11,
+                          color: Colors.blueGrey,
+                          fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ],
+                  SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        '2h',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      GestureDetector(
+                        onTap: () {
+                          // Acción para responder
+                        },
+                        child: Text(
+                          'Responder',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
-
 }
+
 
 // Campo de entrada de comentarios
 class CommentInputField extends StatefulWidget {
@@ -349,10 +428,21 @@ class _CommentInputFieldState extends State<CommentInputField>
   bool _isExpanded = false;
   late AnimationController _animationController;
   late Animation<double> _heightAnimation;
+  late FocusNode _focusNode;
+
+  final int _maxCharacters = 180;
+  bool _hasShownToast = false;
+
+  final GalleryPicker galleryPicker = GalleryPicker();
 
   @override
   void initState() {
     super.initState();
+    _focusNode = FocusNode();
+    _focusNode.addListener(() {
+      _handleFocus(_focusNode.hasFocus);
+    });
+
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 200),
       vsync: this,
@@ -364,6 +454,7 @@ class _CommentInputFieldState extends State<CommentInputField>
 
   @override
   void dispose() {
+    _focusNode.dispose();
     _animationController.dispose();
     super.dispose();
   }
@@ -378,13 +469,37 @@ class _CommentInputFieldState extends State<CommentInputField>
         _isExpanded = false;
         _animationController.reverse();
       }
+
     });
+  }
+
+  void _handleTextChanged(String text) {
+    if (text.length > _maxCharacters) {
+      if (!_hasShownToast) {
+        Fluttertoast.showToast(
+          msg: "Has alcanzado el máximo de caracteres",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.TOP,
+          backgroundColor: Colors.grey.shade800,
+          textColor: Colors.white,
+          fontSize: 13.0,
+        );
+        _hasShownToast = true;
+      }
+      // Evita que se sigan agregando caracteres
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.textController.text = text.substring(0, _maxCharacters);
+        widget.textController.selection = TextSelection.fromPosition(
+          TextPosition(offset: _maxCharacters),
+        );
+      });
+    } else {
+      _hasShownToast = false;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
-
     return Container(
       decoration: BoxDecoration(
         color: widget.isDarkMode
@@ -409,162 +524,183 @@ class _CommentInputFieldState extends State<CommentInputField>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              AnimatedBuilder(
-                animation: _heightAnimation,
-                builder: (context, child) {
-                  return Container(
-                    constraints: BoxConstraints(
-                      maxHeight: _heightAnimation.value,
-                    ),
-                    decoration: BoxDecoration(
-                      color: widget.isDarkMode
-                          ? Colors.grey.shade800
-                          : Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 5,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      crossAxisAlignment: _isExpanded
-                          ? CrossAxisAlignment.start
-                          : CrossAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(6),
-                          child: CircleAvatar(
-                            radius: 16,
-                            backgroundColor: widget.isDarkMode
-                                ? Colors.grey.shade700
-                                : Colors.grey.shade200,
-                            child: Icon(
-                              Icons.person,
-                              size: 24,
-                              color: widget.isDarkMode
-                                  ? Colors.grey.shade300
-                                  : Colors.grey.shade600,
-                            ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: AnimatedBuilder(
+                      animation: _heightAnimation,
+                      builder: (context, child) {
+                        return Container(
+                          constraints: BoxConstraints(
+                            maxHeight: _heightAnimation.value,
                           ),
-                        ),
-                        Expanded(
-                          child: TextField(
-                            controller: widget.textController,
-                            maxLines: _isExpanded ? 5 : 1,
-                            minLines: 1,
-                            cursorColor: Colors.cyan,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: widget.isDarkMode
-                                  ? Colors.grey.shade100
-                                  : Colors.grey.shade900,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: 'Añadir comentario...',
-                              hintStyle: TextStyle(
-                                color: widget.isDarkMode
-                                    ? Colors.grey.shade400
-                                    : Colors.grey.shade500,
-                                fontSize: 15,
+                          decoration: BoxDecoration(
+                            color: widget.isDarkMode
+                                ? Colors.grey.shade800
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 5,
+                                offset: const Offset(0, 2),
                               ),
-                              border: InputBorder.none, // Esto elimina el borde
-                              focusedBorder: InputBorder.none, // Asegura que no haya borde cuando tenga el foco
-                              enabledBorder: InputBorder.none, // También elimina el borde cuando el campo no tiene foco
-                              fillColor: Colors.transparent, // Fondo transparente
-                              contentPadding: const EdgeInsets.symmetric(
-                                vertical: 8,
-                                horizontal: 8,
-                              ),
-                            ),
-                          ),
-                        ),
-                        if (!_isTextFieldFocused) ...[
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            // Ocupa solo el espacio necesario
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  // Llamar a una clase o evento específico
-                                  print('Ícono de Alternar Email presionado');
-                                },
-                                child: Icon(
-                                  Icons.alternate_email,
-                                  color: widget.isDarkMode
-                                      ? Colors.grey.shade400
-                                      : Colors.grey.shade600,
-                                  size: 30,
-                                ),
-                              ),
-                              SizedBox(width: 13),
-                              GestureDetector(
-                                onTap: () {
-                                  // Llamar a una clase o evento específico
-                                  print('Ícono de Emojis presionado');
-                                },
-                                child: Icon(
-                                  Icons.emoji_emotions_outlined,
-                                  color: widget.isDarkMode
-                                      ? Colors.grey.shade400
-                                      : Colors.grey.shade600,
-                                  size: 30,
-                                ),
-                              ),
-                              SizedBox(width: 12,),
-                              GestureDetector(
-                                onTap: () {
-                                  // Llamar a una clase o evento específico
-                                  print('Ícono de Fotos presionado');
-                                },
-                                child: Icon(
-                                  Icons.photo,
-                                  color: widget.isDarkMode
-                                      ? Colors.grey.shade400
-                                      : Colors.grey.shade600,
-                                  size: 30,
-                                ),
-                              ),
-                              SizedBox(width: 12,),
                             ],
                           ),
-                        ] else
-                          Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: IconButton(
-                              icon: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.cyan,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.send_rounded,
-                                  color: Colors.white,
-                                  size: 20,
+                          child: Row(
+                            crossAxisAlignment: _isExpanded
+                                ? CrossAxisAlignment.start
+                                : CrossAxisAlignment.center,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(6),
+                                child: CircleAvatar(
+                                  radius: 16,
+                                  backgroundColor: widget.isDarkMode
+                                      ? Colors.grey.shade700
+                                      : Colors.grey.shade200,
+                                  child: Icon(
+                                    Icons.person,
+                                    size: 24,
+                                    color: widget.isDarkMode
+                                        ? Colors.grey.shade300
+                                        : Colors.grey.shade600,
+                                  ),
                                 ),
                               ),
-                              onPressed: () {
-                                if (widget.textController.text
-                                    .trim()
-                                    .isNotEmpty) {
-                                  widget
-                                      .onSubmitted(widget.textController.text);
-                                  widget.textController.clear();
-                                  setState(() {
-                                    _isExpanded = false;
-                                    _animationController.reverse();
-                                  });
-                                }
-                              },
+                              Expanded(
+                                child: TextField(
+                                  focusNode: _focusNode,
+                                  controller: widget.textController,
+                                  onChanged: _handleTextChanged,
+                                  maxLines: 4,
+                                  minLines: 1,
+                                  cursorColor: Colors.cyan,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: widget.isDarkMode
+                                        ? Colors.grey.shade100
+                                        : Colors.grey.shade900,
+                                  ),
+                                  decoration: InputDecoration(
+                                    hintText: 'Añadir comentario...',
+                                    hintStyle: TextStyle(
+                                      color: widget.isDarkMode
+                                          ? Colors.grey.shade400
+                                          : Colors.grey.shade500,
+                                      fontSize: 15,
+                                    ),
+                                    border: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                    enabledBorder: InputBorder.none,
+                                    fillColor: Colors.transparent,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                      horizontal: 8,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              if (!_isTextFieldFocused &&
+                                  widget.textController.text.isEmpty) ...[
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        showModalBottomSheet(
+                                          context: context,
+                                          isScrollControlled: true,
+                                          builder: (context) => FriendsModales(),
+                                        );
+                                      },
+                                      child: Icon(
+                                        Icons.alternate_email,
+                                        color: widget.isDarkMode
+                                            ? Colors.grey.shade400
+                                            : Colors.grey.shade600,
+                                        size: 28,
+                                      ),
+                                    ),
+                                    SizedBox(width: 13),
+                                    GestureDetector(
+                                      onTap: () {
+                                        showModalBottomSheet(
+                                          context: context,
+                                          isScrollControlled: true,
+                                          builder: (context) => StickerModal(),
+                                        );
+                                      },
+                                      child: Icon(
+                                        Icons.emoji_emotions_outlined,
+                                        color: widget.isDarkMode
+                                            ? Colors.grey.shade400
+                                            : Colors.grey.shade600,
+                                        size: 28,
+                                      ),
+                                    ),
+                                    SizedBox(width: 12),
+                                    GestureDetector(
+                                      onTap: () async {
+                                        await galleryPicker.openGallery(context);
+                                      },
+                                      child: Icon(
+                                        Icons.photo,
+                                        color: widget.isDarkMode
+                                            ? Colors.grey.shade400
+                                            : Colors.grey.shade600,
+                                        size: 28,
+                                      ),
+                                    ),
+                                    SizedBox(width: 12),
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  if (_isTextFieldFocused ||
+                      widget.textController.text.isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    Center(
+                      child: Container(
+                        height: 48,
+                        width: 48,
+                        decoration: BoxDecoration(
+                          color: Colors.cyan,
+                          shape: BoxShape.circle, // Hace que el contenedor sea circular.
+                        ),
+                        child: Material(
+                          color: Colors.transparent, // Fondo transparente para el efecto de "ripple".
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(24), // Asegura el borde redondeado del efecto ripple.
+                            onTap: () {
+                              if (widget.textController.text.trim().isNotEmpty) {
+                                widget.onSubmitted(widget.textController.text);
+                                widget.textController.clear();
+                                setState(() {
+                                  _isExpanded = false;
+                                  _animationController.reverse();
+                                });
+                              }
+                            },
+                            child: Center(
+                              child: Icon(
+                                Icons.send_rounded,
+                                color: Colors.white,
+                                size: 24, // Tamaño del ícono.
+                              ),
                             ),
                           ),
-                      ],
+                        ),
+                      ),
                     ),
-                  );
-                },
+                  ],
+                ],
               ),
               if (_isExpanded) ...[
                 const SizedBox(height: 8),
@@ -624,7 +760,7 @@ class LikeButton extends StatelessWidget {
         builder: (context, color, child) {
           return Icon(
             isLiked ? Icons.favorite : Icons.favorite_border,
-            size: 17,
+            size: 21,
             color: color as Color?,
           );
         },
@@ -655,7 +791,7 @@ class DislikeButton extends StatelessWidget {
         builder: (context, color, child) {
           return Icon(
             isDisliked ? Icons.thumb_down_alt : Icons.thumb_down_alt_outlined,
-            size: 17,
+            size: 21,
             color: color as Color?,
           );
         },
@@ -664,16 +800,18 @@ class DislikeButton extends StatelessWidget {
   }
 }
 
-class Comment {
-  final String username;
-  final String text;
-  int likes;
-  int dislikes;
 
-  Comment({
-    required this.username,
-    required this.text,
-    this.likes = 0,
-    this.dislikes = 0,
-  });
+//clase de galeria
+class GalleryPicker {
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> openGallery(BuildContext context) async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      print('Imagen seleccionada: ${image.path}');
+      // Puedes agregar aquí la lógica para mostrar o procesar la imagen seleccionada
+    } else {
+      print('No se seleccionó ninguna imagen.');
+    }
+  }
 }

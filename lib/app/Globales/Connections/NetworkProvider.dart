@@ -74,7 +74,7 @@ class NetworkProvider with ChangeNotifier {
     }
   }
 
-  void _showToast(String message, Color backgroundColor) {
+  /*void _showToast(String message, Color backgroundColor) {
     if (!_isFirstCheck) {
       Fluttertoast.showToast(
           msg: message,
@@ -86,17 +86,38 @@ class NetworkProvider with ChangeNotifier {
       );
     }
     _isFirstCheck = false;
-  }
+  }*/
 
   void _handleConnectivityChange() {
     if (_previousStatus == ConnectivityStatus.offline && _status != ConnectivityStatus.offline) {
-      _showToast('Conexión restablecida', Colors.green);
+      Fluttertoast.showToast(
+        msg: 'Conexión restablecida',
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.TOP,
+        backgroundColor: Colors.grey.shade800,
+        textColor: Colors.white,
+        fontSize: 13.0,
+      );
       _logEvent('Connection restored');
     } else if (_previousStatus != ConnectivityStatus.offline && _status == ConnectivityStatus.offline) {
-      _showToast('Sin conexión a Internet', Colors.red);
+      Fluttertoast.showToast(
+        msg: 'Sin conexión a Internet',
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.TOP,
+        backgroundColor: Colors.grey.shade800,
+        textColor: Colors.white,
+        fontSize: 13.0,
+      );
       _logEvent('Connection lost');
     } else if (_quality == ConnectionQuality.low) {
-      _showToast('Conexión inestable', Colors.orange);
+      Fluttertoast.showToast(
+        msg: 'Conexión inestable',
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.TOP,
+        backgroundColor: Colors.grey.shade800,
+        textColor: Colors.white,
+        fontSize: 13.0,
+      );
       _logEvent('Unstable connection detected');
     }
     _previousStatus = _status;

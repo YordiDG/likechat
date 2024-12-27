@@ -110,7 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [ //Icons.hub icono de amigos, Icons.grid_view es cuadrados y este amigo wifi: Icons.connect_without_contact
                     _buildNavItem(icon: Icons.home_outlined, label: "Inicio", index: 0),
-                    _buildNavItem(icon: Icons.grid_view, label: "Amigos", index: 1),
+                    _buildNavItem(icon: Icons.grid_view, label: "Novedades", index: 1),
                     _buildCircleButton(),
                     _buildNavItemChat(icon: FontAwesomeIcons.comments, label: "Chats", index: 3),
                     _buildNavItem(icon: Icons.person_outlined, label: "Perfil", index: 4),

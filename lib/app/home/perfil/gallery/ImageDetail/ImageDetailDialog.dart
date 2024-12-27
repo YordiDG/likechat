@@ -32,7 +32,8 @@ class ImageDetailScreen extends StatefulWidget {
   _ImageDetailScreenState createState() => _ImageDetailScreenState();
 }
 
-class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTickerProviderStateMixin {
+class _ImageDetailScreenState extends State<ImageDetailScreen>
+    with SingleTickerProviderStateMixin {
   late PageController _pageController;
   late int _currentIndex;
   List<int> _likeCounts = []; // Nuevo: contador de likes para cada imagen
@@ -70,7 +71,6 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
     );
 
     fetchFriends();
-
   }
 
   // Método para obtener los amigos desde la API
@@ -78,14 +78,16 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
     print('🛠 FetchFriends: Iniciando la solicitud a la API...');
     try {
       final response =
-      await http.get(Uri.parse('https://randomuser.me/api/?results=50'));
+          await http.get(Uri.parse('https://randomuser.me/api/?results=50'));
 
-      print('📡 FetchFriends: Respuesta recibida con código ${response.statusCode}');
+      print(
+          '📡 FetchFriends: Respuesta recibida con código ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         print('✅ FetchFriends: Datos decodificados correctamente');
-        print('🔍 FetchFriends: Primer elemento de los datos -> ${data['results'][0]}');
+        print(
+            '🔍 FetchFriends: Primer elemento de los datos -> ${data['results'][0]}');
 
         setState(() {
           friends = (data['results'] as List).map((user) {
@@ -97,9 +99,11 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
           isLoading = false;
         });
 
-        print('🎯 FetchFriends: Amigos cargados correctamente. Total: ${friends.length}');
+        print(
+            '🎯 FetchFriends: Amigos cargados correctamente. Total: ${friends.length}');
       } else {
-        throw Exception('❌ FetchFriends: Error al obtener los amigos. Código: ${response.statusCode}');
+        throw Exception(
+            '❌ FetchFriends: Error al obtener los amigos. Código: ${response.statusCode}');
       }
     } catch (error) {
       print('❗ FetchFriends: Error -> $error');
@@ -108,7 +112,6 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
       });
     }
   }
-
 
   @override
   void dispose() {
@@ -160,41 +163,44 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
         itemBuilder: (context, index) {
           return LayoutBuilder(
             builder: (context, constraints) {
-              return GestureDetector(
-                onDoubleTap: _handleDoubleTap,
-                child: Stack(
-                  children: [
-                    // Blurred background for small images
-                    _buildImageWithBlur(index),
+              return Stack(
+                children: [
+                  // Blurred background for small images
+                  _buildImageWithBlur(index),
 
-                    // Imagen principal
-                    _buildImageContent(index, isDarkMode, textColor, iconColor),
+                  // Imagen principal con GestureDetector
+                  Positioned.fill(
+                    child: GestureDetector(
+                      onDoubleTap: _handleDoubleTap,
+                      child: _buildImageContent(
+                          index, isDarkMode, textColor, iconColor),
+                    ),
+                  ),
 
-                    // Animación del corazón central
-                    if (_showHeart && index == _currentIndex)
-                      Center(
-                        child: AnimatedBuilder(
-                          animation: _heartAnimation,
-                          builder: (context, child) {
-                            return Transform.scale(
-                              scale: 1.0 + (_heartAnimation.value * 0.3),
-                              child: Opacity(
-                                opacity: 1.0 - _heartAnimation.value,
-                                child: SizedBox(
-                                  width: 180,
-                                  height: 180,
-                                  child: Lottie.asset(
-                                    'lib/assets/heart.json',
-                                    fit: BoxFit.contain,
-                                  ),
+                  // Animación del corazón central
+                  if (_showHeart && index == _currentIndex)
+                    Center(
+                      child: AnimatedBuilder(
+                        animation: _heartAnimation,
+                        builder: (context, child) {
+                          return Transform.scale(
+                            scale: 1.0 + (_heartAnimation.value * 0.3),
+                            child: Opacity(
+                              opacity: 1.0 - _heartAnimation.value,
+                              child: SizedBox(
+                                width: 180,
+                                height: 180,
+                                child: Lottie.asset(
+                                  'lib/assets/heart.json',
+                                  fit: BoxFit.contain,
                                 ),
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                          );
+                        },
                       ),
-                  ],
-                ),
+                    ),
+                ],
               );
             },
           );
@@ -209,7 +215,7 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
     final image = NetworkImage(imageUrl);
     image.resolve(ImageConfiguration()).addListener(
       ImageStreamListener(
-            (ImageInfo info, bool _) {
+        (ImageInfo info, bool _) {
           completer.complete(Size(
             info.image.width.toDouble(),
             info.image.height.toDouble(),
@@ -221,7 +227,8 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
   }
 
   //Header
-  Widget _buildCustomAppBar(BuildContext context, bool isDarkMode, Color textColor, Color iconColor) {
+  Widget _buildCustomAppBar(
+      BuildContext context, bool isDarkMode, Color textColor, Color iconColor) {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(12.0),
@@ -312,7 +319,8 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
   }
 
   //seccion de comentarios like
-  Widget _buildImageContent(int index, bool isDarkMode, Color textColor, Color iconColor) {
+  Widget _buildImageContent(
+      int index, bool isDarkMode, Color textColor, Color iconColor) {
     return Column(
       children: [
         _buildCustomAppBar(context, isDarkMode, textColor, iconColor),
@@ -342,47 +350,69 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
               Row(
                 children: [
                   // Botón de like modificado
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        if (_likedImages[index]) {
-                          _likeCounts[index]--;
-                        } else {
-                          _likeCounts[index]++;
-                        }
-                        _likedImages[index] = !_likedImages[index];
-                      });
-                    },
-                    child: Row(
-                      children: [
-                        Icon(
-                          _likedImages[index]
-                              ? FontAwesomeIcons.solidHeart
-                              : FontAwesomeIcons.heart ,
-                          color: _likedImages[index]
-                              ? Color(0xFFFF0000)
-                              : Colors.white,
-                          size: 28,
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          '${_likeCounts[index]}',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8), // Padding más amplio
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1), // Fondo blanco opaco
+                      borderRadius: BorderRadius.circular(13), // Borde rectangular con borde redondeado de 10
+                    ),
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          if (_likedImages[index]) {
+                            _likeCounts[index]--;
+                          } else {
+                            _likeCounts[index]++;
+                          }
+                          _likedImages[index] = !_likedImages[index];
+                        });
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min, // Evitar que el Row ocupe todo el espacio horizontal
+                        children: [
+                          Icon(
+                            _likedImages[index]
+                                ? FontAwesomeIcons.solidHeart
+                                : FontAwesomeIcons.heart,
+                            color: _likedImages[index] ? Color(0xFFFF0000) : Colors.white,
+                            size: 28,
                           ),
-                        ),
-                      ],
+                          SizedBox(width: 8),
+                          AnimatedDefaultTextStyle(
+                            duration: Duration(milliseconds: 200), // Animación suave en el texto
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold, // Negrita para mayor énfasis
+                            ),
+                            child: Text('${_likeCounts[index]}'),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
+
                 ],
               ),
-              Row(
-                children: [
-                  ComentariosPost(),
-                  ShareButton(),
-                  EtiquetaButton(),
-                ],
+              Container(
+                padding: EdgeInsets.all(2), // Agregar padding si es necesario
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  // Fondo blanco opaco (ajusta la opacidad si es necesario)
+                  borderRadius:
+                      BorderRadius.circular(14), // Borde redondeado de 14
+                ),
+                child: Row(
+                  children: [
+                    SizedBox(width: 7),
+                    ComentariosPost(),
+                    SizedBox(width: 15),
+                    ShareButton(),
+                    SizedBox(width: 4),
+                    EtiquetaButton(),
+                  ],
+                ),
+
               ),
             ],
           ),
@@ -428,7 +458,7 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
       context: context,
       isScrollControlled: false,
       backgroundColor:
-      isDarkMode ? Colors.grey.shade900.withOpacity(0.8) : Colors.white,
+          isDarkMode ? Colors.grey.shade900.withOpacity(0.8) : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -442,7 +472,7 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
               Container(
                 decoration: BoxDecoration(
                   color:
-                  isDarkMode ? Colors.grey.shade900 : Colors.grey.shade100,
+                      isDarkMode ? Colors.grey.shade900 : Colors.grey.shade100,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(13)),
                 ),
                 child: Row(
@@ -462,7 +492,8 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
                               color: textColor,
                             ),
                           ),
-                          SizedBox(width: 3), // Espacio entre el texto y el icono
+                          SizedBox(width: 3),
+                          // Espacio entre el texto y el icono
                           Icon(
                             Icons.arrow_drop_down,
                             size: 20,
@@ -498,72 +529,76 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
               Expanded(
                 child: isLoading
                     ? Center(
-                  child: Lottie.asset(
-                    'lib/assets/loading/infinity_cyan.json',
-                    width: 60,
-                    height: 60,
-                  ),
-                )
+                        child: Lottie.asset(
+                          'lib/assets/loading/infinity_cyan.json',
+                          width: 60,
+                          height: 60,
+                        ),
+                      )
                     : friends.isEmpty
-                    ? Center(
-                  child: Text(
-                    'No se encontraron amigos.',
-                    style: TextStyle(fontSize: 16, color: Colors.red),
-                  ),
-                )
-                    : GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4,
-                    crossAxisSpacing: 8.0,
-                    mainAxisSpacing: 2.0,
-                    childAspectRatio: 0.77,
-                  ),
-                  itemCount: friends.length,
-                  itemBuilder: (context, index) {
-                    final friend = friends[index];
-                    print('👤 Mostrando amigo: ${friend['name']}');
-
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min, // Ajusta el tamaño al contenido
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.grey,
-                                width: 0.3,
-                              ),
-                            ),
-                            child: CircleAvatar(
-                              radius: 35,
-                              backgroundImage: NetworkImage(friend['image'] ?? ''),
-                              backgroundColor: isDarkMode
-                                  ? Colors.grey.shade700
-                                  : Colors.grey.shade300,
-                            ),
-                          ),
-                          const SizedBox(height: 5),
-                          Flexible(
+                        ? Center(
                             child: Text(
-                              friend['name'] ?? 'Nombre no disponible',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: textColor,
-                              ),
-                              textAlign: TextAlign.center,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                              'No se encontraron amigos.',
+                              style: TextStyle(fontSize: 16, color: Colors.red),
                             ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
+                          )
+                        : GridView.builder(
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 4,
+                              crossAxisSpacing: 8.0,
+                              mainAxisSpacing: 2.0,
+                              childAspectRatio: 0.77,
+                            ),
+                            itemCount: friends.length,
+                            itemBuilder: (context, index) {
+                              final friend = friends[index];
+                              print('👤 Mostrando amigo: ${friend['name']}');
 
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8.0),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  // Ajusta el tamaño al contenido
+                                  children: [
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: Colors.grey,
+                                          width: 0.3,
+                                        ),
+                                      ),
+                                      child: CircleAvatar(
+                                        radius: 35,
+                                        backgroundImage:
+                                            NetworkImage(friend['image'] ?? ''),
+                                        backgroundColor: isDarkMode
+                                            ? Colors.grey.shade700
+                                            : Colors.grey.shade300,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 5),
+                                    Flexible(
+                                      child: Text(
+                                        friend['name'] ??
+                                            'Nombre no disponible',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: textColor,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+              ),
 
               Container(
                 color: isDarkMode ? Colors.grey.shade900 : Colors.grey.shade200,
@@ -583,8 +618,8 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
                           'Añadir a la\n lista de reproducción'),
                       _crearOpcionModal(Icons.bookmark, 'Guardar'),
                       _crearOpcionModal(Icons.history, 'Añadir a\nhistoria'),
-                      _crearOpcionModal(
-                          FontAwesomeIcons.commentDots, 'Desactivar\ncomentarios'),
+                      _crearOpcionModal(FontAwesomeIcons.commentDots,
+                          'Desactivar\ncomentarios'),
                       _crearOpcionModal(Icons.edit, 'Editar'),
                       _crearOpcionModal(Icons.bar_chart, 'Ver\nestadísticas'),
                       _crearOpcionModal(Icons.push_pin, 'Fijar en\nperfil'),
@@ -616,10 +651,8 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> with SingleTicker
             CircleAvatar(
               radius: 27,
               backgroundColor:
-              isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.white,
-              child: Icon(icon,
-                  size: 27,
-                  color: Colors.grey.shade700),
+                  isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.white,
+              child: Icon(icon, size: 27, color: Colors.grey.shade700),
             ),
             SizedBox(height: 4),
             SizedBox(

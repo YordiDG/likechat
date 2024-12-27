@@ -49,7 +49,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _fetchImages();
-    _fetchVideos('food, travel, cities, nature, street food, landmarks');
+    _fetchVideos('animals, travel, cities, nature, street food, landmarks');
     _loadProfileImage();
     socialLinks = [];
   }
@@ -284,83 +284,76 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Padding(
-                                padding:
-                                    EdgeInsets.only(right: screenWidth * 0.04),
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Stack(
-                                          alignment: Alignment.bottomRight,
-                                          children: [
-                                            GestureDetector(
-                                              onTap: () {
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        ProfileDetailScreen(
-                                                      imagePath:
-                                                          _tempProfileImage ??
-                                                              'lib/assets/placeholder_user.jpg',
-                                                    ),
-                                                  ),
-                                                );
-                                              },
-                                              child: CircleAvatar(
-                                                radius: avatarRadius,
-                                                backgroundColor:
-                                                    Colors.grey[300],
-                                                backgroundImage:
-                                                    _tempProfileImage != null
-                                                        ? FileImage(File(
-                                                            _tempProfileImage!))
-                                                        : const AssetImage(
-                                                                'lib/assets/placeholder_user.jpg')
-                                                            as ImageProvider,
-                                              ),
-                                            ),
-                                            Positioned(
-                                              bottom: 2,
-                                              right: -2,
-                                              child: GestureDetector(
-                                                onTap: () => openImagePicker(
-                                                    context,
-                                                    ImageSource.gallery),
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                    shape: BoxShape.circle,
-                                                    color: Colors.cyan,
-                                                    border: Border.all(
-                                                      color: isDarkMode
-                                                          ? Colors.black
-                                                          : Colors.white,
-                                                      width: 1.8,
-                                                    ),
-                                                  ),
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            5.0),
-                                                    child: Icon(
-                                                      Icons.camera_alt,
-                                                      color: Colors.white,
-                                                      size: 18,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
+                              // Avatar mejorado con efecto de borde
+                              Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Color(0xFF9B30FF),
+                                          Color(0xFF00BFFF),
+                                          Color(0xFF00FFFF),
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
                                     ),
-                                  ],
-                                ),
+                                    padding: EdgeInsets.all(3),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => ProfileDetailScreen(
+                                              imagePath: _tempProfileImage ?? 'lib/assets/placeholder_user.jpg',
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: CircleAvatar(
+                                        radius: avatarRadius,
+                                        backgroundColor: Colors.grey[200],
+                                        backgroundImage: _tempProfileImage != null
+                                            ? FileImage(File(_tempProfileImage!))
+                                            : const AssetImage('lib/assets/placeholder_user.jpg') as ImageProvider,
+                                      ),
+                                    ),
+                                  ),
+                                  // Botón de cámara mejorado
+                                  Positioned(
+                                    bottom: 0,
+                                    right: 0,
+                                    child: GestureDetector(
+                                      onTap: () => openImagePicker(context, ImageSource.gallery),
+                                      child: Container(
+                                        padding: EdgeInsets.all(7),
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [Colors.blue, Colors.cyan],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          ),
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: isDarkMode ? Colors.black : Colors.white, // Color dinámico
+                                            width: 2,
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          Icons.camera_alt,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+
+                                ],
                               ),
+                              SizedBox(height: 16),
                               const SizedBox(width: 5),
                               Expanded(
                                 child: FittedBox(
@@ -426,8 +419,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 SizedBox(width: 10),
                                 GestureDetector(
                                   onTap: () {
-                                    Clipboard.setData(
-                                        ClipboardData(text: usernameid));
+                                    Clipboard.setData(ClipboardData(text: usernameid));
                                     Fluttertoast.showToast(
                                       msg: "Usuario copiado al portapapeles",
                                       toastLength: Toast.LENGTH_SHORT,
@@ -437,10 +429,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       fontSize: 14.0,
                                     );
                                   },
-                                  child: Icon(
-                                    Icons.copy,
-                                    color: Colors.grey,
-                                    size: screenWidth < 350 ? 16 : 18,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.copy,
+                                        color: Colors.grey,
+                                        size: screenWidth < 350 ? 16 : 18,
+                                      ),
+                                      SizedBox(width: 4), // Espacio entre los íconos
+                                      Icon(
+                                        Icons.verified,
+                                        color: Colors.blue,
+                                        size: 20,
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
@@ -899,8 +902,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     const apiKey = 'KAEVuNf8VCwEGTHfxOhWN3gfGvKyU4e2dkE5HOcRM1M';
 
     // imagenes multiples
-    const querys = ['travel', 'mountains',
-      'education', 'flowers', 'food', 'nature', ];
+    const querys = ['farm animals', 'wild animals', 'landscapes', 'rivers', 'waterfalls'];
     final response = await http.get(
       Uri.parse(
           'https://api.unsplash.com/search/photos?query=$querys&client_id=$apiKey&per_page=20'),

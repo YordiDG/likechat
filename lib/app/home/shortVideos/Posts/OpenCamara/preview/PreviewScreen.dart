@@ -100,12 +100,12 @@ class _PreviewScreenState extends State<PreviewScreen> {
             child: ElevatedButton(
               onPressed: widget.onPublish,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.cyan,
+                backgroundColor:  Color(0xFF9B30FF),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
                 padding: EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 6), // Padding interno
+                    horizontal: 17, vertical: 5), // Padding interno
               ),
               child: Text(
                 'Publicar',

@@ -416,7 +416,7 @@ class _GalleryPageState extends State<GalleryPage> {
                       width: 23,
                       height: 23,
                       decoration: BoxDecoration(
-                        color: isSelected ? Colors.cyan : Colors.transparent,
+                        color: isSelected ? Color(0xFF9B30FF) : Colors.transparent,
                         border: Border.all(
                           color: isSelected ? Colors.transparent : Colors.white,
                           width: 1.3,
@@ -741,7 +741,7 @@ class _GalleryPageState extends State<GalleryPage> {
             Expanded(
               child: ElevatedButton(
                 onPressed: () {},
-                style: buttonStyle(Colors.cyan, Colors.white),
+                style: buttonStyle(Color(0xFF9B30FF), Colors.white),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

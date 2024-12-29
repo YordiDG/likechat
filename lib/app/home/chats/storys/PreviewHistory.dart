@@ -98,7 +98,7 @@ class _PreviewHistoryState extends State<PreviewHistory> {
             child: Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.black.withOpacity(0.4),
+                color: Colors.white.withOpacity(0.1),
               ),
               child: IconButton(
                 icon: Icon(Icons.arrow_back, color: Colors.white),
@@ -128,7 +128,7 @@ class _PreviewHistoryState extends State<PreviewHistory> {
         left: 0,
         right: 0,
         child: Container(
-          color: Colors.grey.shade200.withOpacity(0.2),
+          color: Colors.black.withOpacity(0.3),
           child: SizedBox(
             height: 65.0, // Ajustamos la altura para un mejor aspecto
             child: SingleChildScrollView(
@@ -332,9 +332,9 @@ class _PreviewHistoryState extends State<PreviewHistory> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pink,
+                  backgroundColor:  Color(0xFF9B30FF),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0),
+                    borderRadius: BorderRadius.circular(8.0),
                   ),
                 ),
                 child: Text(
@@ -356,7 +356,7 @@ class _PreviewHistoryState extends State<PreviewHistory> {
             height: 50.0,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.black.withOpacity(0.4),
+              color: Colors.white.withOpacity(0.2),
             ),
             child: Center(
               child: IconButton(

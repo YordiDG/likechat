@@ -225,10 +225,10 @@ class _PostClassState extends State<PostClass> with SingleTickerProviderStateMix
       children: List.generate(_posts.length, (postIndex) {
         final post = _posts[postIndex];
         return Container(
-          margin: EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
+          margin: EdgeInsets.symmetric(horizontal: 7.0, vertical: 1.4),
           decoration: BoxDecoration(
             color: backgroundColor,
-            borderRadius: BorderRadius.circular(12.0),
+            borderRadius: BorderRadius.circular(8.0),
             boxShadow: [
               BoxShadow(
                 color: isDarkMode
@@ -241,7 +241,7 @@ class _PostClassState extends State<PostClass> with SingleTickerProviderStateMix
             ],
             border: Border.all(
               color: isDarkMode
-                  ? Colors.red.withOpacity(0.2)
+                  ? Colors.grey.withOpacity(0.2)
                   : Colors.grey.withOpacity(0.3),
               width: 1.0,
             ),

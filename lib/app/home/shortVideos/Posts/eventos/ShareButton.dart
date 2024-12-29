@@ -248,7 +248,7 @@ class _FriendsModalState extends State<FriendsModal> {
 
     return SizedBox(
       height: MediaQuery.of(context).size.height *
-          0.6,
+          0.8,
       child: CustomScrollView(
         controller: widget.scrollController,
         slivers: [
@@ -261,21 +261,28 @@ class _FriendsModalState extends State<FriendsModal> {
                   borderRadius: BorderRadius.vertical(
                     top: Radius.circular(10),
                   ),
+                  border: Border(
+                    bottom: BorderSide( // Línea ligera al final del contenedor
+                      color: Colors.grey.shade300, // Color de la línea (ajústalo según el tema)
+                      width: 0.2, // Grosor de la línea
+                    ),
+                  ),
                 ),
-                padding: EdgeInsets.all(16),
-                alignment: Alignment.centerLeft,
-                child: Row(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                alignment: Alignment.center,
+                child: Stack(
                   children: [
-                    Expanded(
+                    // Texto e icono "Compartir con" centrados
+                    Align(
+                      alignment: Alignment.center,
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
                             "Compartir con",
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: 12,
                               fontWeight: FontWeight.bold,
                               color: textColor,
                             ),
@@ -289,16 +296,21 @@ class _FriendsModalState extends State<FriendsModal> {
                         ],
                       ),
                     ),
-                    Icon(
-                      FontAwesomeIcons.close,
-                      size: 17,
-                      color: iconColor,
+                    // Icono de cerrar (X) alineado al extremo derecho
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Icon(
+                        FontAwesomeIcons.close,
+                        size: 20,
+                        color: iconColor,
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
           ),
+
           SliverToBoxAdapter(
             child: Container(
               color: isDarkMode ? Colors.grey.shade800.withOpacity(0.4) : Colors.white,
@@ -324,7 +336,7 @@ class _FriendsModalState extends State<FriendsModal> {
                       : CarouselSlider.builder(
                     itemCount: friends.length,
                     options: CarouselOptions(
-                      height: 98,
+                      height: 102,
                       viewportFraction: 0.18, //uni o separar la fraccion de amigos
                       enableInfiniteScroll: true,
                       autoPlayInterval: Duration(seconds: 3),
@@ -382,7 +394,7 @@ class _FriendsModalState extends State<FriendsModal> {
                     child: Text(
                       "Herramientas de Interacción",
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 10,
                         fontWeight: FontWeight.bold,
                         color: isDarkMode
                             ? Colors.grey.shade400
@@ -405,7 +417,7 @@ class _FriendsModalState extends State<FriendsModal> {
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
                       "Más opciones",
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey.shade500),
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500),
                     ),
                   ),
                   SizedBox(height: 10),
@@ -510,7 +522,7 @@ class _FriendsModalState extends State<FriendsModal> {
               child: Text(
                 label,
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 9,
                   color: textColor,
                   fontWeight: FontWeight.w500,
                   height: 1.2,
@@ -535,6 +547,7 @@ class _FriendsModalState extends State<FriendsModal> {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
+              SizedBox(width: 2,),
               _buildAppIconEvent(
                 FontAwesomeIcons.solidFlag,
                 Colors.grey.withOpacity(0.2),
@@ -583,6 +596,7 @@ class _FriendsModalState extends State<FriendsModal> {
                 "Notificacion",
                 _toggleNotifications,
               ),
+              SizedBox(width: 2,),
             ],
           ),
         ),
@@ -619,11 +633,12 @@ class _FriendsModalState extends State<FriendsModal> {
               ),
               const SizedBox(height: 6),
               SizedBox(
-                height: 36, // Espacio fijo para el texto
+                height: 33, // Espacio fijo para el texto
                 child: Text(
                   label,
                   style: const TextStyle(
-                      fontSize: 11, fontWeight: FontWeight.w500),
+                      fontSize: 9,
+                      fontWeight: FontWeight.w500),
                   textAlign: TextAlign.center, // Alineación centrada
                   maxLines: 2, // Permite que el texto ocupe dos líneas si es necesario
                   overflow: TextOverflow.ellipsis, // Asegura que no se desborde
@@ -674,14 +689,16 @@ class _FriendsModalState extends State<FriendsModal> {
               ),
               const SizedBox(height: 6),
               SizedBox(
-                height: 36,
+                height: 33, // Incrementa la altura para dar más espacio al texto
                 child: Text(
                   label,
                   style: const TextStyle(
-                      fontSize: 11, fontWeight: FontWeight.w500),
+                    fontSize: 9, // Reduce el tamaño de fuente si el texto sigue siendo largo
+                    fontWeight: FontWeight.w500,
+                  ),
                   textAlign: TextAlign.center,
                   maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                  overflow: TextOverflow.ellipsis, // Mantiene los puntos suspensivos si el texto es muy largo
                 ),
               ),
             ],

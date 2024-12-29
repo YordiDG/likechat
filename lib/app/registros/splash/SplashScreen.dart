@@ -117,12 +117,12 @@ class _SplashScreenState extends State<SplashScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset('lib/assets/splash/chaski.png', height: 220),
+                Image.asset('lib/assets/splash/chaski.png', height: 170),
                 SizedBox(height: 1),
                 Text(
                   'LikeChat',
                   style: GoogleFonts.poppins(
-                    fontSize: 40,
+                    fontSize: 25,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
                     letterSpacing: 1.5,

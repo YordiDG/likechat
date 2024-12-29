@@ -4,12 +4,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:animations/animations.dart';
 
 import '../../../../../Globales/estadoDark-White/DarkModeProvider.dart';
+import '../../../../../Globales/estadoDark-White/Fuentes/FontSizeProvider.dart';
 import 'AppTranslations.dart';
 
 class LanguageSelectionWidget extends StatelessWidget {
-  // Método para obtener la bandera (usando SVG de ser posible)
   String _getCountryFlag(String languageCode) {
-    // Mapeo de códigos de idioma a banderas
     final flagMap = {
       'en': 'assets/flags/us.svg',
       'zh': 'assets/flags/china.svg',
@@ -30,99 +29,152 @@ class LanguageSelectionWidget extends StatelessWidget {
     final localizationProvider = Provider.of<LocalizationProvider>(context);
     final currentLocale = localizationProvider.currentLocale;
     final availableLanguages = localizationProvider.getAvailableLanguages();
-    final colorScheme = Theme.of(context).colorScheme;
-
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
-    final backgroundColor = darkModeProvider.backgroundColor;
-    final iconColor = darkModeProvider.iconColor;
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_new,
-            color: iconColor,
-            size: 20,
+    final fontSizeProvider = Provider.of<FontSizeProvider>(context);
+
+    return Theme(
+      data: Theme.of(context).copyWith(
+        cardTheme: CardTheme(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
         ),
-        title: Text(
-          'Seleccionar Idioma',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: colorScheme.surfaceVariant,
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              colorScheme.surfaceVariant.withOpacity(0.1),
-              colorScheme.surfaceVariant.withOpacity(0.3)
-            ],
+      child: Scaffold(
+        backgroundColor: darkModeProvider.backgroundColor,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios_new,
+              color: darkModeProvider.iconColor,
+            ),
+            onPressed: () => Navigator.of(context).pop(),
           ),
+          title: Text(
+            'Seleccionar Idioma',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: fontSizeProvider.fontSize + 2,
+            ),
+          ),
+          centerTitle: true,
+          elevation: 0,
+          backgroundColor: Colors.transparent,
         ),
-        child: ListView.separated(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-          separatorBuilder: (context, index) => Divider(
-            color: colorScheme.onSurface.withOpacity(0.1),
-            indent: 70,
-          ),
-          itemCount: availableLanguages.length,
-          itemBuilder: (context, index) {
-            final language = availableLanguages[index];
-            final isSelected = currentLocale.languageCode == language['code'];
-
-            return OpenContainer(
-              closedElevation: 0,
-              openElevation: 16,
-              closedBuilder: (context, openContainer) => ListTile(
-                leading: SvgPicture.asset(
-                  _getCountryFlag(language['code']),
-                  width: 50,
-                  height: 30,
-                  fit: BoxFit.cover,
-                ),
-                title: Text(
-                  language['name'],
+        body: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  'Elige tu idioma preferido',
                   style: TextStyle(
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      color: isSelected
-                          ? colorScheme.primary
-                          : colorScheme.onSurface
+                    fontWeight: FontWeight.bold,
+                    color: darkModeProvider.iconColor,
                   ),
                 ),
-                trailing: isSelected
-                    ? Icon(
-                    Icons.check_circle,
-                    color: colorScheme.primary
-                )
-                    : null,
-                onTap: () {
-                  localizationProvider.changeLanguage(
-                      Locale(language['code'])
-                  );
-                  Navigator.of(context).pop();
-                },
               ),
-              openBuilder: (context, closeContainer) => LanguageDetailsPage(
-                languageCode: language['code'],
-                languageName: language['name'],
+            ),
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverGrid(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 1.5,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                    final language = availableLanguages[index];
+                    final isSelected = currentLocale.languageCode == language['code'];
+
+                    return OpenContainer(
+                      closedElevation: 0,
+                      openElevation: 0,
+                      transitionDuration: Duration(milliseconds: 400),
+                      closedColor: darkModeProvider.backgroundColor,
+                      openColor: darkModeProvider.backgroundColor,
+                      closedShape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      closedBuilder: (context, openContainer) => AnimatedContainer(
+                        duration: Duration(milliseconds: 200),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isSelected
+                                ? Theme.of(context).colorScheme.primary
+                                : Colors.grey.withOpacity(0.2),
+                            width: 2,
+                          ),
+                          gradient: isSelected
+                              ? LinearGradient(
+                            colors: [
+                              Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                              Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                            ],
+                          )
+                              : null,
+                        ),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () {
+                            localizationProvider.changeLanguage(Locale(language['code']));
+                            Navigator.of(context).pop();
+                          },
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Hero(
+                                tag: 'flag_${language['code']}',
+                                child: SvgPicture.asset(
+                                  _getCountryFlag(language['code']),
+                                  width: 40,
+                                  height: 40,
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                language['name'],
+                                style: TextStyle(
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  color: isSelected
+                                      ? Theme.of(context).colorScheme.primary
+                                      : darkModeProvider.iconColor,
+                                ),
+                              ),
+                              if (isSelected) ...[
+                                SizedBox(height: 4),
+                                Icon(
+                                  Icons.check_circle,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                      openBuilder: (context, closeContainer) => LanguageDetailsPage(
+                        languageCode: language['code'],
+                        languageName: language['name'],
+                      ),
+                    );
+                  },
+                  childCount: availableLanguages.length,
+                ),
               ),
-            );
-          },
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-// Página de detalles de idioma (opcional)
 class LanguageDetailsPage extends StatelessWidget {
   final String languageCode;
   final String languageName;
@@ -130,37 +182,89 @@ class LanguageDetailsPage extends StatelessWidget {
   const LanguageDetailsPage({
     Key? key,
     required this.languageCode,
-    required this.languageName
+    required this.languageName,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+
     return Scaffold(
+      backgroundColor: darkModeProvider.backgroundColor,
       appBar: AppBar(
-        title: Text('$languageName Details'),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgPicture.asset(
-              'assets/flags/${languageCode}_large.svg',
-              width: 200,
-              height: 120,
-            ),
-            SizedBox(height: 20),
-            Text(
-              languageName,
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Language Code: $languageCode',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-          ],
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new),
+          onPressed: () => Navigator.of(context).pop(),
         ),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Hero(
+                    tag: 'flag_$languageCode',
+                    child: SvgPicture.asset(
+                      'assets/flags/${languageCode}_large.svg',
+                      width: 200,
+                      height: 120,
+                    ),
+                  ),
+                  SizedBox(height: 32),
+                  Text(
+                    languageName,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: darkModeProvider.iconColor,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      languageCode.toUpperCase(),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(16),
+            child: ElevatedButton(
+              onPressed: () {
+                final localizationProvider = Provider.of<LocalizationProvider>(context, listen: false);
+                localizationProvider.changeLanguage(Locale(languageCode));
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                minimumSize: Size(double.infinity, 56),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: Text(
+                'Seleccionar ${languageName}',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

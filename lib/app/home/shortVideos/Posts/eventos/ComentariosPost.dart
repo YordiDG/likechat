@@ -578,7 +578,7 @@ class _CommentInputFieldState extends State<CommentInputField>
                                   minLines: 1,
                                   cursorColor: Colors.cyan,
                                   style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 12,
                                     color: widget.isDarkMode
                                         ? Colors.grey.shade100
                                         : Colors.grey.shade900,
@@ -589,7 +589,7 @@ class _CommentInputFieldState extends State<CommentInputField>
                                       color: widget.isDarkMode
                                           ? Colors.grey.shade400
                                           : Colors.grey.shade500,
-                                      fontSize: 15,
+                                      fontSize: 12,
                                     ),
                                     border: InputBorder.none,
                                     focusedBorder: InputBorder.none,
@@ -799,7 +799,6 @@ class DislikeButton extends StatelessWidget {
     );
   }
 }
-
 
 //clase de galeria
 class GalleryPicker {

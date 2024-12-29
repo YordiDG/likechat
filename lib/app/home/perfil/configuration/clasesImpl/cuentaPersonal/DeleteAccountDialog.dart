@@ -1,6 +1,9 @@
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
+
+import '../../../../../Globales/estadoDark-White/Fuentes/FontSizeProvider.dart';
 
 class AccountOptionsDialog {
   static void show(BuildContext context) {
@@ -15,13 +18,13 @@ class AccountOptionsDialog {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          backgroundColor: Colors.grey[800],
+          backgroundColor: isDarkMode ? Colors.grey[800] : Colors.grey.shade200,
           title: Text(
             '¿Qué quieres hacer?',
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 18,
-              color: Colors.white,
+              fontSize: 16,
+              color: titleColor,
             ),
             textAlign: TextAlign.center,
           ),
@@ -29,7 +32,7 @@ class AccountOptionsDialog {
             'Selecciona una opción para desactivar o eliminar tu cuenta.',
             style: TextStyle(
               fontSize: 13,
-              color: Colors.white,
+              color: titleColor,
             ),
             textAlign: TextAlign.justify,
           ),
@@ -89,13 +92,14 @@ class AccountOptionsDialog {
       }) {
     return TextButton(
       style: ButtonStyle(
-        backgroundColor: MaterialStateProperty.all(color.withOpacity(0.6)),
+        backgroundColor: MaterialStateProperty.all(color),
         shape: MaterialStateProperty.all(
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10.0),
           ),
         ),
       ),
+      onPressed: onPressed,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
@@ -105,12 +109,12 @@ class AccountOptionsDialog {
             label,
             style: TextStyle(
               color: Colors.white,
+              fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
           ),
         ],
       ),
-      onPressed: onPressed,
     );
   }
 
@@ -328,26 +332,31 @@ class AccountMenuTile extends StatelessWidget {
     final titleColor = isDarkMode ? Colors.white : Colors.black;
     final subtitleColor = isDarkMode ? Colors.grey[400] : Colors.grey;
 
+    final fontSizeProvider = Provider.of<FontSizeProvider>(context);
+
     return ListTile(
       tileColor: tileColor,
       leading: Icon(
         icon,
-        color: Colors.blue,
+        color: Colors.grey.shade600,
       ),
       title: Text(
         title,
         style: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 16,
+          fontWeight: FontWeight.w500,
           color: titleColor,
         ),
+        overflow: TextOverflow
+            .ellipsis,
       ),
       subtitle: Text(
         description,
         style: TextStyle(
           color: subtitleColor,
-          fontSize: 11,
+          fontSize: fontSizeProvider.fontSize - 4,
         ),
+        overflow: TextOverflow
+            .ellipsis,
       ),
       onTap: () {
         AccountOptionsDialog.show(context);

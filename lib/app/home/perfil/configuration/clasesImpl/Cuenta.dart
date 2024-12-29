@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../Globales/estadoDark-White/DarkModeProvider.dart';
+import '../../../../Globales/estadoDark-White/Fuentes/FontSizeProvider.dart';
 import 'cuentaPersonal/AccountVerificationScreen.dart';
 import 'cuentaPersonal/DataDownloader.dart';
 import 'cuentaPersonal/DatosCuenta.dart';
@@ -24,21 +25,34 @@ class Cuenta extends StatelessWidget {
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
     final backgroundColor = darkModeProvider.backgroundColor;
     final iconColor = darkModeProvider.iconColor;
+    final isDarkMode = darkModeProvider.isDarkMode;
+
+    final fontSizeProvider = Provider.of<FontSizeProvider>(context);
 
     return Scaffold(
       backgroundColor:backgroundColor ,
       appBar: AppBar(
+        backgroundColor: isDarkMode ? Colors.grey.shade900 : Colors.grey.shade100,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios_new,
             color: iconColor,
-            size: 25,
+            size: 20,
           ),
           onPressed: () {
             Navigator.of(context).pop();
           },
         ),
-        title: Text('Cuenta', style: TextStyle(fontWeight: FontWeight.w600),),
+        title: Center(
+          child: Text(
+            'Cuenta',
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+          ),
+        ),
+        actions: [
+
+          SizedBox(width: 48), // Asegúrate de usar un ancho equivalente al del IconButton
+        ],
       ),
       body: ListView(
         children: [
@@ -54,7 +68,7 @@ class Cuenta extends StatelessWidget {
                 MaterialPageRoute(
                   builder: (context) => DatosCuenta(
                     email: 'yordi15@gmail.com',
-                    phoneNumber: '902411155', region: 'Perú',
+                    phoneNumber: '+519902411155', region: 'Perú',
                   ),
                 ),
               );
@@ -131,16 +145,16 @@ class Cuenta extends StatelessWidget {
         required VoidCallback onTap,
       }) {
     return ListTile(
-      leading: Icon(icon, color: textColor),
+      leading: Icon(icon, color: Colors.grey.shade600),
       title: Text(
         title,
-        style: TextStyle(color: textColor, fontSize: fontSize),
+        style: TextStyle(color: textColor, fontWeight: FontWeight.w500, fontSize: fontSize),
       ),
       subtitle: Text(
         description,
         style: TextStyle(color: textColor.withOpacity(0.6), fontSize: fontSize - 4),
       ),
-      trailing: Icon(Icons.arrow_forward_ios, size: 14, color: textColor),
+      trailing: Icon(Icons.arrow_forward_ios, size: fontSize, color: textColor),
       tileColor: tileColor,
       onTap: onTap,
     );
@@ -152,8 +166,8 @@ class Cuenta extends StatelessWidget {
       child: Text(
         title,
         style: TextStyle(
-          color: textColor,
-          fontSize: fontSize + 2,
+          color: Colors.grey.shade600,
+          fontSize: fontSize - 3,
           fontWeight: FontWeight.bold,
         ),
       ),

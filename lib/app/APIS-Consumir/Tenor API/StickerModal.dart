@@ -177,62 +177,82 @@ class _StickerModalState extends State<StickerModal> {
       child: Theme(
         data: Theme.of(context).copyWith(
           textSelectionTheme: TextSelectionThemeData(
-            cursorColor: Colors.cyan, // Color del cursor
+            cursorColor: Colors.cyan,
             selectionColor: Colors.cyan.withOpacity(0.3),
             selectionHandleColor: Colors.cyan,
           ),
         ),
         child: SizedBox(
-          height: 35,
-          child: TextField(
-            controller: searchController,
-            onChanged: onSearchChanged,
-            cursorColor: Colors.cyan,
-            decoration: InputDecoration(
-              hintText: 'Buscar GIPHY',
-              hintStyle: TextStyle(
-                height: 0.7,
+          child: SizedBox(
+            height: 40, // Altura ajustada para mejor visibilidad
+            child: TextField(
+              controller: searchController,
+              onChanged: onSearchChanged,
+              cursorColor: Colors.cyan,
+              style: const TextStyle(
                 fontSize: 12,
-                color: isDarkMode
-                    ? Colors.white54
-                    : Colors.black54, // Ayuda visual según tema
+                fontWeight: FontWeight.w400,
               ),
-              suffixIcon: searchController.text.isNotEmpty
-                  ? IconButton(
-                      iconSize: 16,
-                      icon: Container(
-                        width: 18,
-                        height: 18,
-                        decoration: BoxDecoration(
-                          color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade400,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.clear,
-                          color: Colors.white,
-                          size: 13,
-                        ),
-                      ),
-                      onPressed: () {
-                        searchController.clear();
-                        onSearchChanged('');
-                      },
-                    )
-                  : null,
-              prefixIcon: Icon(Icons.search,
-                  size: 21, color: Colors.grey.shade500.withOpacity(0.8)),
-              contentPadding:
-                  EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color: Colors.grey.shade300,
-                  width: 0.5,
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: isDarkMode
+                    ? const Color(0xFF2C2C2C)
+                    : const Color(0xFFF3F3F3),
+                hintText: 'Buscar GIPHY',
+                hintStyle: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: isDarkMode
+                      ? Colors.grey.shade400
+                      : Colors.grey.shade600,
                 ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.cyan, width: 1),
+                isDense: true,
+                suffixIcon: searchController.text.isNotEmpty
+                    ? IconButton(
+                  iconSize: 16,
+                  icon: Container(
+                    width: 18,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: isDarkMode
+                          ? Colors.grey.shade800
+                          : Colors.grey.shade400,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.clear,
+                      color: Colors.white,
+                      size: 13,
+                    ),
+                  ),
+                  onPressed: () {
+                    searchController.clear();
+                    onSearchChanged('');
+                  },
+                )
+                    : null,
+                prefixIcon: Icon(
+                  Icons.search,
+                  size: 20,
+                  color: isDarkMode
+                      ? Colors.grey.shade500
+                      : Colors.grey.shade700,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 12.0,
+                  horizontal: 12.0,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(
+                    color: Colors.cyan.shade400,
+                    width: 1,
+                  ),
+                ),
               ),
             ),
           ),
@@ -293,9 +313,9 @@ class _StickerModalState extends State<StickerModal> {
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 12,
-            color: isSelected ? Colors.white : textColor,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            fontSize: 11,
+            color: isSelected ? Colors.white : Colors.grey,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
           ),
         ),
       ),
@@ -538,16 +558,16 @@ class _StickerModalState extends State<StickerModal> {
                 Text(
                   'Eliminar favorito',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: textColor,
                   ),
                 ),
                 SizedBox(height: 2),
                 Text(
-                  '¿Estás seguro de que deseas eliminar este sticker de tus favoritos?',
+                  '¿Estás seguro de que deseas eliminar \neste sticker de tus favoritos?',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 10,
                     color: isDarkMode
                         ? Colors.grey.shade400
                         : Colors.grey.shade600,
@@ -573,7 +593,7 @@ class _StickerModalState extends State<StickerModal> {
                       child: Text(
                         'Cancelar',
                         style: TextStyle(
-                            color: textColor, fontWeight: FontWeight.w600),
+                            color: textColor, fontSize: 12, fontWeight: FontWeight.w600),
                       ),
                     ),
                     ElevatedButton(
@@ -595,13 +615,13 @@ class _StickerModalState extends State<StickerModal> {
                           gravity: ToastGravity.BOTTOM,
                           backgroundColor: Colors.grey.shade800,
                           textColor: Colors.white,
-                          fontSize: 13.0,
+                          fontSize: 11.0,
                         );
                       },
                       child: Text(
                         'Eliminar',
                         style: TextStyle(
-                            color: Colors.white, fontWeight: FontWeight.w600),
+                            color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
                       ),
                     ),
                   ],

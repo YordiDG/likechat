@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../Globales/estadoDark-White/DarkModeProvider.dart';
 import '../../../Globales/estadoDark-White/Fuentes/FontSizeProvider.dart';
+import '../../shortVideos/Posts/eventos/ShareButton.dart';
 import 'clasesImpl/Bloqueados/BlockScreen.dart';
 import 'clasesImpl/Cuenta.dart';
 import 'clasesImpl/Monetization/MonetizationScreen.dart';
@@ -31,36 +32,36 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
     final backgroundColor = isDarkMode ? Colors.black : Colors.grey.shade200;
     final appBarColor = isDarkMode ? Colors.black : Colors.white;
     final textColor = isDarkMode ? Colors.white : Colors.black;
-    final tileColor = isDarkMode ? Colors.black12 : Colors.grey[100]!;
+    final tileColor = isDarkMode ? Colors.grey.shade900 : Colors.white;
     final sectionHeaderColor = isDarkMode ? Colors.black : Colors.grey.shade200;
 
     final fontSize =
         fontSizeProvider.fontSize; // Obtén el tamaño de fuente del proveedor
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: appBarColor,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: textColor),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        title: Center(
-          child: Text(
-            'Configuración',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: textColor,
-              fontSize: 16,
+        appBar: AppBar(
+          backgroundColor: appBarColor,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back_ios_new, size: 20, color: textColor),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          title: Center(
+            child: Text(
+              'Configuración',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: textColor,
+                fontSize: 14,
+              ),
             ),
           ),
+          actions: [
+            // Esto asegura que haya espacio simétrico en el lado derecho para equilibrar la flecha de la izquierda
+            SizedBox(width: 48),
+          ],
         ),
-        actions: [
-          // Esto asegura que haya espacio simétrico en el lado derecho para equilibrar la flecha de la izquierda
-          SizedBox(width: 48),
-        ],
-      ),
         body: SafeArea(
           child: Container(
             color: backgroundColor,
@@ -92,19 +93,18 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => Cuenta(
-                                tileColor: tileColor,
-                                textColor: textColor,
                                 fontSize: fontSize,
                               ),
                             ),
                           ),
                         ),
-                        MenuTile(
+                        MenuTileShared(
                           icon: Icons.reply,
+                          // Cambiado para que apunte hacia el otro lado
                           title: 'Compartir perfil',
                           tileColor: Colors.transparent,
                           textColor: textColor,
-                          onTap: () => _showShareDialog(context),
+                          onTap: () => _showFriendsModal(context),
                         ),
                         MenuTile(
                           icon: Icons.video_camera_back_rounded,
@@ -113,7 +113,8 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
                           textColor: textColor,
                           onTap: () => Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => VideoListScreen()),
+                            MaterialPageRoute(
+                                builder: (context) => VideoListScreen()),
                           ),
                         ),
                       ],
@@ -147,24 +148,31 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => Scaffold(
-                                  appBar: AppBar(
-                                    title: Text('Privacidad',
-                                        style: TextStyle(color: textColor)),
-                                    backgroundColor: tileColor,
-                                  ),
-                                  body: PrivacySettings(
-                                    switchActiveColor: Colors.cyan,
-                                    titleColor: textColor,
-                                    sectionTitleColor: Colors.grey.shade600,
-                                    descriptionColor: Colors.grey,
-                                    sectionBackgroundColor: isDarkMode
-                                        ? Colors.black
-                                        : Colors.grey.shade100,
-                                    titleFontSize: 14.0,
-                                    sectionTitleFontSize: 16.0,
-                                    descriptionFontSize: 11.0,
-                                  ),
-                                ),
+                                    appBar: AppBar(
+                                      backgroundColor: appBarColor,
+                                      leading: IconButton(
+                                        icon: Icon(Icons.arrow_back_ios_new,
+                                            size: 20, color: textColor),
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                      ),
+                                      title: Center(
+                                        child: Text(
+                                          'Privacidad',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: textColor,
+                                            fontSize: fontSize + 1,
+                                          ),
+                                        ),
+                                      ),
+                                      actions: [
+                                        // Esto asegura que haya espacio simétrico en el lado derecho para equilibrar la flecha de la izquierda
+                                        SizedBox(width: 48),
+                                      ],
+                                    ),
+                                    body: PrivacySettings()),
                               ),
                             );
                           },
@@ -180,9 +188,28 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
                               MaterialPageRoute(
                                 builder: (context) => Scaffold(
                                   appBar: AppBar(
-                                    title: Text('Seguridad',
-                                        style: TextStyle(color: textColor)),
-                                    backgroundColor: tileColor,
+                                    backgroundColor: appBarColor,
+                                    leading: IconButton(
+                                      icon: Icon(Icons.arrow_back_ios_new,
+                                          size: 20, color: textColor),
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                    title: Center(
+                                      child: Text(
+                                        'Seguridad',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: textColor,
+                                          fontSize: fontSize + 2,
+                                        ),
+                                      ),
+                                    ),
+                                    actions: [
+                                      // Esto asegura que haya espacio simétrico en el lado derecho para equilibrar la flecha de la izquierda
+                                      SizedBox(width: 48),
+                                    ],
                                   ),
                                   body: SecuritySettings(
                                     titleColor: textColor,
@@ -190,9 +217,7 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
                                         ? Colors.white
                                         : Colors.grey.shade700,
                                     descriptionColor: Colors.grey,
-                                    titleFontSize: 14.0,
-                                    sectionTitleFontSize: 16.0,
-                                    descriptionFontSize: 11.0,
+
                                   ),
                                 ),
                               ),
@@ -212,9 +237,9 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
                                   tileColor: textColor,
                                   textColor: textColor,
                                   sectionTitleColor:
-                                  isDarkMode ? Colors.white : Colors.black,
+                                      isDarkMode ? Colors.white : Colors.black,
                                   titleColor:
-                                  isDarkMode ? Colors.white : Colors.black,
+                                      isDarkMode ? Colors.white : Colors.black,
                                   descriptionColor: Colors.grey,
                                   titleFontSize: fontSize,
                                   sectionTitleFontSize: fontSize + 1,
@@ -294,19 +319,19 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
                         MenuTile(
                           icon: Icons.payment,
                           title: 'Pagos',
-                          tileColor: tileColor,
+                          tileColor: Colors.transparent,
                           textColor: textColor,
                         ),
                         MenuTile(
                           icon: Icons.ad_units,
                           title: 'Anuncios',
-                          tileColor: tileColor,
+                          tileColor: Colors.transparent,
                           textColor: textColor,
                         ),
                         MenuTile(
                           icon: Icons.assessment,
                           title: 'Estadísticas',
-                          tileColor: tileColor,
+                          tileColor: Colors.transparent,
                           textColor: textColor,
                         ),
                       ],
@@ -549,49 +574,67 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
                 ),
 
                 // Tema
+                SectionHeader(
+                  title: 'Tema',
+                  backgroundColor: sectionHeaderColor,
+                  textColor: Colors.grey,
+                ),
                 Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
+                  padding: EdgeInsets.symmetric(horizontal: 10.0),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8.0),
+                    decoration: BoxDecoration(
+                      color: isDarkMode ? Colors.grey.shade900 : Colors.white,
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 3.0, horizontal: 10.0), // Reducido el padding vertical
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          SizedBox(width: 15.0),
-                          Icon(
-                            isDarkMode ? Icons.wb_sunny : Icons.nightlight_round,
-                            color: isDarkMode ? Colors.white : Colors.black,
-                          ),
-                          SizedBox(width: 5.0),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 2.0),
-                            child: Text(
-                              'Modo ${isDarkMode ? "claro" : "oscuro"}',
-                              style: TextStyle(
-                                color: textColor,
-                                fontWeight: FontWeight.w500,
+                          Row(
+                            children: [
+                              SizedBox(width: 10.0), // Reducido el espacio
+                              Icon(
+                                isDarkMode
+                                    ? Icons.wb_sunny
+                                    : Icons.nightlight_round,
+                                color: isDarkMode ? Colors.white : Colors.black,
                               ),
-                              overflow: TextOverflow.ellipsis,
+                              SizedBox(width: 5.0),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 2.0),
+                                child: Text(
+                                  'Modo ${isDarkMode ? "claro" : "oscuro"}',
+                                  style: TextStyle(
+                                    color: textColor,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Transform.scale(
+                            scale: 0.8,
+                            child: Switch(
+                              value: isDarkMode,
+                              onChanged: (value) {
+                                darkModeProvider.setDarkMode(value);
+                              },
+                              activeColor: Colors.white,
+                              activeTrackColor: Color(0xFF9B30FF),
+                              inactiveThumbColor: Colors.grey,
+                              inactiveTrackColor: Colors.grey.withOpacity(0.5),
                             ),
                           ),
                         ],
                       ),
-                      Transform.scale(
-                        scale: 0.8,
-                        child: Switch(
-                          value: isDarkMode,
-                          onChanged: (value) {
-                            darkModeProvider.setDarkMode(value);
-                          },
-                          activeColor: Colors.white,
-                          activeTrackColor: Colors.cyan,
-                          inactiveThumbColor: Colors.grey,
-                          inactiveTrackColor: Colors.grey.withOpacity(0.5),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
 
+                SizedBox(height: 10,),
                 // Versión
                 Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -599,7 +642,7 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
                     'LikeChat V10.0 (2025100020)',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: fontSize -1,
                       fontWeight: FontWeight.w500,
                       fontFamily: 'Arial',
                       color: isDarkMode ? Colors.grey[400] : Colors.grey[800],
@@ -610,106 +653,29 @@ class _MenuConfigurationState extends State<MenuConfiguration> {
               ],
             ),
           ),
-        )
-    );
+        ));
   }
 
   //metodo de compartir perfil
-  void _showShareDialog(BuildContext context) {
-    showDialog(
+  void _showFriendsModal(BuildContext context) {
+    showModalBottomSheet(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          backgroundColor: Colors.grey.shade900,
-          title: Center(
-            child: Text(
-              'Compartir perfil',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-          ),
-          content: Text(
-            '¿Deseas compartir tu perfil?',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                final String shareText = 'Mira mi perfil en LikeChat!';
-                final String shareLink =
-                    'https://www.likechat.com/yordigonzales';
-
-                // Usar el paquete share_plus para compartir
-                Share.share('$shareText\n$shareLink');
-                Navigator.of(context)
-                    .pop(); // Cierra el diálogo después de compartir
-              },
-              child: Text(
-                'Compartir',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-              style: ButtonStyle(
-                padding: MaterialStateProperty.all<EdgeInsets>(
-                  EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-                ),
-                minimumSize: MaterialStateProperty.all<Size>(
-                  Size(0, 40),
-                ),
-                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                backgroundColor: MaterialStateProperty.all<Color>(Colors.cyan),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Cierra el diálogo
-              },
-              child: Text(
-                'Cancelar',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-              style: ButtonStyle(
-                padding: MaterialStateProperty.all<EdgeInsets>(
-                  EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-                ),
-                minimumSize: MaterialStateProperty.all<Size>(
-                  Size(0, 40),
-                ),
-                side: MaterialStateProperty.all<BorderSide>(
-                  BorderSide(color: Colors.grey.withOpacity(0.7), width: 1),
-                ),
-                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                backgroundColor:
-                    MaterialStateProperty.all<Color>(Colors.transparent),
-              ),
-            ),
-          ],
-        );
-      },
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.35,
+        // Tamaño inicial del modal
+        minChildSize: 0.35,
+        // Tamaño mínimo al contraerlo
+        maxChildSize: 0.35,
+        // Tamaño máximo al expandirlo
+        builder: (context, scrollController) {
+          return ShareModalPerfil(scrollController: scrollController);
+        },
+      ),
     );
   }
 }
@@ -738,7 +704,7 @@ class SectionHeader extends StatelessWidget {
         style: TextStyle(
           fontWeight: FontWeight.bold,
           color: textColor,
-          fontSize: fontSizeProvider.fontSize - 2,
+          fontSize: fontSizeProvider.fontSize - 1,
         ),
       ),
     );
@@ -785,7 +751,60 @@ class MenuTile extends StatelessWidget {
             ),
           ],
         ),
-        trailing: Icon(Icons.arrow_forward_ios, size: fontSizeProvider.fontSize, color: Colors.grey),
+        trailing: Icon(Icons.arrow_forward_ios,
+            size: fontSizeProvider.fontSize, color: Colors.grey),
+        onTap: onTap,
+      ),
+    );
+  }
+}
+
+//para shared
+class MenuTileShared extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final Color tileColor;
+  final Color textColor;
+  final VoidCallback? onTap;
+
+  MenuTileShared({
+    required this.icon,
+    required this.title,
+    required this.tileColor,
+    required this.textColor,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final fontSizeProvider = Provider.of<FontSizeProvider>(context);
+
+    return Container(
+      color: tileColor,
+      child: ListTile(
+        title: Row(
+          children: [
+            SizedBox(width: 5),
+            Transform(
+              alignment: Alignment.center,
+              transform: Matrix4.rotationY(3.14), // Rotación horizontal
+              child: Icon(icon, color: Colors.grey), // El ícono invertido
+            ),
+            SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  color: textColor,
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        trailing: Icon(Icons.arrow_forward_ios,
+            size: fontSizeProvider.fontSize, color: Colors.grey),
         onTap: onTap,
       ),
     );

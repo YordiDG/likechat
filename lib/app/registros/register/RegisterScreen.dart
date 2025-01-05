@@ -101,7 +101,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       Text(
                         'LikeChat',
                         style: TextStyle(
-                          fontSize: 30,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: isDarkMode ? Colors.cyan : Colors.black,
                         ),
@@ -110,7 +110,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       Text(
                         'Crear una cuenta',
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: Colors.teal,
                         ),
@@ -181,11 +181,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: SizedBox(
                     width: double.infinity,
                     child: Text(
-                      'Registro',
+                      'Registrar Cuenta',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 18,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -198,7 +198,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       text: '¿Ya tienes una cuenta?',
                       style: TextStyle(
                           color: textColor,
-                          fontSize: 16,
+                          fontSize: 14,
                           fontWeight: FontWeight.bold),
                       recognizer: TapGestureRecognizer()
                         ..onTap = () {
@@ -359,7 +359,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             },
           ),
         ),
-        SizedBox(height: 8),
+        SizedBox(height: 2),
         Container(
           alignment: Alignment.centerRight,
           padding: EdgeInsets.only(right: 10),
@@ -372,7 +372,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     emailErrorMessage!,
                     style: TextStyle(
                       color: errorTextColor,
-                      fontSize: 12,
+                      fontSize: 10,
                     ),
                   ),
                 ),
@@ -380,7 +380,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 '${controller.text.length}/60',
                 style: TextStyle(
                   color: Colors.grey,
-                  fontSize: 12,
+                  fontSize: 10,
                 ),
               ),
             ],
@@ -561,20 +561,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         labelStyle: TextStyle(
           color: textColor,
-          fontSize: 16,
+          fontSize: 12,
           fontWeight: FontWeight.w500,
         ),
         errorText: showError ? errorText : null,
         errorStyle: TextStyle(
           color: Colors.red.shade800,
-          fontSize: 12,
+          fontSize: 10,
           fontWeight: FontWeight.w500,
         ),
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
       style: TextStyle(
         color: textColor,
-        fontSize: 16,
+        fontSize: 12,
         fontWeight: FontWeight.w500,
       ),
     );
@@ -699,16 +699,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
       children: [
         Icon(
           isValid ? Icons.check_circle : Icons.cancel,
-          color: isValid ? Colors.green : Colors.red,
-          size: 16,
+          color: isValid ? Colors.green : Colors.grey,
+          size: 14,
         ),
         SizedBox(width: 5),
         Text(
           isValid ? successMessage : text,
           style: TextStyle(
-            color: isValid ? Colors.green : Colors.red,
-            fontSize: 12,
-            fontWeight: isValid ? FontWeight.normal : FontWeight.bold,
+            color: isValid ? Colors.green : Colors.grey,
+            fontSize: 10,
+            fontWeight: isValid ? FontWeight.w400 : FontWeight.w500,
           ),
         ),
       ],
@@ -739,7 +739,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           children: [
             Icon(
               Icons.person,
-              size: 18,
+              size: 20,
               color: iconColor, // Cambiar el color del ícono según el tema
             ),
             SizedBox(width: 8),
@@ -747,7 +747,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Text(
                 'Select Gender',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: isDarkMode ? Colors.white : Colors.black, // Cambiar color de texto según el tema
                 ),
@@ -762,8 +762,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Text(
             gender,
             style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
               color: isDarkMode ? Colors.white : Colors.black, // Cambiar color de texto según el tema
             ),
             overflow: TextOverflow.ellipsis,
@@ -842,14 +842,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 TextSpan(
                   text: 'Aceptar ',
-                  style: TextStyle(color: textColor, fontSize: 15),
+                  style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.w400),
                 ),
                 TextSpan(
                   text: 'Condiciones ',
                   style: TextStyle(
                     color: Colors.cyan,
                     fontWeight: FontWeight.bold,
-                    fontSize: 15,
+                    fontSize: 14,
                   ),
                   recognizer: TapGestureRecognizer()
                     ..onTap = () {
@@ -864,14 +864,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 TextSpan(
                   text: ' y ',
-                  style: TextStyle(color: textColor, fontSize: 15),
+                  style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.w400),
                 ),
                 TextSpan(
                   text: 'Política de Privacidad',
                   style: TextStyle(
                     color: Colors.cyan,
                     fontWeight: FontWeight.bold,
-                    fontSize: 15,
+                    fontSize: 14,
                   ),
                   recognizer: TapGestureRecognizer()
                     ..onTap = () {
@@ -926,9 +926,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         msg: "Registro exitoso, revisa tu correo para verificar tu cuenta",
         toastLength: Toast.LENGTH_LONG,
         gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.grey.shade800,
         textColor: Colors.white,
-        fontSize: 16.0,
+        fontSize: 11.0,
       );
 
       // Navegar a la pantalla de verificación de código
@@ -990,7 +990,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     color: Theme.of(context).brightness == Brightness.dark
                         ? Colors.redAccent
                         : Colors.red,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.bold, fontSize: 14
                   ),
                 ),
               ],
@@ -1000,7 +1000,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               style: TextStyle(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? Colors.white
-                    : Colors.black,
+                    : Colors.black, fontSize: 12
               ),
             ),
             actions: <Widget>[
@@ -1019,7 +1019,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: Text(
                   'OK',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: Colors.white, fontSize: 12
                   ),
                 ),
               ),
@@ -1057,7 +1057,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     'Registro fallido',
                     style: TextStyle(
                       color: Colors.redAccent,
-                      fontSize: 20,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -1066,7 +1066,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     'Parece que el correo ya está registrado o hubo un problema en el registro. Por favor, inténtelo de nuevo.',
                     style: TextStyle(
                       color: Colors.black87,
-                      fontSize: 15,
+                      fontSize: 10,
                       height: 1.5,
                     ),
                     textAlign: TextAlign.center,
@@ -1086,7 +1086,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       'OK',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 16,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

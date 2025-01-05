@@ -101,7 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Divider(
                 color: isDarkMode ? Colors.grey.shade200 : Colors.grey.shade700,
-                thickness: 0.1,
+                thickness: 0.01,
                 height: 0.1,
               ),
               Padding(
@@ -149,7 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 : (isSelected
                 ? (isDarkMode ? Colors.white : Colors.black)
                 : (isDarkMode ? Colors.grey : Colors.grey[500])),
-            size: 32,
+            size: 28,
           ),
           Text(
             label,
@@ -177,8 +177,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return GestureDetector(
       onTap: () => _onItemTapped(2),
       child: Container(
-        height: 39,
-        width: 39,
+        height: 40,
+        width: 40,
         decoration: BoxDecoration(
           color: isSpecialSelected
               ? Colors.transparent
@@ -224,7 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
             color: isSelected
                 ? (isDarkMode ? Colors.white : Colors.black)
                 : (isDarkMode ? Colors.grey : Colors.grey[500]),
-            size: 28,
+            size: 25,
           ),
           SizedBox(height: 1),
           Text(
@@ -233,7 +233,7 @@ class _HomeScreenState extends State<HomeScreen> {
               color: isSelected
                   ? (isDarkMode ? Colors.white : Colors.black)
                   : (isDarkMode ? Colors.grey : Colors.grey[500]),
-              fontSize: 11,
+              fontSize: 10,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
             ),
           ),

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:ui';
 import 'package:LikeChat/app/home/chats/storys/util/DrawingPainter.dart';
 import 'package:connectivity/connectivity.dart';
@@ -11,6 +12,7 @@ import 'package:provider/provider.dart';
 import '../../../APIS-Consumir/Deezer-API-Musica/MusicModal.dart';
 import '../../../APIS-Consumir/Tenor API/StickerModal.dart';
 import '../../../Globales/estadoDark-White/DarkModeProvider.dart';
+import '../../../Globales/estadoDark-White/Fuentes/FontSizeProvider.dart';
 import '../../shortVideos/PreviewVideo/opciones de edicion/TextEdit/TextEditorHandler.dart';
 
 class PreviewHistory extends StatefulWidget {
@@ -39,11 +41,28 @@ class _PreviewHistoryState extends State<PreviewHistory> {
 
   List<String> _stories = [];
 
+  // Variables para zoom y transformación
+  // Variables para zoom y transformación
+  double _scale = 1.0;
+  double _previousScale = 1.0;
+  Offset _offset = Offset.zero;
+  Offset _previousOffset = Offset.zero;
+  Map<int, TransformationData> _imageTransformations = {};
+
+  // Variables para el gesto de eliminar
+  bool _isDragging = false;
+  double _dragExtent = 0.0;
+  bool _showDeleteIcon = false;
+  bool _hideWidgets = false;
+
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(
-        initialPage: _currentPage); // inicializa con el índice actual
+    _pageController = PageController(initialPage: _currentPage);
+    // Inicializar transformaciones para cada imagen
+    for (int i = 0; i < widget.images.length; i++) {
+      _imageTransformations[i] = TransformationData();
+    }
   }
 
   @override
@@ -52,163 +71,223 @@ class _PreviewHistoryState extends State<PreviewHistory> {
     super.dispose();
   }
 
+  bool get _canDelete => _scale <= 1.0;
+
+  void _handleScaleStart(ScaleStartDetails details) {
+    _previousScale = _scale;
+    _previousOffset = _offset;
+  }
+
+  void _handleScaleUpdate(ScaleUpdateDetails details) {
+    setState(() {
+      // Actualizar escala
+      _scale = (_previousScale * details.scale)
+          .clamp(0.5, 3.0); // Permitir reducir hasta 0.5x
+
+      // Calcular límites de movimiento basados en el zoom
+      final double maxOffset = 100.0 * (_scale - 1);
+
+      // Actualizar posición con límites
+      if (details.scale == 1.0) {
+        final newOffset = _previousOffset + details.focalPointDelta;
+        _offset = Offset(
+          newOffset.dx.clamp(-maxOffset, maxOffset),
+          newOffset.dy.clamp(-maxOffset, maxOffset),
+        );
+      }
+
+      // Guardar transformación
+      _imageTransformations[_currentPage] =
+          TransformationData(scale: _scale, offset: _offset);
+    });
+  }
+
+  void _handleVerticalDragUpdate(DragUpdateDetails details) {
+    if (!_canDelete)
+      return; // Solo permitir arrastre si la imagen no está ampliada
+
+    setState(() {
+      _isDragging = true;
+      _hideWidgets = true;
+      _dragExtent += details.delta.dy;
+      _showDeleteIcon = _dragExtent.abs() > 150; // Aumentar umbral
+    });
+  }
+
+  void _handleVerticalDragEnd(DragEndDetails details) {
+    if (_showDeleteIcon && _canDelete) {
+      HapticFeedback.heavyImpact();
+      setState(() {
+        widget.images.removeAt(_currentPage);
+        if (widget.images.isEmpty) {
+          Navigator.pop(context);
+        } else {
+          _currentPage = _currentPage.clamp(0, widget.images.length - 1);
+          _pageController.jumpToPage(_currentPage);
+        }
+      });
+    }
+
+    setState(() {
+      _isDragging = false;
+      _hideWidgets = false;
+      _dragExtent = 0.0;
+      _showDeleteIcon = false;
+    });
+  }
+
+  Widget _buildImageWithBlur(File image, int index) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // Fondo borroso
+        Transform.scale(
+          scale: 1.2,
+          child: Image.file(
+            image,
+            fit: BoxFit.cover,
+          ),
+        ),
+        BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+          child: Container(
+            color: Colors.black.withOpacity(0.3),
+          ),
+        ),
+        // Imagen principal
+        Transform(
+          transform: Matrix4.identity()
+            ..translate(_offset.dx, _offset.dy)
+            ..scale(_scale),
+          alignment: Alignment.center,
+          child: Image.file(
+            image,
+            fit: BoxFit.contain,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final blurHeight = screenHeight * 0.2;
-
-    final darkModeProvider = Provider.of<DarkModeProvider>(context);
-    final isDarkMode = darkModeProvider.isDarkMode;
-    final textColor = darkModeProvider.textColor;
-    final iconColor = darkModeProvider.iconColor;
-    final backgroundColor = darkModeProvider.backgroundColor;
-
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: Colors.black, // Fondo negro
-      statusBarIconBrightness: Brightness.light, // Letras blancas
-    ));
-
     return Scaffold(
+      backgroundColor: Colors.black,
       body: Stack(
         children: [
-          Positioned.fill(
+          GestureDetector(
+            onScaleStart: _handleScaleStart,
+            onScaleUpdate: _handleScaleUpdate,
+            onVerticalDragUpdate: _handleVerticalDragUpdate,
+            onVerticalDragEnd: _handleVerticalDragEnd,
             child: PageView.builder(
               controller: _pageController,
               onPageChanged: (index) {
                 setState(() {
                   _currentPage = index;
+                  var transform = _imageTransformations[index];
+                  _scale = transform?.scale ?? 1.0;
+                  _offset = transform?.offset ?? Offset.zero;
                 });
               },
               itemCount: widget.images.length,
-              itemBuilder: (context, index) {
-                return Image.file(
-                  widget.images[index],
-                  fit: BoxFit.cover,
-                  color: Colors.black.withOpacity(0.2),
-                  colorBlendMode: BlendMode.darken,
-                );
-              },
+              itemBuilder: (context, index) =>
+                  _buildImageWithBlur(widget.images[index], index),
             ),
           ),
-          // Desenfoque en la parte superior
-          _buildImagePageView(),
+
           Positioned(
             top: 40.0,
             left: 16.0,
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.1),
-              ),
-              child: IconButton(
-                icon: Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                iconSize: 26.0,
+            child: ClipOval(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.black.withOpacity(0.2),
+                        Colors.black.withOpacity(0.2),
+                      ],
+                    ),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.2),
+                      width: 0.5,
+                    ),
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(40),
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        Navigator.pop(context);
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(8),
+                        child: Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white,
+                          size: 22.0,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
-          _buildDescriptionInput(),
-          _buildTopButtons(),
-          _buildImageIndicators(),
-          _buildBottomIcons(),
-          _buildFloatingActionButton(),
-          _buildStatusMessage()
+
+          // Icono de eliminar mejorado
+          if (_showDeleteIcon)
+            Positioned(
+              top: _dragExtent > 0 ? 50 : null,
+              bottom: _dragExtent < 0 ? 50 : null,
+              left: 0,
+              right: 0,
+              child: AnimatedOpacity(
+                opacity: _showDeleteIcon ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 200),
+                child: Center(
+                  child: Container(
+                    padding: EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.9),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 10,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.delete_outline_rounded,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+          // Demás widgets solo si no estamos arrastrando
+          if (!_hideWidgets) ...[
+            _buildDescriptionInput(),
+            _buildTopButtons(),
+            _buildImageIndicators(),
+            _buildBottomIcons(),
+            _buildFloatingActionButton(),
+            _buildStatusMessage(),
+          ],
         ],
       ),
     );
   }
-
-  // metodo de carrucel de iconos inferiores
-  Widget _buildBottomIcons() {
-    if (_showIcons) {
-      return Positioned(
-        bottom: 0.0,
-        left: 0,
-        right: 0,
-        child: Container(
-          color: Colors.black.withOpacity(0.3),
-          child: SizedBox(
-            height: 65.0, // Ajustamos la altura para un mejor aspecto
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Distribuir los íconos equitativamente
-                children: [
-                  _buildEditButton(
-                    icon: Icons.image,
-                    onPressed: () => _pickImage(),
-                    tooltip: 'Add Fotos',
-                  ),
-                  _buildEditButton(
-                    icon: Icons.crop,
-                    onPressed: () {
-                      // Implementar funcionalidad de recorte
-                    },
-                    tooltip: 'Recortar',
-                  ),
-                  _buildEditButton(
-                    icon: Icons.text_fields,
-                    onPressed: () {
-                      TextEditorHandler().openTextEditor(context, _setText);
-                    },
-                    tooltip: 'Texto',
-                  ),
-                  _buildEditButton(
-                    icon: Icons.music_note,
-                    onPressed: () => _showMusicModal(context),
-                    tooltip: 'Música',
-                  ),
-                  _buildEditButton(
-                    icon: Icons.filter_alt_outlined,
-                    onPressed: () {
-                      // Implementar funcionalidad de filtro
-                    },
-                    tooltip: 'Filtros',
-                  ),
-                  _buildEditButton(
-                    icon: Icons.emoji_emotions,
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        builder: (context) => StickerModal(),
-                      );
-                    },
-                    tooltip: 'Stickers',
-                  ),
-                  _buildEditButton(
-                    icon: Icons.brush,
-                    onPressed: () {
-                      String imagePath = widget.images[0].path;
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => DrawingPage(imagePath: imagePath),
-                        ),
-                      );
-                    },
-                    tooltip: 'Dibujo',
-                  ),
-                  _buildEditButton(
-                    icon: Icons.adjust,
-                    onPressed: () {
-                      // Implementar funcionalidad de ajuste
-                    },
-                    tooltip: 'Ajustes',
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    } else {
-      return SizedBox.shrink(); // Retorna un widget vacío si _showIcons es falso
-    }
-  }
-
 
   // maneja el carrucel de imagens
   Widget _buildImagePageView() {
@@ -232,7 +311,7 @@ class _PreviewHistoryState extends State<PreviewHistory> {
               ),
               Positioned.fill(
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 50.0, sigmaY: 50.0),
+                  filter: ImageFilter.blur(sigmaX: 70.0, sigmaY: 70.0),
                   child: Container(
                     color: Colors.transparent,
                   ),
@@ -258,10 +337,200 @@ class _PreviewHistoryState extends State<PreviewHistory> {
     );
   }
 
+  // metodo de carrucel de iconos inferiores
+  Widget _buildBottomIcons() {
+    if (_showIcons) {
+      return Positioned(
+        bottom: 0.0,
+        left: 0,
+        right: 0,
+        child: SafeArea(
+          child: ClipRect(
+            child: Stack(
+              children: [
+                // Glassmorphism effect
+                Positioned.fill(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border(
+                          top: BorderSide(
+                            color: Colors.black.withOpacity(0.5),
+                            width: 0.2,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                // Main content
+                Padding(
+                  padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).padding.bottom),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: BouncingScrollPhysics(),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        SizedBox(width: 8),
+                        _buildEditButton(
+                          icon: Icons.add_photo_alternate_rounded,
+                          onPressed: () => _pickImage(),
+                          tooltip: 'Fotos',
+                          gradient: [Color(0xFF4CAF50), Color(0xFF2196F3)],
+                        ),
+                        _buildEditButton(
+                          icon: Icons.crop_rounded,
+                          onPressed: () {},
+                          tooltip: 'Recortar',
+                          gradient: [Color(0xFF9C27B0), Color(0xFF673AB7)],
+                        ),
+                        _buildEditButton(
+                          icon: Icons.text_fields_rounded,
+                          onPressed: () {
+                            TextEditorHandler()
+                                .openTextEditor(context, _setText);
+                          },
+                          tooltip: 'Texto',
+                          gradient: [Color(0xFFE91E63), Color(0xFFF44336)],
+                        ),
+                        _buildEditButton(
+                          icon: Icons.music_note_rounded,
+                          onPressed: () => _showMusicModal(context),
+                          tooltip: 'Música',
+                          gradient: [Color(0xFFFF9800), Color(0xFFFF5722)],
+                        ),
+                        _buildEditButton(
+                          icon: Icons.filter_vintage_rounded,
+                          onPressed: () {},
+                          tooltip: 'Filtros',
+                          gradient: [Color(0xFF00BCD4), Color(0xFF03A9F4)],
+                        ),
+                        _buildEditButton(
+                          icon: Icons.emoji_emotions_rounded,
+                          onPressed: () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (context) => StickerModal(),
+                            );
+                          },
+                          tooltip: 'Stickers',
+                          gradient: [Color(0xFFFFEB3B), Color(0xFFFFC107)],
+                        ),
+                        _buildEditButton(
+                          icon: Icons.brush_rounded,
+                          onPressed: () {
+                            String imagePath = widget.images[0].path;
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    DrawingPage(imagePath: imagePath),
+                              ),
+                            );
+                          },
+                          tooltip: 'Dibujo',
+                          gradient: [Color(0xFF795548), Color(0xFF8D6E63)],
+                        ),
+                        _buildEditButton(
+                          icon: Icons.auto_fix_high_rounded,
+                          onPressed: () {},
+                          tooltip: 'Ajustes',
+                          gradient: [Color(0xFF607D8B), Color(0xFF455A64)],
+                        ),
+                        SizedBox(width: 16),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    return SizedBox.shrink();
+  }
+
+  Widget _buildEditButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+    required String tooltip,
+    required List<Color> gradient,
+  }) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              gradient: LinearGradient(
+                colors: gradient,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: gradient[0].withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  onPressed();
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: EdgeInsets.all(12),
+                  child: Icon(
+                    icon,
+                    color: Colors.white,
+                    size: 26,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: 4), // Increased spacing between icon and text
+          Text(
+            tooltip,
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.95),
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.3,
+              shadows: [
+                Shadow(
+                  color: Colors.black.withOpacity(0.3),
+                  offset: Offset(0, 1),
+                  blurRadius: 2,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // metodo de añadir una descripcion
   Widget _buildDescriptionInput() {
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
     final textColor = darkModeProvider.textColor;
+
+    bool isToastShown =
+        false; // Variable para controlar cuando se muestra el toast
 
     return Positioned(
       bottom: 0.1,
@@ -273,25 +542,82 @@ class _PreviewHistoryState extends State<PreviewHistory> {
         child: Container(
           color: Colors.black.withOpacity(0.4),
           padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: TextField(
-            controller: _descriptionController,
-            style: TextStyle(color: textColor),
-            decoration: InputDecoration(
-              hintText: 'Añade una descripción...',
-              hintStyle: TextStyle(color: textColor),
-              border: InputBorder.none,
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.transparent),
-                borderRadius: BorderRadius.circular(8.0),
+          child: Stack(
+            children: [
+              TextField(
+                controller: _descriptionController,
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                ),
+                onChanged: (text) {
+                  setState(() {});
+                  // Si intentan escribir más del límite y no se ha mostrado el toast
+                  if (text.length >= 150 && !isToastShown) {
+                    isToastShown = true; // Marcar que ya se mostró
+                    Fluttertoast.showToast(
+                        msg: "Límite de caracteres alcanzado",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.TOP,
+                        timeInSecForIosWeb: 1,
+                        backgroundColor: Colors.grey.shade800,
+                        textColor: Colors.white,
+                        fontSize: 10.0);
+                    // Resetear la bandera después de un corto tiempo
+                    Future.delayed(Duration(seconds: 2), () {
+                      isToastShown = false;
+                    });
+                  }
+                },
+                decoration: InputDecoration(
+                  hintText: 'Añade una descripción...',
+                  hintStyle: TextStyle(
+                    color: textColor.withOpacity(0.7),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w300,
+                  ),
+                  border: InputBorder.none,
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.transparent),
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.cyan.withOpacity(0.6)),
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  contentPadding: EdgeInsets.only(
+                    left: 16,
+                    right: 40,
+                    top: 12,
+                    bottom: 12,
+                  ),
+                  counterText: '',
+                ),
+                maxLines: 3,
+                maxLength: 150,
+                cursorColor: Colors.cyan,
               ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.cyan),
-                borderRadius: BorderRadius.circular(8.0),
+              Positioned(
+                right: 8,
+                bottom: 8,
+                child: ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: _descriptionController,
+                  builder: (context, value, child) {
+                    return Text(
+                      '${value.text.length}/150',
+                      style: TextStyle(
+                        color: value.text.length >= 140
+                            ? Colors.cyan
+                            : textColor.withOpacity(0.6),
+                        fontSize: 8,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-            maxLines: 3,
-            maxLength: 150,
-            cursorColor: Colors.white,
+            ],
           ),
         ),
       ),
@@ -302,70 +628,84 @@ class _PreviewHistoryState extends State<PreviewHistory> {
   Widget _buildTopButtons() {
     return Stack(
       children: [
+        // Botón de Postear
         Positioned(
           top: 40.0,
           right: 16.0,
-          child: Row(
-            children: [
-              ElevatedButton(
-                onPressed: () async {
-                  await _postAllStories();
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8.0),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF9B30FF).withOpacity(0.9),
+                      Color(0xFF9B30FF),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(8.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0xFF9B30FF).withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () async {
+                      HapticFeedback.mediumImpact();
+                      await _postAllStories();
 
-                  // Mostrar el Toast con el mensaje correspondiente
-                  Fluttertoast.showToast(
-                    msg: _statusMessage == 'Historia enviada con éxito'
-                        ? 'Historia(s) enviada(s) con éxito'
-                        : 'Error al enviar historia(s)',
-                    toastLength: Toast.LENGTH_SHORT,
-                    gravity: ToastGravity.BOTTOM,
-                    // Posición del Toast
-                    timeInSecForIosWeb: 1,
-                    // Duración en iOS y web
-                    backgroundColor: Colors.grey.shade800,
-                    textColor: Colors.white,
-                    fontSize: 16.0,
-                  );
+                      Fluttertoast.showToast(
+                        msg: _statusMessage == 'Historia enviada con éxito'
+                            ? 'Historia(s) enviada(s) con éxito'
+                            : 'Error al enviar historia(s)',
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.BOTTOM,
+                        timeInSecForIosWeb: 1,
+                        backgroundColor: Colors.grey.shade800,
+                        textColor: Colors.white,
+                        fontSize: 16.0,
+                      );
 
-                  // Verifica si el mensaje es de éxito para cerrar la pantalla
-                  if (_statusMessage == 'Historia(s) enviada(s) con éxito') {
-                    Navigator.pop(context);
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:  Color(0xFF9B30FF),
-                  shape: RoundedRectangleBorder(
+                      if (_statusMessage ==
+                          'Historia(s) enviada(s) con éxito') {
+                        Navigator.pop(context);
+                      }
+                    },
                     borderRadius: BorderRadius.circular(8.0),
+                    child: Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Postear',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Icon(
+                            Icons.send_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-                child: Text(
-                  'Postear',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
-        ),
-        Positioned(
-          top: 40.0,
-          left: MediaQuery.of(context).size.width / 2 - 22, // Centra el ícono de tachar
-          child: Container(
-            width: 50.0,
-            height: 50.0,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.2),
-            ),
-            child: Center(
-              child: IconButton(
-                icon: Icon(Icons.delete, color: Colors.white),
-                onPressed: () {
-                  _deleteCurrentStory();
-                },
-                iconSize: 28.0,
-                tooltip: 'Borrar historia',
               ),
             ),
           ),
@@ -374,43 +714,73 @@ class _PreviewHistoryState extends State<PreviewHistory> {
     );
   }
 
-  // metodo mide la imagnes seleccionada y hacer carrucel con los tres puntos
+  // puntos debajo de la imagnes carrucel
   Widget _buildImageIndicators() {
     if (widget.images.length > 1) {
-      return Positioned(
-        bottom: 160.0,
-        left: 0,
-        right: 0,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(widget.images.length, (index) {
-            return Container(
-              margin: EdgeInsets.symmetric(horizontal: 4.0),
-              width: 7.2,
-              height: 7.2,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: _currentPage == index
-                      ? Colors.grey.shade100
-                      : Colors.transparent,
-                  width: 0.1,
-                ),
-                color: _currentPage == index ? Colors.white : Colors.grey,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 2.0,
-                    spreadRadius: 1.0,
+      final int maxVisibleDots = 6; // Número máximo de puntos visibles
+      final int totalImages = widget.images.length;
+
+      // Ajustar el rango de índices visibles
+      int startIndex = _currentPage - (maxVisibleDots ~/ 2);
+      startIndex = startIndex.clamp(0, totalImages - maxVisibleDots);
+      int endIndex = (startIndex + maxVisibleDots).clamp(0, totalImages);
+
+      return Stack(
+        children: [
+          // Indicadores de puntos deslizables
+          Positioned(
+            bottom: 160.0,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                  min(endIndex - startIndex, maxVisibleDots), (index) {
+                final int realIndex = startIndex + index;
+                final bool isActive = realIndex == _currentPage;
+
+                // Calcular tamaño dinámico para el punto activo y los demás
+                double size = isActive ? 5.5 : 4.5;
+
+                return AnimatedContainer(
+                  duration: Duration(milliseconds: 200),
+                  curve: Curves.easeInOut,
+                  margin: EdgeInsets.symmetric(horizontal: 3.0),
+                  width: size,
+                  height: size,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isActive ? Colors.white : Colors.grey,
                   ),
-                ],
+                );
+              }),
+            ),
+          ),
+
+          // Contador de imágenes en la esquina superior derecha
+          Positioned(
+            top: 100.0,
+            right: 16.0,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 9.0, vertical: 4.0),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.4),
+                borderRadius: BorderRadius.circular(10.0),
               ),
-            );
-          }),
-        ),
+              child: Text(
+                '${(_currentPage + 1)}/$totalImages',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 10.0,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+        ],
       );
     } else {
-      return SizedBox.shrink(); // Return an empty widget if the condition is not met
+      return SizedBox.shrink();
     }
   }
 
@@ -419,45 +789,150 @@ class _PreviewHistoryState extends State<PreviewHistory> {
     return Positioned(
       bottom: 140.0,
       left: 20.0,
-      child: FloatingActionButton(
-        onPressed: () {
-          setState(() {
-            _showIcons = !_showIcons;
-            _showDescription = !_showDescription;
-          });
-        },
-        backgroundColor: Colors.cyan.withOpacity(0.7),
-        child: Icon(
-          _showIcons ? FontAwesomeIcons.solidComment : FontAwesomeIcons.pencilAlt,
-          color: Colors.white,
-          size: 25,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.cyan.withOpacity(0.8),
+                  Colors.cyan.shade600.withOpacity(0.9),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+                width: 0.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.cyan.withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: () {
+                  HapticFeedback.mediumImpact();
+                  setState(() {
+                    _showIcons = !_showIcons;
+                    _showDescription = !_showDescription;
+                  });
+                },
+                child: Container(
+                  padding: EdgeInsets.all(16),
+                  child: AnimatedSwitcher(
+                    duration: Duration(milliseconds: 300),
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
+                      return RotationTransition(
+                        turns: animation,
+                        child: ScaleTransition(
+                          scale: animation,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: Icon(
+                      _showIcons
+                          ? FontAwesomeIcons.solidComment
+                          : FontAwesomeIcons.pencilAlt,
+                      key: ValueKey<bool>(_showIcons),
+                      color: Colors.white,
+                      size: 25,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
   }
 
-  // Method de escribir comentario
   Widget _buildStatusMessage() {
-    if (!_showStatusMessage) return Container();  // Return an empty container if not showing the message
+    if (!_showStatusMessage) return Container();
 
     return Positioned(
       bottom: 90.0,
       left: 0,
       right: 0,
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-        margin: EdgeInsets.symmetric(horizontal: 20.0),
-        decoration: BoxDecoration(
-          color: Colors.teal.withOpacity(0.9),
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-        child: Text(
-          _statusMessage,
-          style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold),
-          textAlign: TextAlign.center,
+      child: Center(
+        child: TweenAnimationBuilder<double>(
+          duration: Duration(milliseconds: 300),
+          tween: Tween<double>(begin: 0.0, end: 1.0),
+          builder: (context, value, child) {
+            return Transform.scale(
+              scale: value,
+              child: child,
+            );
+          },
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+              child: Container(
+                constraints: BoxConstraints(maxWidth: 300),
+                padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.teal.withOpacity(0.85),
+                      Colors.teal.shade700.withOpacity(0.95),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.2),
+                    width: 0.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 15,
+                      offset: Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _statusMessage.contains('éxito')
+                          ? Icons.check_circle_outline
+                          : Icons.info_outline,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        _statusMessage,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.3,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -475,7 +950,8 @@ class _PreviewHistoryState extends State<PreviewHistory> {
     var connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult == ConnectivityResult.none) {
       setState(() {
-        _statusMessage = 'Error al enviar historia(s). Verifique su conexión a Internet.';
+        _statusMessage =
+            'Error al enviar historia(s). Verifique su conexión a Internet.';
       });
       return;
     }
@@ -491,7 +967,9 @@ class _PreviewHistoryState extends State<PreviewHistory> {
     }
 
     setState(() {
-      _statusMessage = success ? 'Historia(s) enviada(s) con éxito' : 'Error al enviar historia(s). Inténtelo de nuevo más tarde.';
+      _statusMessage = success
+          ? 'Historia(s) enviada(s) con éxito'
+          : 'Error al enviar historia(s). Inténtelo de nuevo más tarde.';
     });
   }
 
@@ -589,70 +1067,27 @@ class _PreviewHistoryState extends State<PreviewHistory> {
     );
   }
 
-  Widget _buildEditButton({
-    required IconData icon,
-    required VoidCallback onPressed,
-    required String tooltip,
-  }) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 12.0), // Espaciado entre botones
-        padding: EdgeInsets.symmetric(vertical: 6.0), // Ajustamos el padding para mejor distribución
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Tooltip(
-              message: tooltip,
-              child: Icon(
-                icon,
-                size: 33,
-                color: Colors.white,
-              ),
-            ),
-            SizedBox(height: 4.0),
-            Flexible(
-              fit: FlexFit.loose,
-              child: Text(
-                tooltip,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12.0,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-
   //cargar fotos de galeria:
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     var pickedFiles = await picker.pickMultiImage();
 
     if (pickedFiles != null) {
-      // Limitar el número de imágenes a 10
-      if (pickedFiles.length > 10) {
-        // Mostrar mensaje de advertencia y cortar la lista a 10 imágenes
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(
-            'Solo se puede subir un máximo de 10 imágenes.',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          // Hacer que el snackbar flote
-          duration: Duration(seconds: 3),
-          // Duración del mensaje
-          margin: EdgeInsets.all(16.0), // Margen para el snackbar
-        ));
-        // Solo toma las primeras 10 imágenes
-        pickedFiles = pickedFiles.take(10).toList();
+      // Limitar el número de imágenes a 20
+      if (pickedFiles.length > 20) {
+        // Mostrar mensaje de advertencia con Flutter Toast
+        Fluttertoast.showToast(
+          msg: "Solo se puede subir un máximo de 20 imágenes.",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.TOP,
+          timeInSecForIosWeb: 3,
+          backgroundColor: Colors.grey.shade800,
+          textColor: Colors.white,
+          fontSize: 11.0,
+        );
+
+        // Solo toma las primeras 20 imágenes
+        pickedFiles = pickedFiles.take(20).toList();
       }
 
       // Crear una lista para mantener las imágenes seleccionadas
@@ -670,23 +1105,16 @@ class _PreviewHistoryState extends State<PreviewHistory> {
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(
-          'No se seleccionaron imágenes.',
-          style: TextStyle(color: Colors.white), // Color del texto
-        ),
+      // Mostrar mensaje de que no se seleccionaron imágenes
+      Fluttertoast.showToast(
+        msg: "No se seleccionaron imágenes.",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.TOP,
+        timeInSecForIosWeb: 3,
         backgroundColor: Color.fromRGBO(0, 255, 255, 0.5),
-        // Fondo cian con opacidad
-        behavior: SnackBarBehavior.floating,
-        // Hacer que el snackbar flote
-        duration: Duration(seconds: 3),
-        // Duración del mensaje
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0), // Bordes redondeados
-          side: BorderSide(color: Colors.cyan, width: 2.0), // Borde cian
-        ),
-        margin: EdgeInsets.all(16.0), // Margen para el snackbar
-      ));
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
     }
   }
 
@@ -705,4 +1133,13 @@ class _PreviewHistoryState extends State<PreviewHistory> {
       },
     );
   }
+}
+
+//clase que oculta
+
+class TransformationData {
+  double scale;
+  Offset offset;
+
+  TransformationData({this.scale = 1.0, this.offset = Offset.zero});
 }

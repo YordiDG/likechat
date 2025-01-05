@@ -228,7 +228,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: isDarkMode ? Colors.white : Colors.black,
-                  fontSize: 17,
+                  fontSize: 14,
                 ),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1, // Limita a una línea
@@ -266,183 +266,184 @@ class _ProfileScreenState extends State<ProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(14.0),
               child: Column(
                 children: [
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final screenWidth = constraints.maxWidth;
+                      // Ajustando el tamaño del avatar al estilo Instagram
+                      // Instagram usa aproximadamente 1/3 del ancho en móviles para el avatar
                       final avatarRadius =
-                          screenWidth > 600 ? 50.0 : screenWidth * 0.125;
-                      final fontSize = screenWidth < 350 ? 12.0 : 14.0;
+                          screenWidth * 0.11; // ~22% del ancho para el diámetro
+
+                      // Ajustando tamaños de fuente para diferentes pantallas
+                      final statNumberSize = screenWidth < 350 ? 12.0 : 14.0;
+                      final statLabelSize = screenWidth < 350 ? 9.0 : 10.0;
+                      final usernameSize = screenWidth < 350 ? 9.0 : 10.0;
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        // Alineación al inicio
                         children: [
-                          // Avatar con ícono de cámara
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Avatar mejorado con efecto de borde
-                              Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Color(0xFF9B30FF),
-                                          Color(0xFF00BFFF),
-                                          Color(0xFF00FFFF),
-                                        ],
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 10),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                // Avatar con borde gradiente
+                                Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            Color(0xFF9B30FF),
+                                            Color(0xFF00BFFF),
+                                            Color(0xFF00FFFF),
+                                          ],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
+                                      ),
+                                      padding: EdgeInsets.all(2),
+                                      // Borde más fino al estilo Instagram
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  ProfileDetailScreen(
+                                                    imagePath: _tempProfileImage ??
+                                                        'lib/assets/placeholder_user.jpg',
+                                                  ),
+                                            ),
+                                          );
+                                        },
+                                        child: CircleAvatar(
+                                          radius: avatarRadius,
+                                          backgroundColor: Colors.grey[200],
+                                          backgroundImage: _tempProfileImage !=
+                                              null
+                                              ? FileImage(
+                                              File(_tempProfileImage!))
+                                              : const AssetImage(
+                                              'lib/assets/placeholder_user.jpg')
+                                          as ImageProvider,
+                                        ),
                                       ),
                                     ),
-                                    padding: EdgeInsets.all(3),
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => ProfileDetailScreen(
-                                              imagePath: _tempProfileImage ?? 'lib/assets/placeholder_user.jpg',
+                                    // Botón de cámara más pequeño y discreto
+                                    Positioned(
+                                      bottom: 0,
+                                      right: 0,
+                                      child: GestureDetector(
+                                        onTap: () => openImagePicker(
+                                            context, ImageSource.gallery),
+                                        child: Container(
+                                          padding: EdgeInsets.all(4),
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                Colors.blue,
+                                                Colors.cyan
+                                              ],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            ),
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: isDarkMode
+                                                  ? Colors.black
+                                                  : Colors.white,
+                                              width: 2,
                                             ),
                                           ),
-                                        );
-                                      },
-                                      child: CircleAvatar(
-                                        radius: avatarRadius,
-                                        backgroundColor: Colors.grey[200],
-                                        backgroundImage: _tempProfileImage != null
-                                            ? FileImage(File(_tempProfileImage!))
-                                            : const AssetImage('lib/assets/placeholder_user.jpg') as ImageProvider,
-                                      ),
-                                    ),
-                                  ),
-                                  // Botón de cámara mejorado
-                                  Positioned(
-                                    bottom: 0,
-                                    right: 0,
-                                    child: GestureDetector(
-                                      onTap: () => openImagePicker(context, ImageSource.gallery),
-                                      child: Container(
-                                        padding: EdgeInsets.all(7),
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            colors: [Colors.blue, Colors.cyan],
-                                            begin: Alignment.topLeft,
-                                            end: Alignment.bottomRight,
+                                          child: Icon(
+                                            Icons.camera_alt,
+                                            color: Colors.white,
+                                            size: 18,
                                           ),
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: isDarkMode ? Colors.black : Colors.white, // Color dinámico
-                                            width: 2,
-                                          ),
-                                        ),
-                                        child: Icon(
-                                          Icons.camera_alt,
-                                          color: Colors.white,
-                                          size: 20,
                                         ),
                                       ),
                                     ),
-                                  ),
-
-                                ],
-                              ),
-                              SizedBox(height: 16),
-                              const SizedBox(width: 5),
-                              Expanded(
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  alignment: Alignment.center,
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(top: 15),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
-                                      children: [
-                                        _buildStatColumn('Seguidos',
-                                            '143 mill.', screenWidth),
-                                        Container(
-                                          height: 25,
-                                          alignment: Alignment.center,
-                                          child: VerticalDivider(
-                                            thickness: 0.2,
-                                            width: 20,
-                                            color: Colors.grey,
-                                          ),
+                                  ],
+                                ),
+                                SizedBox(width: screenWidth * 0.02),
+                                // Estadísticas
+                                Expanded(
+                                  child: Row(
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      _buildStatColumn('Seguidos', '143 mill.',
+                                          statNumberSize, statLabelSize),
+                                      Container(
+                                        height: 30,
+                                        alignment: Alignment.center,
+                                        child: VerticalDivider(
+                                          thickness: 0.2,
+                                          width:2,
+                                          color: Colors.grey.shade400,
                                         ),
-                                        _buildStatColumn('Seguidores',
-                                            '10 mil.', screenWidth),
-                                        Container(
-                                          height: 25,
-                                          alignment: Alignment.center,
-                                          child: VerticalDivider(
-                                            thickness: 0.2,
-                                            width: 20,
-                                            color: Colors.grey,
-                                          ),
+                                      ),
+                                      _buildStatColumn('Seguidores', '10 mil.',
+                                          statNumberSize, statLabelSize),
+                                      Container(
+                                        height: 30,
+                                        alignment: Alignment.center,
+                                        child: VerticalDivider(
+                                          thickness: 0.2,
+                                          width: 2,
+                                          color: Colors.grey.shade400,
                                         ),
-                                        _buildStatColumn(
-                                            'Likes', '100 mil', screenWidth),
-                                      ],
-                                    ),
+                                      ),
+                                      _buildStatColumn('Likes', '100 mil',
+                                          statNumberSize, statLabelSize),
+                                    ],
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 5),
-                          ConstrainedBox(
-                            constraints: BoxConstraints(
-                              maxWidth: screenWidth,
+                              ],
                             ),
+                          ),
+                          SizedBox(height: 6),
+                          // Username con verificación
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 16),
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              // Alineado al inicio
                               children: [
                                 Text(
                                   '@$usernameid',
                                   style: TextStyle(
-                                    fontSize: fontSize,
+                                    fontSize: usernameSize,
                                     fontWeight: FontWeight.w500,
                                     color: Colors.grey,
                                   ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                  textAlign: TextAlign.start,
                                 ),
-                                SizedBox(width: 10),
+                                SizedBox(width: 4),
                                 GestureDetector(
                                   onTap: () {
-                                    Clipboard.setData(ClipboardData(text: usernameid));
+                                    Clipboard.setData(
+                                        ClipboardData(text: usernameid));
                                     Fluttertoast.showToast(
                                       msg: "Usuario copiado al portapapeles",
                                       toastLength: Toast.LENGTH_SHORT,
                                       gravity: ToastGravity.BOTTOM,
                                       backgroundColor: Colors.grey.shade800,
                                       textColor: Colors.white,
-                                      fontSize: 14.0,
+                                      fontSize: 11.0,
                                     );
                                   },
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(
-                                        Icons.copy,
-                                        color: Colors.grey,
-                                        size: screenWidth < 350 ? 16 : 18,
-                                      ),
-                                      SizedBox(width: 4), // Espacio entre los íconos
-                                      Icon(
-                                        Icons.verified,
-                                        color: Colors.blue,
-                                        size: 20,
-                                      ),
+                                      Icon(Icons.copy,
+                                          color: Colors.grey, size: 16),
+                                      SizedBox(width: 4),
+                                      Icon(Icons.verified,
+                                          color: Colors.blue, size: 16),
                                     ],
                                   ),
                                 ),
@@ -480,18 +481,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               style: OutlinedButton.styleFrom(
                                 backgroundColor: Colors.cyan,
                                 foregroundColor: Colors.cyan,
-                                side: BorderSide(color: Colors.cyan, width: 1.5),
+                                side:
+                                BorderSide(color: Colors.cyan, width: 1.5),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(7),
                                 ),
-                                padding: EdgeInsets.zero, // Sin padding adicional
+                                padding:
+                                EdgeInsets.zero, // Sin padding adicional
                               ),
                               child: Text(
                                 'Editar Perfil',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 14, // Tamaño de fuente normal
+                                  fontSize: 12, // Tamaño de fuente normal
                                 ),
                               ),
                             ),
@@ -503,26 +506,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             height: 37, // Altura fija del botón
                             child: OutlinedButton(
                               onPressed: () {
-                                const String shareText = 'Mira mi perfil en LikeChat!';
-                                const String shareLink = 'https://www.likechat.com/yordigonzales';
+                                const String shareText =
+                                    'Mira mi perfil en LikeChat!';
+                                const String shareLink =
+                                    'https://www.likechat.com/yordigonzales';
 
                                 Share.share('$shareText\n$shareLink');
                               },
                               style: OutlinedButton.styleFrom(
                                 backgroundColor: Colors.cyan,
                                 foregroundColor: Colors.cyan,
-                                side: BorderSide(color: Colors.cyan, width: 1.5),
-                                shape:
-                                RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+                                side:
+                                BorderSide(color: Colors.cyan, width: 1.5),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(7)),
                                 padding:
                                 EdgeInsets.zero, // Sin padding adicional
                               ),
-                              child:
-                              Text('Compartir', style:
-                              TextStyle(color:
-                              Colors.white, fontWeight:
-                              FontWeight.bold, fontSize:
-                              14)),
+                              child: Text('Compartir',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12)),
                             ),
                           ),
                         ),
@@ -543,8 +548,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       border: Border.all(
                         color: description.isEmpty
                             ? (isDarkMode
-                                ? Colors.grey[900]!
-                                : Colors.grey[100]!)
+                            ? Colors.grey[900]!
+                            : Colors.grey[100]!)
                             : Colors.transparent,
                       ),
                     ),
@@ -553,7 +558,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ? 'Escribe una breve descripción...'
                           : description,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 11,
                         color: isDarkMode ? Colors.white : Colors.black,
                       ),
                     ),
@@ -577,47 +582,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         }
                       }
                     },
-                    child: socialLinks.isNotEmpty && socialLinks.any(
-                          (link) => Uri.tryParse(link)?.hasAbsolutePath == true,
-                    )
+                    child: socialLinks.isNotEmpty &&
+                        socialLinks.any(
+                              (link) =>
+                          Uri.tryParse(link)?.hasAbsolutePath == true,
+                        )
                         ? Container(
                       width: double.infinity,
                       // Reducir el padding para evitar espacio innecesario debajo
-                      padding: EdgeInsets.symmetric(horizontal: 8), // Ajustado para evitar espacio adicional
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      // Ajustado para evitar espacio adicional
                       child: Column(
                         children: [
                           Text(
                             'Redes Sociales',
-                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w400),
+                            style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w400),
                           ),
                           SizedBox(height: 6),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center, // Alineación vertical centrada
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            // Alineación vertical centrada
                             children: [
-                              for (int i = 0; i < socialLinks.length; i++) ...[
+                              for (int i = 0;
+                              i < socialLinks.length;
+                              i++) ...[
                                 GestureDetector(
                                   onTap: () {
-                                    if (Uri.tryParse(socialLinks[i])?.hasAbsolutePath == true) {
+                                    if (Uri.tryParse(socialLinks[i])
+                                        ?.hasAbsolutePath ==
+                                        true) {
                                       _openLink(socialLinks[i]);
                                     } else {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('URL inválida')),
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                            content:
+                                            Text('URL inválida')),
                                       );
                                     }
                                   },
                                   child: Column(
-                                    mainAxisSize: MainAxisSize.min, // Evita que la columna ocupe más espacio del necesario
+                                    mainAxisSize: MainAxisSize.min,
+                                    // Evita que la columna ocupe más espacio del necesario
                                     children: [
                                       Icon(
                                         _getSocialIcon(socialLinks[i]),
                                         size: 25,
-                                        color: _getSocialIconColor(socialLinks[i]),
+                                        color: _getSocialIconColor(
+                                            socialLinks[i]),
                                       ),
-                                      SizedBox(height: 4), // Espacio controlado entre icono y texto
+                                      SizedBox(height: 4),
+                                      // Espacio controlado entre icono y texto
                                       Text(
-                                        _getSocialPlatformName(socialLinks[i]),
-                                        style: TextStyle(fontSize: 9, color: Colors.grey),
+                                        _getSocialPlatformName(
+                                            socialLinks[i]),
+                                        style: TextStyle(
+                                            fontSize: 9,
+                                            color: Colors.grey),
                                       ),
                                     ],
                                   ),
@@ -638,7 +662,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ],
                       ),
                     )
-                        : SizedBox.shrink(), // Oculta el contenedor si no hay enlaces válidos
+                        : SizedBox
+                        .shrink(), // Oculta el contenedor si no hay enlaces válidos
                   )
                 ],
               ),
@@ -651,43 +676,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Método de seguidores
-  Widget _buildStatColumn(String label, String value, double screenWidth) {
-    final darkModeProvider = Provider.of<DarkModeProvider>(context);
-    final isDarkMode = darkModeProvider.isDarkMode;
-    final fontSize = screenWidth < 350 ? 12.0 : 14.0;
-
+// Función auxiliar para construir las columnas de estadísticas
+  Widget _buildStatColumn(
+      String label, String count, double numberSize, double labelSize) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 80),
-          child: Text(
-            value,
-            style: TextStyle(
-              fontSize: fontSize + 4,
-              fontWeight: FontWeight.bold,
-              color: isDarkMode ? Colors.white : Colors.black,
-            ),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
+        Text(
+          count,
+          style: TextStyle(
+            fontSize: numberSize,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 80),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: fontSize,
-              color: isDarkMode ? Colors.white70 : Colors.black54,
-            ),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
+        SizedBox(height: 2),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: labelSize,
+            color: Colors.grey[600],
           ),
         ),
       ],
     );
   }
 
+  // Método de seguidores
   Widget _buildButtonsSection() {
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
     final isDarkMode = darkModeProvider.isDarkMode;
@@ -720,7 +734,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildIconButton(
                       Icons.image,
                       'Galería',
-                      () {
+                          () {
                         setState(() {
                           _showGallery = true;
                           _showVideo = false;
@@ -748,7 +762,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildIconButton(
                       Icons.video_library,
                       'Snippets',
-                      () {
+                          () {
                         setState(() {
                           _showGallery = false;
                           _showVideo = true;
@@ -776,7 +790,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildIconButton(
                       Icons.history_outlined,
                       'Historias',
-                      () {
+                          () {
                         setState(() {
                           _showGallery = false;
                           _showVideo = false;
@@ -804,7 +818,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildIconButton(
                       Icons.bookmark_add,
                       'Favoritos',
-                      () {
+                          () {
                         setState(() {
                           _showGallery = false;
                           _showVideo = false;
@@ -860,19 +874,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             child: Icon(
               icon,
-              size: 22,
+              size: 20,
               color: isSelected
                   ? (isDarkMode ? Colors.cyan : Colors.cyan)
                   : (isDarkMode
-                      ? Colors.white
-                      : Colors.black), // Ajustar color del ícono
+                  ? Colors.white
+                  : Colors.black), // Ajustar color del ícono
             ),
           ),
           SizedBox(height: 2),
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 11,
               color: isSelected
                   ? Colors.cyan
                   : (isDarkMode ? Colors.white : Colors.black),
@@ -902,7 +916,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     const apiKey = 'KAEVuNf8VCwEGTHfxOhWN3gfGvKyU4e2dkE5HOcRM1M';
 
     // imagenes multiples
-    const querys = ['farm animals', 'wild animals', 'landscapes', 'rivers', 'waterfalls'];
+    const querys = [
+      'farm animals',
+      'wild animals',
+      'landscapes',
+      'rivers',
+      'waterfalls'
+    ];
     final response = await http.get(
       Uri.parse(
           'https://api.unsplash.com/search/photos?query=$querys&client_id=$apiKey&per_page=20'),
@@ -973,7 +993,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           },
           child: Container(
             decoration: BoxDecoration(
-              border: Border.all(color: isDarkMode ? Colors.black : Colors.white, width: 0.4),
+              border: Border.all(
+                  color: isDarkMode ? Colors.black : Colors.white, width: 0.4),
               image: DecorationImage(
                 image: NetworkImage(_imageUrls[index])
                   ..resolve(ImageConfiguration()).addListener(
@@ -981,7 +1002,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           (ImageInfo image, bool synchronousCall) {},
                       onError: (error, stackTrace) {
                         setState(() {
-                          _imageUrls[index] = 'assets/logo.png'; // Ruta del placeholder
+                          _imageUrls[index] =
+                          'assets/logo.png'; // Ruta del placeholder
                         });
                       },
                     ),
@@ -1008,7 +1030,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-
   Future<void> _fetchVideos(String query) async {
     const apiKey =
         'jUOv1hg2RxnB7vQcFZzbYdQB9bhYCAyS7wjvZVVpFoDQTqtj2QzoStbB'; // clave API
@@ -1026,10 +1047,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _videoUrls = (data['videos'] as List<dynamic>)
             .map((item) => {
-                  'videoUrl': item['video_files'][0]['link'],
-                  'thumbnailUrl': item['image'],
-                  // Aquí extraemos la miniatura del video
-                })
+          'videoUrl': item['video_files'][0]['link'],
+          'thumbnailUrl': item['image'],
+          // Aquí extraemos la miniatura del video
+        })
             .toList();
         _loading = false;
       });
@@ -1135,9 +1156,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       MaterialPageRoute(
         builder: (context) => VideoDetailScreen(
           videoUrls:
-              _videoUrls.map((item) => item['videoUrl'] as String).toList(),
+          _videoUrls.map((item) => item['videoUrl'] as String).toList(),
           initialIndex:
-              _videoUrls.indexWhere((item) => item['videoUrl'] == videoUrl),
+          _videoUrls.indexWhere((item) => item['videoUrl'] == videoUrl),
         ),
       ),
     );
@@ -1147,61 +1168,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       child: history.isEmpty
           ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(height: 30.0),
-                  Icon(
-                    Icons.timer_off_outlined,
-                    size: 70,
-                    color: Colors.grey,
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    'No hay Historias disponibles',
-                    style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.grey[500],
-                        fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            )
-          : GridView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisSpacing: 1.0, // Espacio vertical entre los elementos
-                crossAxisSpacing: 1.0, // Espacio horizontal entre los elementos
-              ),
-              itemCount: history.length,
-              itemBuilder: (context, index) {
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ImageDetailScreen(
-                          imageUrls: history,
-                          initialIndex: index,
-                        ),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(5.0),
-                      border: Border.all(color: Colors.white, width: 1.0),
-                      image: DecorationImage(
-                        image: AssetImage(history[index]),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                );
-              },
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(height: 30.0),
+            Icon(
+              Icons.timer_off_outlined,
+              size: 70,
+              color: Colors.grey,
             ),
+            SizedBox(height: 10),
+            Text(
+              'No hay Historias disponibles',
+              style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.grey[500],
+                  fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      )
+          : GridView.builder(
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          mainAxisSpacing: 1.0, // Espacio vertical entre los elementos
+          crossAxisSpacing: 1.0, // Espacio horizontal entre los elementos
+        ),
+        itemCount: history.length,
+        itemBuilder: (context, index) {
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ImageDetailScreen(
+                    imageUrls: history,
+                    initialIndex: index,
+                  ),
+                ),
+              );
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(5.0),
+                border: Border.all(color: Colors.white, width: 1.0),
+                image: DecorationImage(
+                  image: AssetImage(history[index]),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -1210,61 +1231,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       child: favorite.isEmpty
           ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(height: 30.0),
-                  Icon(
-                    Icons.bookmark_add,
-                    size: 70,
-                    color: Colors.grey,
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    'Aún no hay Favoritos',
-                    style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.grey[500],
-                        fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            )
-          : GridView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisSpacing: 1.0, // Espacio vertical entre los elementos
-                crossAxisSpacing: 1.0, // Espacio horizontal entre los elementos
-              ),
-              itemCount: favorite.length,
-              itemBuilder: (context, index) {
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ImageDetailScreen(
-                          imageUrls: favorite,
-                          initialIndex: index,
-                        ),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(5.0),
-                      border: Border.all(color: Colors.white, width: 1.0),
-                      image: DecorationImage(
-                        image: AssetImage(favorite[index]),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                );
-              },
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(height: 30.0),
+            Icon(
+              Icons.bookmark_add,
+              size: 70,
+              color: Colors.grey,
             ),
+            SizedBox(height: 10),
+            Text(
+              'Aún no hay Favoritos',
+              style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.grey[500],
+                  fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      )
+          : GridView.builder(
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          mainAxisSpacing: 1.0, // Espacio vertical entre los elementos
+          crossAxisSpacing: 1.0, // Espacio horizontal entre los elementos
+        ),
+        itemCount: favorite.length,
+        itemBuilder: (context, index) {
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ImageDetailScreen(
+                    imageUrls: favorite,
+                    initialIndex: index,
+                  ),
+                ),
+              );
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(5.0),
+                border: Border.all(color: Colors.white, width: 1.0),
+                image: DecorationImage(
+                  image: AssetImage(favorite[index]),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 

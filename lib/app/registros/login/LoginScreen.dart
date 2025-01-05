@@ -2,6 +2,7 @@ import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import '../../Globales/estadoDark-White/DarkModeProvider.dart';
 import '../providers/AuthProvider.dart';
@@ -39,8 +40,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
     // Personalización de la barra de estado (status bar)
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: isDarkMode ? Colors.black : Colors.cyan,
-      statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.light,
+      statusBarColor: isDarkMode ? Colors.black : Colors.white,
+      statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
       statusBarBrightness: isDarkMode ? Brightness.dark : Brightness.light,
     ));
 
@@ -64,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     SizedBox(
-                      height: 200,
+                      height: 150,
                       child: Image.asset('lib/assets/splash/chaski.png'),
                     ),
                     SizedBox(height: 20),
@@ -91,8 +92,8 @@ class _LoginScreenState extends State<LoginScreen> {
               alignment: Alignment.center,
               child: Container(
                 padding: EdgeInsets.all(20),
-                width: 230,
-                height: 150,
+                width: 180,
+                height: 120,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(10),
@@ -102,15 +103,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Ajuste de tamaño al contenido
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(
-                      color: Colors.cyan,
+                    Lottie.asset(
+                      'lib/assets/loading/loading_infinity.json',
+                      width: 40,
+                      height: 40,
                     ),
-                    SizedBox(height: 20),
+                    SizedBox(height: 10),
                     Text(
                       "Verificando",
                       style: TextStyle(
                         color: Colors.black,
-                        fontSize: 13,
+                        fontSize: 12,
                         fontWeight: FontWeight.w700
                       ),
                     ),
@@ -135,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
         labelText: 'Correo electrónico',
         prefixIcon: Icon(Icons.email, color: iconColor),
         errorText: _showEmailError ? 'Correo inválido o no autenticado' : null,
-        errorStyle: TextStyle(color: Color(0xFFFF0E0E)),
+        errorStyle: TextStyle(color: Color(0xFFFF0E0E), fontSize: 10),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: borderColor),
@@ -152,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
       keyboardType: TextInputType.emailAddress,
-      style: TextStyle(color: textColor),
+      style: TextStyle(color: textColor, fontSize: 12),
     );
   }
 
@@ -181,7 +184,7 @@ class _LoginScreenState extends State<LoginScreen> {
         errorText: _showPasswordError
             ? 'Contraseña incorrecta. Verifica e intenta nuevamente.'
             : null,
-        errorStyle: TextStyle(color: Color(0xFFFF0E0E)),
+        errorStyle: TextStyle(color: Color(0xFFFF0E0E), fontSize: 10),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: borderColor),
@@ -210,14 +213,14 @@ class _LoginScreenState extends State<LoginScreen> {
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.cyan,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(16),
           ),
         ),
         child: Text(
           'Iniciar sesión',
           style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
             color: Colors.white,
           ),
         ),
@@ -238,7 +241,7 @@ class _LoginScreenState extends State<LoginScreen> {
         style: TextStyle(
           color: isDarkMode ? Colors.cyan : Color(0xFF068C8C),
           fontSize: 12,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );
@@ -269,7 +272,7 @@ class _LoginScreenState extends State<LoginScreen> {
             'Iniciar sesión con Google',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 14,
               fontWeight: FontWeight.bold,
               color: Color(0xFF0D0D55),
             ),
@@ -291,7 +294,7 @@ class _LoginScreenState extends State<LoginScreen> {
           text: '¿No tienes una cuenta? ',
           style: TextStyle(
             color: textColor,
-            fontSize: 12,
+            fontSize: 13,
             fontWeight: FontWeight.w600,
           ),
           children: [
@@ -299,7 +302,7 @@ class _LoginScreenState extends State<LoginScreen> {
               text: 'Regístrate',
               style: TextStyle(
                 color: isDarkMode ? Colors.cyan : Color(0xFF068C8C),
-                fontSize: 14,
+                fontSize: 15,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -340,8 +343,9 @@ class _LoginScreenState extends State<LoginScreen> {
         msg: "No hay conexión a Internet",
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.red,
+        backgroundColor: Colors.grey.shade800,
         textColor: Colors.white,
+        fontSize: 11
       );
       return;
     }
@@ -370,7 +374,7 @@ class _LoginScreenState extends State<LoginScreen> {
         gravity: ToastGravity.BOTTOM,
         backgroundColor: Colors.green,
         textColor: Colors.white,
-        fontSize: 16.0,
+        fontSize: 11.0,
       );
 
       Navigator.pushReplacementNamed(context, '/home');
@@ -411,9 +415,9 @@ class _LoginScreenState extends State<LoginScreen> {
       toastLength: Toast.LENGTH_LONG,
       gravity: ToastGravity.BOTTOM,
       timeInSecForIosWeb: 1,
-      backgroundColor: Colors.grey[850],
+      backgroundColor: Colors.grey.shade800,
       textColor: Colors.white,
-      fontSize: 14.0,
+      fontSize: 11.0,
     );
 
     _loginAttempts += 1;
@@ -459,7 +463,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       'Cuenta bloqueada',
                       style: TextStyle(
                         color: textColor,
-                        fontSize: 20,
+                        fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -468,7 +472,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 16),
                     Text(
                       'Debido a múltiples intentos fallidos, tu cuenta ha sido bloqueada temporalmente. Vuelve a intentar en 10 minutos.',
-                      style: TextStyle(color: textColor, fontSize: 16),
+                      style: TextStyle(color: textColor, fontSize: 11),
                       textAlign: TextAlign.justify,
                     ),
                     const SizedBox(height: 16),

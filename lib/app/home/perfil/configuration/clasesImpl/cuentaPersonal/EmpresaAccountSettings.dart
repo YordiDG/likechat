@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../../../../Globales/estadoDark-White/DarkModeProvider.dart';
-
+import '../../../../../Globales/estadoDark-White/Fuentes/FontSizeProvider.dart';
 
 class EmpresaAccountSettings extends StatefulWidget {
   @override
@@ -13,7 +12,6 @@ class _EmpresaAccountSettingsState extends State<EmpresaAccountSettings> {
   final _formKey = GlobalKey<FormState>();
   int _currentStep = 0;
 
-  // Variables de estado para los switches
   bool _emailNotifications = true;
   bool _smsNotifications = false;
   bool _adsInPosts = false;
@@ -30,382 +28,353 @@ class _EmpresaAccountSettingsState extends State<EmpresaAccountSettings> {
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
     final isDarkMode = darkModeProvider.isDarkMode;
     final textColor = darkModeProvider.textColor;
-    final iconColor = darkModeProvider.iconColor;
     final backgroundColor = darkModeProvider.backgroundColor;
-    final switchColor = Colors.cyan;
+    final fontSizeProvider = Provider.of<FontSizeProvider>(context);
+
+    // Colores profesionales
+    final primaryColor = isDarkMode ? Color(0xFF2196F3) : Color(0xFF1976D2);
+    final surfaceColor = isDarkMode ? Color(0xFF1E1E1E) : Colors.white;
+    final cardColor = isDarkMode ? Color(0xFF2D2D2D) : Colors.grey[50];
 
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_new,
-            color: iconColor,
-            size: 25,
+        backgroundColor: surfaceColor,
+        elevation: 0,
+        title: Text(
+          'Configuración Empresarial',
+          style: TextStyle(
+            color: textColor,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
           ),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
         ),
-        backgroundColor: backgroundColor,
-        title: Text('Configuración de la Cuenta', style: TextStyle(color: textColor)),
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios, size: 20,),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
-      body: Form(
-        key: _formKey,
-        child: Theme(
-          data: ThemeData(
-            primaryColor: Colors.cyan,
-            hintColor: Colors.cyan,
-            textTheme: TextTheme(
-              bodyLarge: TextStyle(color: textColor),
-            ),
-            colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Colors.cyan),
-          ),
-          child: Stepper(
-            currentStep: _currentStep,
-            onStepContinue: () {
-              if (_currentStep < 4) {
-                setState(() {
-                  _currentStep += 1;
-                });
-              } else {
-                if (_formKey.currentState!.validate()) {
-                  // Aquí se puede guardar la información en un backend o base de datos
-                  // y luego mostrar un mensaje de éxito
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Datos guardados exitosamente')),
-                  );
-                  // Después de mostrar el mensaje de éxito, cerrar la pantalla
-                  Future.delayed(Duration(seconds: 1), () {
-                    Navigator.of(context).pop();
-                  });
-                }
-              }
-            },
-            onStepCancel: () {
-              if (_currentStep > 0) {
-                setState(() {
-                  _currentStep -= 1;
-                });
-              }
-            },
-            type: StepperType.vertical,
-            steps: [
-              Step(
-                title: Text('Información Personal',  style: TextStyle(color: textColor)),
-                content: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextFormField(
-                      decoration: InputDecoration(
-                        labelText: 'Nombre de la Empresa',
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.cyan),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.cyan),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.cyan),
-                        ),
-                        labelStyle: TextStyle(color: textColor), // Cambia el color de la etiqueta
-                      ),
-                      style: TextStyle(color: textColor), // Cambia el color del texto ingresado
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Por favor, ingrese el nombre de la empresa';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 16),
-                    TextFormField(
-                      decoration: InputDecoration(
-                        labelText: 'Correo Electrónico',
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.cyan),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.cyan),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.cyan),
-                        ),
-                        labelStyle: TextStyle(color: textColor)
-                      ),
-                      style: TextStyle(color: textColor),
-                      validator: (value) {
-                        if (value!.isEmpty || !value.contains('@')) {
-                          return 'Por favor, ingrese un correo electrónico válido';
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
-                ),
-                isActive: _currentStep >= 0,
-                state: _currentStep >= 0 ? StepState.complete : StepState.indexed,
+      body: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeader('Información de la Empresa', fontSizeProvider),
+              _buildSection(
+                children: [
+                  _buildProfessionalTextField(
+                    'Nombre de la Empresa',
+                    Icons.business,
+                    fontSizeProvider,
+                    textColor,
+                    primaryColor,
+                  ),
+                  SizedBox(height: 20),
+                  _buildProfessionalTextField(
+                    'Correo Electrónico',
+                    Icons.email,
+                    fontSizeProvider,
+                    textColor,
+                    primaryColor,
+                  ),
+                ],
+                backgroundColor: cardColor,
               ),
-              Step(
-                title: Text('Detalles de la Empresa', style: TextStyle(color: textColor)),
-                content: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextFormField(
-                      decoration: InputDecoration(
-                        labelText: 'Dirección',
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.cyan),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.cyan),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.cyan),
-                        ),
-                          labelStyle: TextStyle(color: textColor)
-                      ),
-                      style: TextStyle(color: textColor),
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Por favor, ingrese la dirección de la empresa';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 16),
-                    TextFormField(
-                      decoration: InputDecoration(
-                        labelText: 'Teléfono',
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.cyan),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.cyan),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.cyan),
-                        ),
-                          labelStyle: TextStyle(color: textColor)
-                      ),
-                      style: TextStyle(color: textColor),
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Por favor, ingrese el teléfono de la empresa';
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
-                ),
-                isActive: _currentStep >= 1,
-                state: _currentStep >= 1 ? StepState.complete : StepState.indexed,
+
+              _buildHeader('Seguridad', fontSizeProvider),
+              _buildSection(
+                children: [
+                  _buildProfessionalPasswordField(
+                    'Contraseña',
+                    _obscurePassword,
+                        (val) => setState(() => _obscurePassword = !_obscurePassword),
+                    fontSizeProvider,
+                    textColor,
+                    primaryColor,
+                  ),
+                  SizedBox(height: 20),
+                  _buildProfessionalPasswordField(
+                    'Confirmar Contraseña',
+                    _obscureConfirmPassword,
+                        (val) => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                    fontSizeProvider,
+                    textColor,
+                    primaryColor,
+                  ),
+                ],
+                backgroundColor: cardColor,
               ),
-              Step(
-                title: Text('Configuración de Seguridad'),
-                content: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextFormField(
-                      decoration: InputDecoration(
-                        labelText: 'Contraseña',
-                        labelStyle: TextStyle(color: textColor), // Cambia el color del texto de la etiqueta a blanco
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.cyan),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.cyan),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.cyan),
-                        ),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                            color: Colors.cyan,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                        ),
-                      ),
-                      style: TextStyle(color: textColor), // Cambia el color del texto ingresado a blanco
-                      obscureText: _obscurePassword,
-                      onChanged: (value) {
-                        _password = value;
-                      },
-                      validator: (value) {
-                        if (value!.isEmpty || value.length < 6) {
-                          return 'Por favor, ingrese una contraseña de al menos 6 caracteres';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 16),
-                    TextFormField(
-                      decoration: InputDecoration(
-                        labelText: 'Confirmar Contraseña',
-                        labelStyle: TextStyle(color: textColor), // Cambia el color del texto de la etiqueta a blanco
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.cyan),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.cyan),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.cyan),
-                        ),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
-                            color: Colors.cyan,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscureConfirmPassword = !_obscureConfirmPassword;
-                            });
-                          },
-                        ),
-                      ),
-                      style: TextStyle(color: textColor), // Cambia el color del texto ingresado a blanco
-                      obscureText: _obscureConfirmPassword,
-                      onChanged: (value) {
-                        _confirmPassword = value;
-                      },
-                      validator: (value) {
-                        if (value!.isEmpty || value.length < 6) {
-                          return 'Por favor, confirme su contraseña';
-                        } else if (value != _password) {
-                          return 'Las contraseñas no coinciden';
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
-                ),
-                isActive: _currentStep >= 2,
-                state: _currentStep >= 2 ? StepState.complete : StepState.indexed,
+
+              _buildHeader('Comunicaciones', fontSizeProvider),
+              _buildSection(
+                children: [
+                  _buildProfessionalSwitch(
+                    'Notificaciones por Email',
+                    _emailNotifications,
+                        (val) => setState(() => _emailNotifications = val),
+                    Icons.mark_email_unread,
+                    fontSizeProvider,
+                    textColor,
+                    primaryColor,
+                  ),
+                  Divider(height: 1),
+                  _buildProfessionalSwitch(
+                    'Notificaciones SMS',
+                    _smsNotifications,
+                        (val) => setState(() => _smsNotifications = val),
+                    Icons.message_outlined,
+                    fontSizeProvider,
+                    textColor,
+                    primaryColor,
+                  ),
+                ],
+                backgroundColor: cardColor,
               ),
-              Step(
-                title: Text('Notificaciones',  style: TextStyle(color: textColor)),
-                content: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SwitchListTile(
-                      title: Text('Recibir notificaciones por correo electrónico', style: TextStyle(color: textColor)),
-                      value: _emailNotifications,
-                      onChanged: (bool value) {
-                        setState(() {
-                          _emailNotifications = value;
-                        });
-                      },
-                      activeColor: switchColor,
-                      inactiveTrackColor: Colors.grey,
-                    ),
-                    SwitchListTile(
-                      title: Text('Recibir notificaciones por SMS',  style: TextStyle(color: textColor)),
-                      value: _smsNotifications,
-                      onChanged: (bool value) {
-                        setState(() {
-                          _smsNotifications = value;
-                        });
-                      },
-                      activeColor: switchColor,
-                      inactiveTrackColor: Colors.grey,
-                    ),
-                  ],
-                ),
-                isActive: _currentStep >= 3,
-                state: _currentStep >= 3 ? StepState.complete : StepState.indexed,
+
+              _buildHeader('Configuración de Marketing', fontSizeProvider),
+              _buildSection(
+                children: [
+                  _buildProfessionalSwitch(
+                    'Publicidad en Publicaciones',
+                    _adsInPosts,
+                        (val) => setState(() => _adsInPosts = val),
+                    Icons.campaign_outlined,
+                    fontSizeProvider,
+                    textColor,
+                    primaryColor,
+                  ),
+                  Divider(height: 1),
+                  _buildProfessionalSwitch(
+                    'Programa de Influencers',
+                    _collaborationWithInfluencers,
+                        (val) => setState(() => _collaborationWithInfluencers = val),
+                    Icons.group_outlined,
+                    fontSizeProvider,
+                    textColor,
+                    primaryColor,
+                  ),
+                  Divider(height: 1),
+                  _buildProfessionalSwitch(
+                    'Contenido IA',
+                    _useAIGeneratedContent,
+                        (val) => setState(() => _useAIGeneratedContent = val),
+                    Icons.psychology_outlined,
+                    fontSizeProvider,
+                    textColor,
+                    primaryColor,
+                  ),
+                ],
+                backgroundColor: cardColor,
               ),
-              Step(
-                title: Text('Opciones de Publicidad y Negocio', style: TextStyle(color: textColor)),
-                content: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SwitchListTile(
-                      title: Text('Habilitar publicidad en publicaciones',  style: TextStyle(color: textColor)),
-                      value: _adsInPosts,
-                      onChanged: (bool value) {
-                        setState(() {
-                          _adsInPosts = value;
-                        });
-                      },
-                      activeColor: switchColor,
-                      inactiveTrackColor: Colors.grey,
-                    ),
-                    SwitchListTile(
-                      title: Text('Permitir colaboración con influencers',  style: TextStyle(color: textColor)),
-                      value: _collaborationWithInfluencers,
-                      onChanged: (bool value) {
-                        setState(() {
-                          _collaborationWithInfluencers = value;
-                        });
-                      },
-                      activeColor: switchColor,
-                      inactiveTrackColor: Colors.grey,
-                    ),
-                    SwitchListTile(
-                      title: Text('Utilizar contenido generado por IA', style: TextStyle(color: textColor),),
-                      value: _useAIGeneratedContent,
-                      onChanged: (bool value) {
-                        setState(() {
-                          _useAIGeneratedContent = value;
-                        });
-                      },
-                      activeColor: switchColor,
-                      inactiveTrackColor: Colors.grey,
-                    ),
-                  ],
+
+              Padding(
+                padding: EdgeInsets.all(24),
+                child: _buildProfessionalButton(
+                  'Guardar Cambios',
+                      () {
+                    if (_formKey.currentState!.validate()) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Cambios guardados exitosamente'),
+                          backgroundColor: primaryColor,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  },
+                  fontSizeProvider,
+                  primaryColor,
                 ),
-                isActive: _currentStep >= 4,
-                state: _currentStep >= 4 ? StepState.complete : StepState.indexed,
               ),
             ],
-            controlsBuilder: (BuildContext context, ControlsDetails details) {
-              final isLastStep = _currentStep == 4;
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  if (!isLastStep) ...[
-                    ElevatedButton(
-                      onPressed: details.onStepContinue,
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white, backgroundColor: Colors.cyan, // Texto blanco
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10), // Bordes redondeados de 10 píxeles
-                        ),
-                      ),
-                      child: Text('Siguiente'),
-                    ),
-                    TextButton(
-                      onPressed: details.onStepCancel,
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white, backgroundColor: Colors.orange, // Texto blanco
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10), // Bordes redondeados de 10 píxeles
-                        ),
-                      ),
-                      child: Text('Cancelar'),
-                    ),
-                  ] else ...[
-                    ElevatedButton(
-                      onPressed: () {
-                        details.onStepContinue?.call();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white, backgroundColor: Colors.cyan, // Texto blanco
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10), // Bordes redondeados de 10 píxeles
-                        ),
-                      ),
-                      child: Text('Guardar Datos'),
-                    )
-                  ],
-                ],
-              );
-            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(String title, FontSizeProvider fontSizeProvider) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(24, 24, 24, 8),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: fontSizeProvider.fontSize + 1,
+          fontWeight: FontWeight.bold,
+          color: Provider.of<DarkModeProvider>(context).textColor,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSection({
+    required List<Widget> children,
+    required Color? backgroundColor,
+  }) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(children: children),
+      ),
+    );
+  }
+
+  Widget _buildProfessionalTextField(
+      String label,
+      IconData icon,
+      FontSizeProvider fontSizeProvider,
+      Color textColor,
+      Color primaryColor,
+      ) {
+    return TextFormField(
+      style: TextStyle(
+        fontSize: fontSizeProvider.fontSize,
+        color: textColor,
+      ),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(
+          fontSize: fontSizeProvider.fontSize,
+          color: textColor.withOpacity(0.7),
+        ),
+        prefixIcon: Icon(icon, color: primaryColor),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: primaryColor.withOpacity(0.3)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: primaryColor.withOpacity(0.3)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: primaryColor),
+        ),
+      ),
+      validator: (value) {
+        if (value?.isEmpty ?? true) {
+          return 'Este campo es requerido';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildProfessionalPasswordField(
+      String label,
+      bool obscureText,
+      Function(bool) onVisibilityToggle,
+      FontSizeProvider fontSizeProvider,
+      Color textColor,
+      Color primaryColor,
+      ) {
+    return TextFormField(
+      obscureText: obscureText,
+      style: TextStyle(
+        fontSize: fontSizeProvider.fontSize,
+        color: textColor,
+      ),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(
+          fontSize: fontSizeProvider.fontSize,
+          color: textColor.withOpacity(0.7),
+        ),
+        prefixIcon: Icon(Icons.lock_outline, color: primaryColor),
+        suffixIcon: IconButton(
+          icon: Icon(
+            obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+            color: primaryColor,
+          ),
+          onPressed: () => onVisibilityToggle(!obscureText),
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: primaryColor.withOpacity(0.3)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: primaryColor.withOpacity(0.3)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: primaryColor),
+        ),
+      ),
+      validator: (value) {
+        if (value?.isEmpty ?? true) {
+          return 'La contraseña es requerida';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildProfessionalSwitch(
+      String label,
+      bool value,
+      Function(bool) onChanged,
+      IconData icon,
+      FontSizeProvider fontSizeProvider,
+      Color textColor,
+      Color primaryColor,
+      ) {
+    return ListTile(
+      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      leading: Icon(icon, color: primaryColor),
+      title: Text(
+        label,
+        style: TextStyle(
+          fontSize: fontSizeProvider.fontSize,
+          color: textColor,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      trailing: Switch.adaptive(
+        value: value,
+        onChanged: onChanged,
+        activeColor: primaryColor,
+      ),
+    );
+  }
+
+  Widget _buildProfessionalButton(
+      String text,
+      VoidCallback onPressed,
+      FontSizeProvider fontSizeProvider,
+      Color primaryColor,
+      ) {
+    return SizedBox(
+      width: double.infinity,
+      height: 48,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          elevation: 2,
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: fontSizeProvider.fontSize,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),

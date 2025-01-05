@@ -136,164 +136,178 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
     final iconColor = darkModeProvider.iconColor;
     final backgroundColor = darkModeProvider.backgroundColor;
 
+    // Función para determinar el texto a mostrar según el ancho
+    String getResponsiveText(String fullText, double width) {
+      if (width < 320) return '...';
+      if (width < 380) return fullText.substring(0, 3) + '...';
+      return fullText;
+    }
+
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: backgroundColor,
-        elevation: 0,
-        toolbarHeight: 60.0,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16.0),
-          child: IconButton(
-            icon: Icon(Icons.menu_sharp, color: iconColor),
-            onPressed: () {
-              _showOptionsModal(context);
-            },
-          ),
-        ),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            // Botón Snippets
-            Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  _pageController.animateToPage(0,
-                      duration: Duration(milliseconds: 500),
-                      curve: Curves.easeInOut);
-                },
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        'Snippets',
-                        style: TextStyle(
-                          color: _selectedIndex == 0
-                              ? (isDarkMode ? Colors.white : Colors.black)
-                              : Colors.grey,
-                          fontSize: 17,
-                          fontWeight: _selectedIndex == 0
-                              ? FontWeight.bold
-                              : FontWeight.w500,
-                        ),
-                        overflow: TextOverflow.ellipsis, // Agrega "..." si se corta
-                      ),
-                    ),
-                    SizedBox(height: 2),
-                    Container(
-                      height: 3.0,
-                      width: 56,
-                      color: _selectedIndex == 0 ? Colors.cyan : Colors.transparent,
-                    ),
-                  ],
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(60.0),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final screenWidth = MediaQuery.of(context).size.width;
+            final iconSize = screenWidth < 360 ? 22.0 : 25.0;
+            final titleFontSize = screenWidth < 360 ? 12.0 : 14.0;
+            final appBarHeight = screenWidth < 360 ? 50.0 : 60.0;
+            final indicatorWidth = screenWidth * 0.13;
+            final notificationSize = screenWidth < 360 ? 22.0 : 26.0;
+            final badgeSize = screenWidth < 360 ? 16.0 : 18.0;
+
+            return AppBar(
+              backgroundColor: backgroundColor,
+              elevation: 0,
+              toolbarHeight: appBarHeight,
+              leading: Padding(
+                padding: EdgeInsets.only(left: screenWidth * 0.03),
+                child: IconButton(
+                  icon: Icon(Icons.menu_sharp, color: iconColor, size: iconSize),
+                  onPressed: () => _showOptionsModal(context),
                 ),
               ),
-            ),
-            // Botón Posts
-            Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  _pageController.animateToPage(1,
-                      duration: Duration(milliseconds: 500),
-                      curve: Curves.easeInOut);
-                },
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        'Posts',
-                        style: TextStyle(
-                          color: _selectedIndex == 1
-                              ? (isDarkMode ? Colors.white : Colors.black)
-                              : Colors.grey,
-                          fontSize: 17,
-                          fontWeight: _selectedIndex == 1
-                              ? FontWeight.bold
-                              : FontWeight.w500,
-                        ),
-                        overflow: TextOverflow.ellipsis, // Agrega "..." si se corta
-                      ),
-                    ),
-                    Container(
-                      height: 3.0,
-                      width: 50,
-                      color: _selectedIndex == 1 ? Colors.cyan : Colors.transparent,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 3.0),
-            child: IconButton(
-              icon: Icon(Icons.search, color: iconColor, size: 25),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SearchScreen()),
-                );
-              },
-            ),
-          ),
-          IconButton(
-            icon: Stack(
-              clipBehavior: Clip.none, // Permite que el círculo salga del Stack si es necesario
-              children: [
-                Icon(
-                  Icons.notifications,
-                  color: iconColor,
-                  size: 26, // Tamaño del ícono de la campana
-                ),
-                Positioned(
-                  right: -4, // Ajuste de la posición del círculo
-                  top: -5,   // Ajuste de la posición del círculo
-                  child: Container(
-                    padding: EdgeInsets.all(2.5), // Un padding más suave para que se vea bien en cualquier dispositivo
-                    constraints: BoxConstraints(
-                      maxWidth: 18,  // Tamaño máximo adaptativo del círculo
-                      minHeight: 18, // Altura mínima adaptativa
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                      border: Border.all( // Borde blanco alrededor del círculo rojo
-                        color: Colors.white,
-                        width: 0.7, // Grosor mínimo del borde blanco
-                      ),
-                    ),
-                    child: Center(
-                      child: FittedBox( // Para asegurarse de que el texto se ajuste en cualquier tamaño de dispositivo
-                        child: Text(
-                          '5', // Cambia esto por la cantidad real de notificaciones
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 10, // Tamaño del texto
-                            fontWeight: FontWeight.bold,
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  // Botón Fragmentos
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        _pageController.animateToPage(0,
+                            duration: Duration(milliseconds: 500),
+                            curve: Curves.easeInOut);
+                      },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            getResponsiveText('Snippets', screenWidth),
+                            style: TextStyle(
+                              color: _selectedIndex == 0
+                                  ? (isDarkMode ? Colors.white : Colors.black)
+                                  : Colors.grey,
+                              fontSize: titleFontSize,
+                              fontWeight: _selectedIndex == 0
+                                  ? FontWeight.bold
+                                  : FontWeight.w500,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
+                          SizedBox(height: 2),
+                          Container(
+                            height: 3.0,
+                            width: indicatorWidth,
+                            color: _selectedIndex == 0 ? Colors.cyan : Colors.transparent,
+                          ),
+                        ],
                       ),
                     ),
                   ),
+                  // Botón Publicaciones
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        _pageController.animateToPage(1,
+                            duration: Duration(milliseconds: 500),
+                            curve: Curves.easeInOut);
+                      },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            getResponsiveText('Posts', screenWidth),
+                            style: TextStyle(
+                              color: _selectedIndex == 1
+                                  ? (isDarkMode ? Colors.white : Colors.black)
+                                  : Colors.grey,
+                              fontSize: titleFontSize,
+                              fontWeight: _selectedIndex == 1
+                                  ? FontWeight.bold
+                                  : FontWeight.w500,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Container(
+                            height: 3.0,
+                            width: indicatorWidth,
+                            color: _selectedIndex == 1 ? Colors.cyan : Colors.transparent,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.01),
+                  child: IconButton(
+                    icon: Icon(Icons.search, color: iconColor, size: iconSize),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => SearchScreen()),
+                      );
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(right: screenWidth * 0.02),
+                  child: IconButton(
+                    icon: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Icon(
+                          Icons.notifications,
+                          color: iconColor,
+                          size: notificationSize,
+                        ),
+                        Positioned(
+                          right: -4,
+                          top: -5,
+                          child: Container(
+                            padding: EdgeInsets.all(2),
+                            constraints: BoxConstraints(
+                              minWidth: badgeSize,
+                              minHeight: badgeSize,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 0.7,
+                              ),
+                            ),
+                            child: Center(
+                              child: FittedBox(
+                                child: Text(
+                                  '5',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: screenWidth < 360 ? 9 : 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    onPressed: () => Navigator.pushNamed(context, '/avisos'),
+                  ),
                 ),
               ],
-            ),
-            onPressed: () {
-              Navigator.pushNamed(context, '/avisos');
-            },
-          ),
-
-        ],
+            );
+          },
+        ),
       ),
       body: PageView(
         controller: _pageController,
         onPageChanged: (index) {
-          _disposeVideoPlayer(); // Libera el controlador anterior
+          _disposeVideoPlayer();
           setState(() {
             _selectedIndex = index;
             _currentIndex = index;
@@ -307,7 +321,7 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
         ],
       ),
       floatingActionButton:
-          _floatingActionButtonVisible ? _buildFloatingActionButton() : null,
+      _floatingActionButtonVisible ? _buildFloatingActionButton() : null,
     );
   }
 

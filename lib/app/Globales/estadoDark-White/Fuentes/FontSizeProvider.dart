@@ -4,33 +4,30 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 
+import 'package:flutter/material.dart';
+
 class FontSizeProvider with ChangeNotifier {
   static const double extraSmall = 12.0;
   static const double small = 14.0;
   static const double medium = 16.0;
   static const double large = 18.0;
 
-  double _fontSize = small;
+  double _fontSize = extraSmall; // Default size is now extraSmall
+  static const double _defaultSize = extraSmall; // Added default size constant
+
+  // Constructor to initialize with default size
+  FontSizeProvider() {
+    _fontSize = _defaultSize;
+  }
 
   double get fontSize => _fontSize;
-
-  // Factores de escala basados en el fontSize
-  double get iconScale => _fontSize / medium;
-
-  // Tamaños de iconos que escalan con el fontSize
+  double get iconScale => _fontSize / extraSmall;
   double get mainIconSize => 30.0 * iconScale;
-
   double get secondaryIconSize => 24.0 * iconScale;
-
   double get avatarSize => 48.0 * iconScale;
-
-  // Tamaños de texto que escalan con el fontSize
-  double get counterTextSize => (_fontSize) * iconScale; // Para contadores
-  double get captionTextSize => _fontSize * iconScale; // Para descripciones
-  double get usernameTextSize =>
-      (_fontSize + 1) * iconScale; // Para nombres de usuario
-
-  //para comentarios
+  double get counterTextSize => (_fontSize) * iconScale;
+  double get captionTextSize => _fontSize * iconScale;
+  double get usernameTextSize => (_fontSize + 1) * iconScale;
   static const double commentAvatarSize = 32.0;
 
   void setFontSize(double newSize) {
@@ -38,6 +35,11 @@ class FontSizeProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // Reset to default size
+  void resetToDefault() {
+    _fontSize = _defaultSize;
+    notifyListeners();
+  }
 }
 
 class FontSizeScreen extends StatelessWidget {
@@ -425,5 +427,4 @@ class FontSizeScreen extends StatelessWidget {
       ],
     );
   }
-
 }

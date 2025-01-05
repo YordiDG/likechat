@@ -16,7 +16,7 @@ class AuthProvider with ChangeNotifier {
       String gender,
       bool acceptTerms,
       ) async {
-    final url = 'http://192.168.0.10:8088/api/v1/auth/register';
+    const url = 'http://192.168.242.226:8088/api/v1/auth/register';
 
 
     try {
@@ -49,7 +49,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> sendVerificationCode(String email) async {
-    final url = 'http://192.168.0.10:8088/api/v1/auth/authenticate';// URL del endpoint para enviar el código de verificación, ajusta según tu backend
+    const url = 'http://192.168.242.226:8088/api/v1/auth/authenticate';// URL del endpoint para enviar el código de verificación, ajusta según tu backend
     try {
       final response = await http.post(
         Uri.parse(url),
@@ -70,7 +70,7 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> verifyCode(String email, String code) async {
 
-    final url = 'http://192.168.0.10:8088/api/v1/auth/activate-account';
+    const url = 'http://192.168.242.226:8088/api/v1/auth/activate-account';
     try {
       final response = await http.post(
         Uri.parse(url),
@@ -91,7 +91,7 @@ class AuthProvider with ChangeNotifier {
 
 
   Future<void> login(String email, String password) async {
-    final url = 'http://192.168.0.10:8088/api/v1/auth/authenticate';
+    const url = 'http://192.168.242.226:8088/api/v1/auth/authenticate';
     try {
       final response = await http.post(
         Uri.parse(url),

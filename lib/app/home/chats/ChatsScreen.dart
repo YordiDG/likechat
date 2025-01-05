@@ -9,6 +9,7 @@ import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
 import '../../Globales/estadoDark-White/DarkModeProvider.dart';
+import '../../Globales/estadoDark-White/Fuentes/FontSizeProvider.dart';
 import 'call/CallScreen.dart';
 import 'call/VideoCall.dart';
 import 'contactatos/ContactSelectionScreen.dart';
@@ -20,12 +21,11 @@ class ChatsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
     final isDarkMode = darkModeProvider.isDarkMode;
-    final textColor = darkModeProvider.textColor;
-    final iconColor = darkModeProvider.iconColor;
-    final backgroundColor = darkModeProvider.backgroundColor;
+
+    final fontSizeProvider = Provider.of<FontSizeProvider>(context);
 
     return Scaffold(
-      //backgroundColor: Colors.white,
+      backgroundColor: isDarkMode ? Color(0xFF121212) : Color(0xFFF5F5F5),
       body: ListView.builder(
         padding: EdgeInsets.zero, // Elimina el padding superior
         itemCount: 10, // Ejemplo de cantidad de chats
@@ -41,10 +41,9 @@ class ChatsScreen extends StatelessWidget {
             title: Text('Contacto $index',
                 style: TextStyle(
                     color: isDarkMode ? Colors.white : Colors.black,
-                    fontSize: 17,
                     fontWeight: FontWeight.bold)),
             subtitle: Text('Último mensaje',
-                style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+                style: TextStyle(color: Colors.grey[500], fontSize: fontSizeProvider.fontSize - 2)),
             onTap: () {
               Navigator.push(
                 context,
@@ -292,15 +291,15 @@ class _ChatScreenState extends State<ChatScreen> {
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
     final isDarkMode = darkModeProvider.isDarkMode;
     final textColor = darkModeProvider.textColor;
-    final iconColor = darkModeProvider.iconColor;
-    final backgroundColor = darkModeProvider.backgroundColor;
+
+    final fontSizeProvider = Provider.of<FontSizeProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFF1F1F1F),
         titleSpacing: 0.0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back_ios, color: Colors.white, size: 20,),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -311,6 +310,7 @@ class _ChatScreenState extends State<ChatScreen> {
             icon: Icon(Icons.more_vert, color: Colors.white),
             onSelected: _handleMenuSelection,
             itemBuilder: (BuildContext context) => _buildMenuItems(),
+            offset: Offset(0, 45), // Ajusta el offset vertical para que el menú esté debajo
           ),
         ],
       ),
@@ -357,8 +357,8 @@ class _ChatScreenState extends State<ChatScreen> {
                               child: Row(
                                 children: [
                                   Container(
-                                    width: 36,
-                                    height: 36,
+                                    width: 34,
+                                    height: 34,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       color: Colors.cyan,
@@ -390,11 +390,11 @@ class _ChatScreenState extends State<ChatScreen> {
                                             decoration: InputDecoration(
                                               hintText: 'Mensaje...',
                                               hintStyle: TextStyle(
-                                                  color: Colors.grey[600]),
+                                                  color: Colors.grey[600], fontSize: fontSizeProvider.fontSize),
                                               border: InputBorder.none,
                                               contentPadding:
                                                   EdgeInsets.symmetric(
-                                                      vertical: 10),
+                                                      vertical: 6),
                                             ),
                                           ),
                                         ),
@@ -461,17 +461,16 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  //para appbar
   // Método para construir el título del AppBar
   Widget _buildAppBarTitle() {
     return Row(
       children: [
         CircleAvatar(
-          radius: 20,
+          radius: 18,
           backgroundColor: Colors.cyan,
           child: Text(
             widget.chatTitle[0],
-            style: TextStyle(color: Colors.white, fontSize: 16),
+            style: TextStyle(color: Colors.white, fontSize: 17),
           ),
         ),
         SizedBox(width: 6),
@@ -483,15 +482,15 @@ class _ChatScreenState extends State<ChatScreen> {
                 widget.chatTitle,
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
                 ),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
               ),
               Text(
                 'Activo ahora',
-                style: TextStyle(color: Colors.cyan, fontSize: 10),
+                style: TextStyle(color: Colors.cyan, fontSize: 8, fontWeight: FontWeight.w400),
               ),
             ],
           ),
@@ -501,66 +500,67 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   // Método para construir los elementos del menú
-  List<PopupMenuItem<String>> _buildMenuItems() {
+  List<PopupMenuItem<String>> _buildMenuItems({ double fontSize = 11}) {
     return [
       PopupMenuItem(
         value: 'Ver perfil',
         child: ListTile(
-          leading: Icon(Icons.person, color: Colors.black),
-          title: Text('Ver perfil'),
+          leading: Icon(Icons.person,),
+          title: Text('Ver perfil', style: TextStyle(fontSize: fontSize)),
         ),
       ),
       PopupMenuItem(
         value: 'Archivar chat',
         child: ListTile(
-          leading: Icon(Icons.archive, color: Colors.black),
-          title: Text('Archivar chat'),
+          leading: Icon(Icons.archive, ),
+          title: Text('Archivar chat', style: TextStyle(fontSize: fontSize)),
         ),
       ),
       PopupMenuItem(
         value: 'Video llamada',
         child: ListTile(
-          leading: Icon(Icons.videocam, color: Colors.black),
-          title: Text('Video llamada'),
+          leading: Icon(Icons.videocam, ),
+          title: Text('Video llamada', style: TextStyle(fontSize: fontSize)),
         ),
       ),
       PopupMenuItem(
         value: 'Llamada de voz',
         child: ListTile(
-          leading: Icon(Icons.phone, color: Colors.black),
-          title: Text('Llamada de voz'),
+          leading: Icon(Icons.phone, ),
+          title: Text('Llamada de voz', style: TextStyle(fontSize: fontSize)),
         ),
       ),
       PopupMenuItem(
         value: 'Buscar',
         child: ListTile(
-          leading: Icon(Icons.search, color: Colors.black),
-          title: Text('Buscar'),
+          leading: Icon(Icons.search,),
+          title: Text('Buscar', style: TextStyle(fontSize: fontSize)),
         ),
       ),
       PopupMenuItem(
         value: 'Vaciar chat',
         child: ListTile(
-          leading: Icon(Icons.delete_outline, color: Colors.black),
-          title: Text('Vaciar chat'),
+          leading: Icon(Icons.delete_outline, ),
+          title: Text('Vaciar chat', style: TextStyle(fontSize: fontSize)),
         ),
       ),
       PopupMenuItem(
         value: 'Eliminar chat',
         child: ListTile(
-          leading: Icon(Icons.delete, color: Colors.black),
-          title: Text('Eliminar chat'),
+          leading: Icon(Icons.delete, ),
+          title: Text('Eliminar chat', style: TextStyle(fontSize: fontSize)),
         ),
       ),
       PopupMenuItem(
         value: 'Bloquear',
         child: ListTile(
-          leading: Icon(Icons.block, color: Colors.black),
-          title: Text('Bloquear'),
+          leading: Icon(Icons.block, ),
+          title: Text('Bloquear', style: TextStyle(fontSize: fontSize)),
         ),
       ),
     ];
   }
+
 
 // Método para manejar la selección del menú
   void _handleMenuSelection(String value) {
@@ -1049,9 +1049,9 @@ class _ChatScreenState extends State<ChatScreen> {
       width: 70, // Ancho del contenedor
       child: Column(
         children: [
-          Container(
-            height: 50, // Aumenta la altura del contenedor de la animación
-            width: 50, // Aumenta el ancho del contenedor de la animación
+          SizedBox(
+            height: 40, // Aumenta la altura del contenedor de la animación
+            width: 40, // Aumenta el ancho del contenedor de la animación
             child: Lottie.asset(
               jsonPath,
               fit: BoxFit.cover,

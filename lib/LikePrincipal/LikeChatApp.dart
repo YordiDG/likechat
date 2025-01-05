@@ -15,13 +15,26 @@ import '../app/registros/register/RegisterScreen.dart';
 import '../app/registros/splash/SplashScreen.dart';
 import 'HomeScreen.dart';
 
+import 'package:flutter/services.dart';
+
 class LikeChatApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer4<DarkModeProvider, FontSizeProvider, LocalizationProvider, NetworkProvider>(
       builder: (context, darkModeProvider, fontSizeProvider, localizationProvider, networkProvider, child) {
-        // Widget para mostrar cuando no hay conexión
-        Widget noConnectionBanner = networkProvider.isConnected ? SizedBox() : Container(
+        final isDarkMode = darkModeProvider.isDarkMode;
+
+        // Cambiar el estilo del sistema según el modo oscuro o claro
+        SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent, // Color transparente para el fondo de la barra de estado
+          statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark, // Iconos de la barra de estado
+          systemNavigationBarColor: isDarkMode ? Colors.black : Colors.white, // Color de la barra de navegación
+          systemNavigationBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark, // Iconos de la barra de navegación
+        ));
+
+        Widget noConnectionBanner = networkProvider.isConnected
+            ? SizedBox()
+            : Container(
           color: Colors.grey.shade800,
           padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top, bottom: 4),
           child: Row(

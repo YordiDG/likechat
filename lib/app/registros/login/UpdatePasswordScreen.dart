@@ -45,7 +45,7 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
         title: Text(
           'Actualizar Contraseña',
           style: TextStyle(
-              color: textColor, fontWeight: FontWeight.bold, fontSize: 20),
+              color: textColor, fontWeight: FontWeight.bold, fontSize: 14),
         ),
         centerTitle: true,
         leading: IconButton(
@@ -67,7 +67,7 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                     Center(
                       child: Icon(
                         Icons.lock_outline,
-                        size: 70,
+                        size: 50,
                         color: isDarkMode ? Colors.white : Colors.cyan,
                       ),
                     ),
@@ -76,8 +76,8 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                       child: Text(
                         'Cambiar Contraseña',
                         style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
                           color: textColor,
                         ),
                       ),
@@ -134,7 +134,7 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                         child: Text(
                           'Actualizar Contraseña',
                           style: TextStyle(
-                              fontSize: 16,
+                              fontSize: 13,
                               fontWeight: FontWeight.bold,
                               color: Colors.white),
                         ),
@@ -152,6 +152,7 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                   style: TextStyle(
                     color: Colors.grey.shade400,
                     fontWeight: FontWeight.w600,
+                    fontSize: 11
                   ),
                 ),
               ),
@@ -235,14 +236,14 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
         Icon(
           isValid ? Icons.check_circle : Icons.cancel,
           color: isValid ? Colors.green : Colors.grey,
-          size: 16,
+          size: 14,
         ),
         SizedBox(width: 5),
         Text(
           text,
           style: TextStyle(
               color: isValid ? Colors.green : Colors.grey,
-              fontSize: 12,
+              fontSize: 9,
               fontWeight: FontWeight.w500),
         ),
       ],
@@ -260,14 +261,14 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
         Fluttertoast.showToast(
           msg: "Contraseña actualizada exitosamente",
           backgroundColor: Colors.green,
-          textColor: Colors.white,
+          textColor: Colors.white, fontSize: 11
         );
         Navigator.pushReplacementNamed(context, '/login');
       } catch (e) {
         Fluttertoast.showToast(
           msg: "Error del servidor. Vuelva a intertarlo.",
           backgroundColor: Colors.grey.shade800,
-          textColor: Colors.white,
+          textColor: Colors.white, fontSize: 11
         );
       }
     }

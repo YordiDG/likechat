@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:ui' as ui;
@@ -49,7 +50,7 @@ class _LikeChatScreenState extends State<HistorysLikeChatScreen> {
       child: Padding(
         padding: EdgeInsets.only(top: 30.0),
         child: Container(
-          height: 140,
+          height: 150,
           color: backgroundColor ,
           child: Stack(
             children: [
@@ -145,10 +146,10 @@ class _LikeChatScreenState extends State<HistorysLikeChatScreen> {
               items: [
                 PopupMenuItem(
                   child: ListTile(
-                    leading: Icon(Icons.settings_rounded, color: buttonColor, size: 24),
+                    leading: Icon(Icons.settings_rounded, color: buttonColor, size: 20),
                     title: Text(
                       'Configuración',
-                      style: TextStyle(fontSize: 15.0, fontWeight: FontWeight.w500),
+                      style: TextStyle(fontWeight: FontWeight.w500),
                     ),
                   ),
                   onTap: () {
@@ -162,11 +163,11 @@ class _LikeChatScreenState extends State<HistorysLikeChatScreen> {
                     leading: Icon(
                       isDarkMode ? Icons.light_mode : Icons.dark_mode,
                       color: buttonColor,
-                      size: 24,
+                      size: 20,
                     ),
                     title: Text(
                       isDarkMode ? 'Modo claro' : 'Modo oscuro',
-                      style: TextStyle(fontSize: 15.0, fontWeight: FontWeight.w500),
+                      style: TextStyle( fontWeight: FontWeight.w500),
                     ),
                   ),
                   onTap: () {
@@ -197,191 +198,175 @@ class _LikeChatScreenState extends State<HistorysLikeChatScreen> {
     );
   }
 
-  Widget buildStoryContainer() {
-    final darkModeProvider = Provider.of<DarkModeProvider>(context);
-    final isDarkMode = darkModeProvider.isDarkMode;
-    final iconColor = darkModeProvider.iconColor;
-
-    // Tamaños estandarizados de Instagram
-    final double storySize = 77.0;  // Tamaño estándar de Instagram
-    final double activeStorySize = 77.0;  // Mismo tamaño para consistencia
-
-    return Container(
-      margin: EdgeInsets.only(top: 43.0),
-      height: activeStorySize + 1,
-      width: 500,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            Padding(
-              padding: EdgeInsets.only(left: 17.0, right: 5.0),
-              child: GestureDetector(
-                onTap: _addStory,
-                child: Container(
-                  width: storySize,
-                  height: storySize,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.grey[300],
-                  ),
-                  child: Stack(
-                    children: [
-                      Center(
-                        child: _image != null
-                            ? Container(
-                          width: storySize - 4, // Ajuste para el borde
-                          height: storySize - 4,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            image: DecorationImage(
-                              image: FileImage(File(_image!.path)),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        )
-                            : Container(
-                          width: storySize - 4,
-                          height: storySize - 4,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            image: DecorationImage(
-                              image: AssetImage('lib/assets/placeholder_user.jpg'),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
+  // Widget para el Avatar
+  Widget buildAvatarStory(double avatarSize, bool isDarkMode) {
+    return Padding(
+      padding: EdgeInsets.only(left: 17.0, right: 5.0),
+      child: Column(
+        children: [
+          GestureDetector(
+            onTap: _addStory,
+            child: Container(
+              width: avatarSize,
+              height: avatarSize,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.grey[300],
+              ),
+              child: Stack(
+                children: [
+                  Center(
+                    child: _image != null
+                        ? Container(
+                      width: avatarSize - 4,
+                      height: avatarSize - 4,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        image: DecorationImage(
+                          image: FileImage(File(_image!.path)),
+                          fit: BoxFit.cover,
                         ),
                       ),
-                      Positioned(
-                        bottom: 1.0,
-                        right: 1.0,
-                        child: Container(
-                          width: 25.0, // Tamaño ajustado del botón de añadir
-                          height: 25.0,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: isDarkMode ? Colors.cyan : Colors.cyan,
-                            border: Border.all(color: isDarkMode ? Colors.black : Colors.white, width: 2.0),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.3),
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Icon(
-                              Icons.add,
-                              size: 20, // Tamaño ajustado del ícono
-                              color: Colors.white,
-                            ),
-                          ),
+                    )
+                        : Container(
+                      width: avatarSize - 2,
+                      height: avatarSize - 2,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        image: DecorationImage(
+                          image: AssetImage('lib/assets/placeholder_user.jpg'),
+                          fit: BoxFit.cover,
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                  Positioned(
+                    bottom: 1.0,
+                    right: 1.0,
+                    child: Container(
+                      width: 27.0,
+                      height: 27.0,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.cyan,
+                        border: Border.all(
+                            color: isDarkMode ? Colors.black : Colors.white,
+                            width: 2.0
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.add,
+                        size: 22,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            SizedBox(width: 8),
-            if (_stories.isNotEmpty) buildActiveStory(activeStorySize),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget buildActiveStory(double activeStorySize) {
-    final darkModeProvider = Provider.of<DarkModeProvider>(context);
-    final isDarkMode = darkModeProvider.isDarkMode;
-
-    return GestureDetector(
-      onTap: () {
-        if (_stories.isNotEmpty) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => FullScreenStoryViewer(
-                stories: _stories,
-                currentIndex: _currentIndex,
-                onDelete: _deleteStory,
+// Widget para la Historia Compartida
+  Widget buildSharedStory(double storyImageSize, bool isDarkMode) {
+    return Padding(
+      padding: EdgeInsets.only(right: 5.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: () {
+              if (_stories.isNotEmpty) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => FullScreenStoryViewer(
+                      stories: _stories,
+                      currentIndex: _currentIndex,
+                      onDelete: _deleteStory,
+                    ),
+                  ),
+                );
+              }
+            },
+            child: Container(
+              width: storyImageSize,
+              height: storyImageSize,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [
+                    Color(0xFF9B30FF),
+                    Color(0xFF00BFFF),
+                    Color(0xFF00FFFF),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
               ),
-            ),
-          );
-        }
-      },
-      child: Container(
-        width: activeStorySize,
-        height: activeStorySize,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFF9B30FF),
-              Color(0xFF00BFFF),
-              Color(0xFF00FFFF),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(2.0),
-          child: Stack(
-            children: [
-              Container(
+              padding: const EdgeInsets.all(2.8),
+              child: Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isDarkMode ? Colors.black : Colors.white,
                   border: Border.all(
                     color: isDarkMode ? Colors.black : Colors.white,
                     width: 2.0,
                   ),
                 ),
-                child: ClipOval(
-                  child: Container(
-                    width: activeStorySize - 4,
-                    height: activeStorySize - 4,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                        image: FileImage(File(_stories[_currentIndex])),
-                        fit: BoxFit.cover,
-                      ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                      image: FileImage(File(_stories[_currentIndex])),
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ),
               ),
-              Positioned(
-                bottom: 0.0,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
-                    decoration: BoxDecoration(
-                      color: isDarkMode ? Colors.black87 : Colors.white.withOpacity(0.8),
-                      borderRadius: BorderRadius.circular(10.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 4.0,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      'Tu historia',
-                      style: TextStyle(
-                        color: isDarkMode ? Colors.white : Colors.black87,
-                        fontSize: 7.0,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
+          SizedBox(height: 1),
+          Text(
+            'Tu Historia',
+            style: TextStyle(
+              color: isDarkMode ? Colors.white : Colors.black87,
+              fontSize: 10.0,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+// Widget principal que contiene ambos
+  Widget buildStoryContainer() {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+
+    // Tamaños ajustados
+    final double avatarSize = 77.0;
+    final double storyImageSize = 77.0;
+    final double storyContainerHeight = 110.0;
+
+    return Container(
+      margin: EdgeInsets.only(top: 43.0),
+      height: storyContainerHeight,
+      width: 500,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start, // Alinea los elementos al inicio
+          children: [
+            buildAvatarStory(avatarSize, isDarkMode),
+            SizedBox(width: 8),
+            if (_stories.isNotEmpty)
+              buildSharedStory(storyImageSize, isDarkMode),
+          ],
         ),
       ),
     );
@@ -430,7 +415,6 @@ class _LikeChatScreenState extends State<HistorysLikeChatScreen> {
 
   void showChatListOptionsDialog(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -472,7 +456,7 @@ class _LikeChatScreenState extends State<HistorysLikeChatScreen> {
                     Text(
                       'Gestionar chats',
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 15,
                         fontWeight: FontWeight.bold,
                         color: isDark ? Colors.white : Colors.black87,
                       ),
@@ -585,7 +569,7 @@ class _LikeChatScreenState extends State<HistorysLikeChatScreen> {
               child: Icon(
                 icon,
                 color: color,
-                size: 26,
+                size: 24,
               ),
             ),
             SizedBox(width: 16),
@@ -596,7 +580,7 @@ class _LikeChatScreenState extends State<HistorysLikeChatScreen> {
                   Text(
                     label,
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: isDark ? Colors.white : Colors.black87,
                     ),
@@ -606,7 +590,7 @@ class _LikeChatScreenState extends State<HistorysLikeChatScreen> {
                     Text(
                       subtitle,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 10,
                         color: isDark ? Colors.white60 : Colors.black54,
                       ),
                     ),
@@ -627,7 +611,7 @@ class _LikeChatScreenState extends State<HistorysLikeChatScreen> {
                   style: TextStyle(
                     color: color,
                     fontWeight: FontWeight.bold,
-                    fontSize: 13,
+                    fontSize: 11,
                   ),
                 ),
               ),
@@ -693,24 +677,24 @@ class _LikeChatScreenState extends State<HistorysLikeChatScreen> {
     });
   }
 
+
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     var pickedFiles = await picker.pickMultiImage();
 
-    if (pickedFiles != null) {
+    if (pickedFiles != null && pickedFiles.isNotEmpty) {
       // Limitar el número de imágenes a 10
       if (pickedFiles.length > 10) {
-        // Mostrar mensaje de advertencia y cortar la lista a 10 imágenes
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(
-            'Solo se puede subir un máximo de 10 imágenes.',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating, // Hacer que el snackbar flote
-          duration: Duration(seconds: 3), // Duración del mensaje
-          margin: EdgeInsets.all(16.0), // Margen para el snackbar
-        ));
+        // Mostrar un toast de advertencia y cortar la lista a 10 imágenes
+        Fluttertoast.showToast(
+          msg: 'Solo se puede subir un máximo de 10 imágenes.',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 3, // Duración del mensaje
+          backgroundColor: Colors.grey.shade800,
+          textColor: Colors.white,
+          fontSize: 11.0,
+        );
         // Solo toma las primeras 10 imágenes
         pickedFiles = pickedFiles.take(10).toList();
       }
@@ -718,31 +702,39 @@ class _LikeChatScreenState extends State<HistorysLikeChatScreen> {
       // Crear una lista para mantener las imágenes seleccionadas
       List<File> imagesToPreview = pickedFiles.map((file) => File(file.path)).toList();
 
-      // Mostrar la pantalla de previsualización para todas las imágenes
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => PreviewHistory(
-            images: imagesToPreview, // Pasar la lista de imágenes
-            onPostStory: _postStory,
+      if (imagesToPreview.isNotEmpty) {
+        // Mostrar la pantalla de previsualización para todas las imágenes
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PreviewHistory(
+              images: imagesToPreview, // Pasar la lista de imágenes
+              onPostStory: _postStory,
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        // Si no hay imágenes válidas para previsualizar
+        Fluttertoast.showToast(
+          msg: 'No hay imágenes válidas para previsualizar.',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 3, // Duración del mensaje
+          backgroundColor: Colors.grey.shade800,
+          textColor: Colors.white,
+          fontSize: 11.0,
+        );
+      }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(
-          'No se seleccionaron imágenes.',
-          style: TextStyle(color: Colors.white), // Color del texto
-        ),
-        backgroundColor: Color.fromRGBO(0, 255, 255, 0.5), // Fondo cian con opacidad
-        behavior: SnackBarBehavior.floating, // Hacer que el snackbar flote
-        duration: Duration(seconds: 3), // Duración del mensaje
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0), // Bordes redondeados
-          side: BorderSide(color: Colors.cyan, width: 2.0), // Borde cian
-        ),
-        margin: EdgeInsets.all(16.0), // Margen para el snackbar
-      ));
+      Fluttertoast.showToast(
+        msg: 'No se seleccionaron imágenes.',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 3, // Duración del mensaje
+        backgroundColor: Colors.grey.shade800,
+        textColor: Colors.white,
+        fontSize: 11.0,
+      );
     }
   }
 
@@ -766,7 +758,7 @@ class _LikeChatScreenState extends State<HistorysLikeChatScreen> {
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               Container(
-                width: 50,
+                width: 40,
                 height: 5,
                 decoration: BoxDecoration(
                   color: Colors.grey[400],
@@ -777,7 +769,7 @@ class _LikeChatScreenState extends State<HistorysLikeChatScreen> {
               Text(
                 'Seleccionar Archivo',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),
               ),

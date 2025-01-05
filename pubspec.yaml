@@ -102,7 +102,9 @@ dependencies:
   #hasheo verif. de image_editor
   crypto: ^3.0.3
   convert: ^3.1.2
-
+  #patrones del celular
+  local_auth: ^2.3.0
+  pattern_lock: ^2.0.0
 
   cached_network_image: ^3.4.0
   sqflite: ^2.3.3+1
@@ -157,15 +159,18 @@ flutter:
     - lib/assets/like.json
     - lib/assets/sorpresa.json
     - lib/assets/ultima.json
-    - lib/assets/code_success.json
+
     #loading
     - lib/assets/loading/infinity_cyan.json
     - lib/assets/loading/infinity_blue.json
     - lib/assets/loading/infinity.json
+    - lib/assets/loading/loading_infinity.json
     #splash inicio
     - lib/assets/splash/logo_splash.png
     - lib/assets/splash/logo_splash2.png
     - lib/assets/splash/chaski.png
+    #success loading
+    - lib/assets/succes/success.json
 
     - lib/assets/LikeChat.gif
     - lib/assets/download.json

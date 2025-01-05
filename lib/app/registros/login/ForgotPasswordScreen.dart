@@ -50,11 +50,11 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
         elevation: 0,
         title: Text(
           'Recuperar Contraseña',
-          style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 19),
+          style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 14),
         ),
         centerTitle: true,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, size: 22, color: iconColor),
+          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: iconColor),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -73,12 +73,12 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
               // Título y descripción
               Text(
                 '¿Olvidaste tu contraseña?',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.white : Colors.cyan[800]),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.white : Colors.cyan[800]),
               ),
               SizedBox(height: 8),
               Text(
                 'Ingresa tu correo registrado para recibir instrucciones.',
-                style: TextStyle(fontSize: 13, color: isDarkMode ? Colors.white60 : Colors.black54, fontWeight: FontWeight.w600),
+                style: TextStyle(fontSize: 10, color: isDarkMode ? Colors.white60 : Colors.black54, fontWeight: FontWeight.w600),
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 30),
@@ -92,7 +92,7 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
                   labelText: 'Correo Electrónico',
                   labelStyle: TextStyle(
                     color: _isValidDomain ? Colors.cyan : Colors.red,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w500,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -139,7 +139,7 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
                     alignment: Alignment.centerLeft, // Alineación a la izquierda
                     child: Text(
                       emailErrorMessage!,
-                      style: TextStyle(color: Color(0xFFCB7070), fontSize: 12, fontWeight: FontWeight.w500), // Rojo más suave
+                      style: TextStyle(color: Color(0xFFCB7070), fontSize: 10, fontWeight: FontWeight.w500), // Rojo más suave
                     ),
                   ),
                 ),
@@ -171,7 +171,7 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
                       Fluttertoast.showToast(
                           msg: "Correo de recuperación enviado.",
                           backgroundColor: Colors.green,
-                          textColor: Colors.white);
+                          textColor: Colors.white, fontSize: 11);
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -182,7 +182,7 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
                       Fluttertoast.showToast(
                           msg: "Error al enviar el correo.",
                           backgroundColor: Colors.red,
-                          textColor: Colors.white);
+                          textColor: Colors.white, fontSize: 11);
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -193,7 +193,7 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
                   ),
                   child: Text(
                     'Enviar Correo',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
                   ),
                 ),
               ),
@@ -213,7 +213,7 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
                   '¿Necesitas ayuda?',
                   style: TextStyle(
                     color: Colors.grey.shade400,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w600, fontSize: 12
                   ),
                 ),
               ),

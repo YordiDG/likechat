@@ -108,16 +108,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           'Editar Perfil',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: isDarkMode ? Colors.white : Colors.black, fontSize: 20
+            color: isDarkMode ? Colors.white : Colors.black,
+            fontSize: 14,
           ),
         ),
+        centerTitle: true,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new,
-              color: isDarkMode ? Colors.white : Colors.black, size: 20,),
+          icon: Icon(
+            Icons.arrow_back_ios_new,
+            color: isDarkMode ? Colors.white : Colors.black,
+            size: 20,
+          ),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
+        leadingWidth: 50,
       ),
       body: Theme(
         data: Theme.of(context).copyWith(
@@ -171,14 +177,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   },
                   decoration: customDecoration('Descripción', Icons.description),
                   cursorColor: Colors.cyan,
-                  style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                  style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 12),
                 ),
                 SizedBox(height: 16),
 
                 // Reemplazar el TextField de enlace con customDecoration
                 TextField(
                   controller: _socialLinkController,
-                  decoration: customDecoration('Enlace a otra red social', Icons.link),
+                  decoration: customDecoration('Enlace red social', Icons.link),
                   cursorColor: Colors.cyan,
                   style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
                   onChanged: (text) {
@@ -208,7 +214,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 gravity: ToastGravity.BOTTOM,
                                 backgroundColor: Colors.grey.shade800,
                                 textColor: Colors.white,
-                                fontSize: 13.0,
+                                fontSize: 11.0,
                               );
                             }
                           }
@@ -327,12 +333,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.cyan,
-                      padding: EdgeInsets.symmetric(vertical: 13),
+                      padding: EdgeInsets.symmetric(vertical: 9),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10)),
                     ),
                     child: Text('Guardar Cambios',
-                        style: TextStyle(color: Colors.white, fontSize: 16)),
+                        style: TextStyle(color: Colors.white, fontSize: 12)),
                   ),
                 ),
               ],

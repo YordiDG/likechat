@@ -1,17 +1,21 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
+import 'package:provider/provider.dart';
 import 'package:lottie/lottie.dart';
+
+import '../../Globales/estadoDark-White/DarkModeProvider.dart';
 
 class MusicModal extends StatefulWidget {
   @override
   _MusicModalState createState() => _MusicModalState();
 }
 
-class _MusicModalState extends State<MusicModal> {
+class _MusicModalState extends State<MusicModal> with TickerProviderStateMixin {
   List<dynamic> songs = [];
   String searchQuery = '';
   late AudioPlayer _audioPlayer;
@@ -27,18 +31,57 @@ class _MusicModalState extends State<MusicModal> {
   StreamSubscription? _playerCompleteSubscription;
   StreamSubscription? _playerStateChangeSubscription;
 
+  // Reflesh de música
+  bool _isLoading = false;
+
+  // Animación de letra
+  late AnimationController _titleAnimationController;
+  late Animation<Offset> _titleAnimation;
+
   final TextEditingController _controller =
-      TextEditingController(); // Controlador del campo de búsqueda
+  TextEditingController(); // Controlador del campo de búsqueda
 
   bool isActivated = false;
-  String selectedItem = 'Recomendar';
+
+  // Nuevos controladores para los iconos de música
+  late List<AnimationController> _musicIconControllers;
+  late List<Animation<double>> _musicIconScales;
+  late List<Animation<double>> _musicIconOpacities;
+
+  late List<double> _noteAngles; // Añadir esta variable a la clase
 
   @override
   void initState() {
     super.initState();
+
+    _titleAnimationController = AnimationController(
+      duration: const Duration(seconds: 5),
+      vsync: this,
+    );
+
+    _titleAnimation = Tween<Offset>(
+      begin: Offset.zero,
+      end: Offset(-0.5, 0),
+    ).animate(CurvedAnimation(
+      parent: _titleAnimationController,
+      curve: Curves.linear,
+    ));
+
     _audioPlayer = AudioPlayer();
     _initPlayer();
-    _fetchPopularSongs(); // Cargar canciones populares
+    _fetchPopularSongs();
+
+    // Inicializar más ángulos aleatorios
+    _noteAngles = List.generate(8, (index) => Random().nextDouble() * 2 * pi);
+
+    // Más controladores con duración más larga para movimiento más suave
+    _musicIconControllers = List.generate(
+      8,
+          (index) => AnimationController(
+        duration: Duration(milliseconds: 2500 + (Random().nextInt(500))), // Duración variable
+        vsync: this,
+      ),
+    );
   }
 
   @override
@@ -49,6 +92,12 @@ class _MusicModalState extends State<MusicModal> {
     _playerStateChangeSubscription?.cancel();
     _audioPlayer.dispose();
     _controller.dispose(); // Limpiar el controlador al desechar el widget
+
+    _titleAnimationController.dispose();
+    for (var controller in _musicIconControllers) {
+      controller.dispose();
+    }
+
     super.dispose();
   }
 
@@ -68,8 +117,8 @@ class _MusicModalState extends State<MusicModal> {
     });
     _playerStateChangeSubscription =
         _audioPlayer.onPlayerStateChanged.listen((state) {
-      setState(() => _playerState = state);
-    });
+          setState(() => _playerState = state);
+        });
   }
 
   Future<void> _fetchPopularSongs() async {
@@ -94,7 +143,7 @@ class _MusicModalState extends State<MusicModal> {
     }
 
     final response =
-        await http.get(Uri.parse('https://api.deezer.com/search?q=$query'));
+    await http.get(Uri.parse('https://api.deezer.com/search?q=$query'));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -126,6 +175,9 @@ class _MusicModalState extends State<MusicModal> {
 
   @override
   Widget build(BuildContext context) {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+
     return GestureDetector(
       onTap: () {
         Navigator.pop(context); // Cierra el modal al tocar fuera
@@ -144,21 +196,14 @@ class _MusicModalState extends State<MusicModal> {
                   child: Container(
                     padding: EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Color(0xFF111111).withOpacity(0.9),
+                      color: isDarkMode ? Color(0xFF10141A) : Colors.white,
                       borderRadius:
-                          BorderRadius.vertical(top: Radius.circular(15)),
+                      BorderRadius.vertical(top: Radius.circular(20)),
                     ),
                     child: Column(
                       children: [
                         //linea de modal
                         _buildDragIndicator(),
-                        //palabras
-                        _buildTopNavigation(),
-                        Divider(
-                          color: Colors.grey.shade500.withOpacity(0.4),
-                          height: 1,
-                          thickness: 0.7,
-                        ),
                         SizedBox(height: 6),
                         _buildSearchField(),
                         // Barra de búsqueda
@@ -203,157 +248,10 @@ class _MusicModalState extends State<MusicModal> {
     );
   }
 
-  Widget _buildTopNavigation() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _buildNavigationItem('Recomendar', 'Recomendar'),
-        _buildNavigationItem('Favoritos', 'Favoritos'),
-        _buildNavigationItem('Sonidos', 'Sonidos'),
-        IconButton(
-          icon: Icon(Icons.search, color: Colors.white),
-          onPressed: () {
-            // Acción de búsqueda
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildNavigationItem(String label, String value) {
-    bool isSelected = selectedItem == value;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedItem = value;
-        });
-      },
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? Colors.white : Colors.grey,
-          fontSize: 13,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 1.2,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildContent() {
-    if (selectedItem == 'Recomendar') {
-      return Center(
-        child: Text(
-          'Vista de Recomendar',
-          style: TextStyle(color: Colors.white, fontSize: 18),
-        ),
-      );
-    } else if (selectedItem == 'Favoritos') {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.favorite_border, color: Colors.white, size: 100),
-            SizedBox(height: 10),
-            Text(
-              'No hay favoritos aún',
-              style: TextStyle(color: Colors.white, fontSize: 18),
-            ),
-          ],
-        ),
-      );
-    } else if (selectedItem == 'Sonidos') {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.sentiment_dissatisfied, color: Colors.white, size: 100),
-            SizedBox(height: 10),
-            Text(
-              'No hay sonidos disponibles',
-              style: TextStyle(color: Colors.white, fontSize: 18),
-            ),
-          ],
-        ),
-      );
-    }
-    return Container();
-  }
-
-  //boton de sonido
-  Widget _buildSoundBar() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  isActivated = !isActivated;
-                });
-              },
-              child: Container(
-                width: 17,
-                height: 17,
-                decoration: BoxDecoration(
-                  color: isActivated ? Colors.cyan : Colors.transparent,
-                  border: Border.all(
-                    color: isActivated ? Colors.cyan : Colors.grey,
-                    width: 1.2,
-                  ),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-            SizedBox(width: 8), // Espacio entre el círculo y el texto
-            Text(
-              'Sonido original',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-        Row(
-          children: [
-            GestureDetector(
-              onTap: () {
-                // Llama al modal al hacer tap
-                showDialog(
-                  context: context,
-                  builder: (context) => SoundSettingsModal(),
-                );
-              },
-              child: Row(
-                children: [
-                  Icon(Icons.volume_up, size: 22, color: Colors.white),
-                  SizedBox(width: 5),
-                  Text(
-                    'Volumen',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-
-      ],
-    );
-  }
-
   //barra de encima del modal
   Widget _buildDragIndicator() {
     return Container(
-      width: 60,
+      width: 40,
       height: 4,
       decoration: BoxDecoration(
         color: Colors.grey[600],
@@ -374,7 +272,10 @@ class _MusicModalState extends State<MusicModal> {
               cursorColor: Colors.cyan,
               decoration: InputDecoration(
                 hintText: 'Buscar música...',
-                hintStyle: TextStyle(color: Colors.grey, fontSize: 12),
+                hintStyle: TextStyle(
+                    color: Colors.grey,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 11),
                 prefixIcon: Icon(Icons.search, size: 20, color: Colors.grey),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -391,12 +292,9 @@ class _MusicModalState extends State<MusicModal> {
                 filled: true,
                 fillColor: Colors.transparent,
                 contentPadding:
-                    EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                EdgeInsets.symmetric(vertical: 5, horizontal: 10),
               ),
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
               onChanged: (query) {
                 searchSongs(query);
               },
@@ -406,23 +304,27 @@ class _MusicModalState extends State<MusicModal> {
         SizedBox(width: 8),
         _controller.text.isNotEmpty
             ? GestureDetector(
-                onTap: () {
-                  _controller.clear(); // Limpiar el texto al tocar la "X"
-                  searchSongs(
-                      ""); // Llama a searchSongs con un string vacío para mostrar toda la música
-                  setState(
-                      () {}); // Actualizar el estado para reflejar el cambio
-                },
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade800.withOpacity(0.9),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.close, color: Colors.white, size: 16),
-                ),
-              )
+          onTap: () {
+            _controller.clear(); // Limpiar el texto al tocar la "X"
+            searchSongs(
+                ""); // Llama a searchSongs con un string vacío para mostrar toda la música
+            setState(
+                    () {}); // Actualizar el estado para reflejar el cambio
+          },
+          child: Container(
+            width: 23,
+            height: 23,
+            decoration: BoxDecoration(
+              color: Colors.grey.withOpacity(0.7),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.close,
+              size: 15,
+              color: Colors.white,
+            ),
+          ),
+        )
             : SizedBox.shrink(),
       ],
     );
@@ -430,45 +332,168 @@ class _MusicModalState extends State<MusicModal> {
 
   Widget _buildSongList() {
     if (songs.isEmpty) {
-      // Verifica si la lista de canciones está vacía
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(height: 50), // Espacio en la parte superior
-            Icon(Icons.music_off, color: Colors.grey, size: 50),
-            SizedBox(height: 10),
+            const SizedBox(height: 40),
+            Container(
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.grey.withOpacity(0.1),
+              ),
+              child: ShaderMask(
+                shaderCallback: (bounds) =>
+                    const LinearGradient(
+                      colors: [Color(0xFF9B30FF), Color(0xFF00BFFF)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ).createShader(bounds),
+                child: const Icon(
+                  Icons.music_off_rounded,
+                  size: 35,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
             Text(
               "No se encontró la música",
-              style: TextStyle(color: Colors.grey, fontSize: 18),
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              "Intenta buscar algo diferente o explora \nlas tendencias populares.",
+              style: TextStyle(
+                color: Colors.grey.shade400,
+                fontSize: 9,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            InkWell(
+              onTap: () async {
+                setState(() {
+                  _isLoading = true;
+                });
+
+                try {
+                  final result = await InternetAddress.lookup('google.com');
+                  if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+                    await _buildSearchField(); // Tu función de búsqueda
+                  } else {
+                    _showErrorSnackbar('Sin conexión a Internet');
+                  }
+                } on SocketException catch (_) {
+                  _showErrorSnackbar('Sin conexión a Internet');
+                } finally {
+                  setState(() {
+                    _isLoading = false;
+                  });
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF9B30FF), Color(0xFF00BFFF)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: _isLoading
+                    ? Lottie.asset(
+                  'lib/assets/loading/loading_infinity.json',
+                  width: 40,
+                  height: 40,
+                )
+                    : const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.refresh_rounded,
+                      size: 20,
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      "Reintentar",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
       );
-    } else {
-      return ListView.builder(
-        shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
-        itemCount: songs.length,
-        itemBuilder: (context, index) {
-          final song = songs[index];
-          return _buildSongTile(song);
-        },
-      );
     }
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: songs.length,
+      itemBuilder: (context, index) {
+        final song = songs[index];
+        return _buildSongTile(song);
+      },
+    );
   }
 
+  void _showErrorSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+  }
+
+  //musicaaaaas
   Widget _buildSongTile(dynamic song) {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final bool isLongTitle = song['title'].length > 25;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0),
-      // Espacio vertical entre canciones
       child: GestureDetector(
         onTap: () {
-          // Reproduce o pausa la canción al tocar la fila
-          _currentSongUrl == song['preview'] &&
-                  _playerState == PlayerState.playing
-              ? _pauseSong()
-              : _playSong(song['preview']);
+          if (_currentSongUrl == song['preview'] &&
+              _playerState == PlayerState.playing) {
+            _pauseSong();
+            for (var controller in _musicIconControllers) {
+              controller.stop();
+            }
+            if (isLongTitle) {
+              _titleAnimationController.stop();
+            }
+          } else {
+            _playSong(song['preview']);
+            for (var controller in _musicIconControllers) {
+              controller
+                ..reset()
+                ..repeat();
+            }
+            if (isLongTitle) {
+              _titleAnimationController.repeat();
+            }
+          }
         },
         child: Container(
           decoration: BoxDecoration(
@@ -476,63 +501,129 @@ class _MusicModalState extends State<MusicModal> {
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
-            // Alinea los elementos al centro
             children: [
-              SizedBox(width: 3), // espacio a la izquierda de la imagen
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  song['album']['cover'],
-                  width: 40,
-                  height: 40,
-                  fit: BoxFit.cover,
+                child: Stack(
+                  children: [
+                    (song['album'] != null &&
+                        song['album']['cover'] != null &&
+                        song['album']['cover'].toString().isNotEmpty)
+                        ? Image.network(
+                      song['album']['cover'],
+                      width: 45,
+                      height: 45,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Icon(
+                        Icons.broken_image,
+                        color: Colors.grey,
+                        size: 40,
+                      ),
+                    )
+                        : Icon(
+                      Icons.broken_image,
+                      color: Colors.grey,
+                      size: 40,
+                    ),
+                    if (_currentSongUrl == song['preview'] &&
+                        _playerState == PlayerState.playing)
+                      ...List.generate(8, (index) {
+                        return AnimatedBuilder(
+                          animation: _musicIconControllers[index],
+                          builder: (context, child) {
+                            final double progress = _musicIconControllers[index].value;
+                            final double angle = _noteAngles[index];
+
+                            // Radio más grande para más dispersión
+                            final double radius = 25.0 * progress;
+                            final double x = 22.5 + (radius * cos(angle));
+                            final double y = 22.5 + (radius * sin(angle));
+
+                            // Escala más suave
+                            final double scale = 0.3 + (progress * 0.8);
+                            // Opacidad más suave
+                            final double opacity = sin(progress * pi) * 0.9;
+
+                            return Positioned(
+                              left: x - 6,
+                              top: y - 6,
+                              child: Transform.rotate(
+                                angle: progress * 4 * pi, // Dos rotaciones completas
+                                child: Opacity(
+                                  opacity: opacity,
+                                  child: Transform.scale(
+                                    scale: scale,
+                                    child: Icon(
+                                      Icons.music_note,
+                                      color: Colors.white,
+                                      size: 10,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      }),
+                  ],
                 ),
               ),
-              SizedBox(width: 12), // Espacio entre la imagen y el texto
+              SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        // Título de la canción
-                        Text(
-                          song['title'].length > 25
-                              ? '${song['title'].substring(0, 25)}...'
-                              : song['title'],
-                          // Agregar "..." si el título es largo
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
+                        Expanded(
+                          child: ClipRect(
+                            child: isLongTitle &&
+                                _currentSongUrl == song['preview'] &&
+                                _playerState == PlayerState.playing
+                                ? SlideTransition(
+                              position: _titleAnimation,
+                              child: Text(
+                                song['title'],
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 10,
+                                ),
+                                maxLines: 1,
+                              ),
+                            )
+                                : Text(
+                              isLongTitle
+                                  ? '${song['title'].substring(0, 20)}...'
+                                  : song['title'],
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12,
+                              ),
+                              maxLines: 1,
+                            ),
                           ),
                         ),
                       ],
                     ),
                     Row(
                       children: [
-                        // Nombre del artista
                         Text(
-                          song['artist']['name'].length > 20
-                              ? '${song['artist']['name'].substring(0, 20)}...'
+                          song['artist']['name'].length > 15
+                              ? '${song['artist']['name'].substring(0, 15)}...'
                               : song['artist']['name'],
-                          // Agregar "..." si el nombre es largo
                           style: TextStyle(
                             color: Colors.grey,
                             fontSize: 10,
                           ),
                         ),
                         SizedBox(width: 6),
-                        // Espacio entre el nombre del artista y la duración
                         Text(
                           formatDuration(song['duration']),
-                          // Duración de la canción
-                          style: TextStyle(color: Colors.grey, fontSize: 10),
+                          style: TextStyle(color: Colors.grey, fontSize: 9),
                         ),
-                        // Icono musical
                         Icon(
-                          Icons.music_note, // Icono musical
-                          size: 12,
+                          Icons.music_note,
+                          size: 10,
                           color: Colors.grey,
                         ),
                       ],
@@ -540,9 +631,43 @@ class _MusicModalState extends State<MusicModal> {
                   ],
                 ),
               ),
-              // Icono de reproducción/pausa
+              if (_currentSongUrl == song['preview'] &&
+                  _playerState == PlayerState.playing)
+                Row(
+                  children: [
+                    SizedBox(
+                      height: 25,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFF00BFFF),
+                          padding: EdgeInsets.symmetric(horizontal: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                        child: Text(
+                          'Usar',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        onPressed: () {
+                          // Implementar lógica para usar
+                        },
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.star_border, size: 27, color: Colors.amber),
+                      onPressed: () {
+                        // Implementar lógica para favoritos
+                      },
+                    ),
+                  ],
+                ),
               Container(
-                margin: EdgeInsets.only(right: 2), // Añadir margen a la derecha
+                margin: EdgeInsets.only(right: 2),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -550,47 +675,59 @@ class _MusicModalState extends State<MusicModal> {
                       alignment: Alignment.center,
                       children: [
                         Container(
-                          width: 30,
-                          height: 30,
+                          width: 28,
+                          height: 28,
                           decoration: BoxDecoration(
-                            color: Colors.cyan, // Color de fondo del icono
+                            gradient: LinearGradient(
+                              colors: [
+                                Color(0xFF9B30FF),
+                                Color(0xFF00BFFF),
+                                Color(0xFF00FFFF),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             _currentSongUrl == song['preview'] &&
-                                    _playerState == PlayerState.playing
+                                _playerState == PlayerState.playing
                                 ? Icons.pause
                                 : Icons.play_arrow,
                             color: Colors.white,
-                            size: 24,
+                            size: 20,
                           ),
                         ),
-                        // Circular progress indicator dinámico SOLO cuando está reproduciendo
                         if (_currentSongUrl == song['preview'] &&
                             _playerState == PlayerState.playing)
                           Positioned.fill(
                             child: CircularProgressIndicator(
                               value: (_duration != null &&
-                                      _position != null &&
-                                      _duration!.inSeconds > 0)
+                                  _position != null &&
+                                  _duration!.inSeconds > 0)
                                   ? _position!.inSeconds.toDouble() /
-                                      _duration!.inSeconds.toDouble()
+                                  _duration!.inSeconds.toDouble()
                                   : 0.0,
-                              color: Colors.white,
-                              strokeWidth: 2, // Grosor de la barra circular
+                              color:
+                              isDarkMode ? Colors.white : Color(0xFF9B30FF),
+
+                              strokeWidth: 2,
                             ),
                           ),
                       ],
                     ),
                     SizedBox(height: 2),
-                    // contador de tiempo cuando está en reproducción
                     if (_currentSongUrl == song['preview'] &&
                         _playerState == PlayerState.playing)
                       Text(
                         _position != null
                             ? '${_position!.inMinutes}:${(_position!.inSeconds.remainder(60)).toString().padLeft(2, '0')}'
                             : '0:00',
-                        style: TextStyle(color: Colors.grey, fontSize: 10),
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 8,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                   ],
                 ),
@@ -602,16 +739,128 @@ class _MusicModalState extends State<MusicModal> {
     );
   }
 
+  void _generateNewAngles() {
+    _noteAngles = List.generate(8, (index) {
+      // Ángulos más distribuidos
+      return (index * (pi / 4)) + (Random().nextDouble() * 0.5);
+    });
+  }
+
+  void _startIconSequence() {
+    for (var controller in _musicIconControllers) {
+      controller.reset();
+    }
+
+    void startNextAnimation(int index) {
+      if (index >= _musicIconControllers.length) return;
+
+      if (_playerState == PlayerState.playing) {
+        _musicIconControllers[index].forward().whenComplete(() {
+          if (_playerState == PlayerState.playing) {
+            _musicIconControllers[index].reset();
+            // Nuevo ángulo más suave
+            _noteAngles[index] = Random().nextDouble() * 2 * pi;
+            Future.delayed(Duration(milliseconds: 100), () {
+              startNextAnimation(index);
+            });
+          }
+        });
+      }
+    }
+
+    // Iniciar secuencia con delays más cortos y distribuidos
+    for (int i = 0; i < 8; i++) {
+      Future.delayed(Duration(milliseconds: i * 300), () => startNextAnimation(i));
+    }
+  }
+
 // Función para formatear la duración
   String formatDuration(int durationInSeconds) {
     final minutes = (durationInSeconds / 60).floor();
     final seconds = durationInSeconds % 60;
     return '${minutes}:${seconds.toString().padLeft(2, '0')}';
   }
+
+  //boton de sonido
+  Widget _buildSoundBar() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  isActivated = !isActivated;
+                });
+              },
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Círculo de fondo
+                  Container(
+                    width: 18,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: isActivated ? Colors.cyan : Colors.transparent,
+                      border: Border.all(
+                        color: isActivated ? Colors.cyan : Colors.grey,
+                        width: 1.2,
+                      ),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  // Ícono de check
+                  if (isActivated)
+                    Icon(
+                      Icons.check,
+                      size: 14,
+                      color: Colors.white,
+                    ),
+                ],
+              ),
+            ),
+            SizedBox(width: 8), // Espacio entre el círculo y el texto
+            Text(
+              'Sonido original',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            GestureDetector(
+              onTap: () {
+                // Llama al modal al hacer tap
+                showDialog(
+                  context: context,
+                  builder: (context) => SoundSettingsModal(),
+                );
+              },
+              child: Row(
+                children: [
+                  Icon(Icons.volume_up, size: 22),
+                  SizedBox(width: 5),
+                  Text(
+                    'Volumen',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 }
-
-
-
 
 class SoundSettingsModal extends StatefulWidget {
   @override
@@ -632,7 +881,8 @@ class _SoundSettingsModalState extends State<SoundSettingsModal> {
           color: Colors.black.withOpacity(0.4), // Fondo negro opaco
           child: Center(
             child: GestureDetector(
-              onTap: () {}, // Evita cerrar el modal al tocar dentro del contenedor
+              onTap: () {},
+              // Evita cerrar el modal al tocar dentro del contenedor
               child: Container(
                 padding: EdgeInsets.all(20),
                 width: 300,
@@ -646,7 +896,7 @@ class _SoundSettingsModalState extends State<SoundSettingsModal> {
                     Text(
                       'Configuración de Volumen',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: Colors.black87,
                       ),
@@ -658,7 +908,7 @@ class _SoundSettingsModalState extends State<SoundSettingsModal> {
                       children: [
                         Text(
                           'Sonido Original',
-                          style: TextStyle(fontSize: 14, color: Colors.black54),
+                          style: TextStyle(fontSize: 12, color: Colors.black54),
                         ),
                         SizedBox(height: 8),
                         _buildVolumeBar(originalSoundVolume, (value) {
@@ -679,7 +929,7 @@ class _SoundSettingsModalState extends State<SoundSettingsModal> {
                       children: [
                         Text(
                           'Música',
-                          style: TextStyle(fontSize: 14, color: Colors.black54),
+                          style: TextStyle(fontSize: 12, color: Colors.black54),
                         ),
                         SizedBox(height: 8),
                         _buildVolumeBar(musicVolume, (value) {
@@ -706,7 +956,11 @@ class _SoundSettingsModalState extends State<SoundSettingsModal> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      child: Text('Aplicar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),),
+                      child: Text(
+                        'Aplicar',
+                        style: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.w600),
+                      ),
                     ),
                   ],
                 ),
@@ -722,20 +976,24 @@ class _SoundSettingsModalState extends State<SoundSettingsModal> {
   Widget _buildVolumeBar(double value, ValueChanged<double> onChanged) {
     return SliderTheme(
       data: SliderThemeData(
-        trackHeight: 8, // Altura de la barra
-        thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10), // Tamaño del "thumb"
-        overlayShape: RoundSliderOverlayShape(overlayRadius: 20), // Efecto al presionar
+        trackHeight: 8,
+        // Altura de la barra
+        thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10),
+        // Tamaño del "thumb"
+        overlayShape:
+        RoundSliderOverlayShape(overlayRadius: 20), // Efecto al presionar
       ),
       child: Slider(
         value: value,
         min: 0,
         max: 100,
         divisions: 100,
-        activeColor: Colors.cyan, // Color de la barra activa
-        inactiveColor: Colors.grey.shade300, // Color de la barra inactiva
+        activeColor: Colors.cyan,
+        // Color de la barra activa
+        inactiveColor: Colors.grey.shade300,
+        // Color de la barra inactiva
         onChanged: onChanged,
       ),
     );
   }
 }
-

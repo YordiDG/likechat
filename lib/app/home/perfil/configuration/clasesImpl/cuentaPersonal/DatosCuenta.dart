@@ -29,9 +29,15 @@ class _DatosCuentaState extends State<DatosCuenta> {
   @override
   void initState() {
     super.initState();
+    // Inicializar los valores con los datos recibidos
     _email = widget.email;
     _phoneNumber = widget.phoneNumber;
     _region = widget.region;
+
+    // Log para debugging
+    print('Email recibido: $_email');
+    print('Teléfono recibido: $_phoneNumber');
+    print('Región recibida: $_region');
   }
 
   String _maskEmail(String email) {
@@ -43,8 +49,17 @@ class _DatosCuentaState extends State<DatosCuenta> {
   }
 
   String _maskPhoneNumber(String phone) {
-    if (phone.length <= 6) return phone;
-    return '${phone.substring(0, 3)}******${phone.substring(phone.length - 3)}';
+    if (phone.isEmpty) return '';
+    // Asegurarse de que el número tenga el formato correcto
+    String cleanPhone = phone.replaceAll(RegExp(r'\s+'), '');
+    if (cleanPhone.length <= 6) return cleanPhone;
+    return '${cleanPhone.substring(0, 3)}******${cleanPhone.substring(cleanPhone.length - 3)}';
+  }
+
+  String _extractPrefix(String phoneNumber) {
+    if (phoneNumber.isEmpty) return '+51';
+    final match = RegExp(r'^\+\d+').firstMatch(phoneNumber);
+    return match?.group(0) ?? '+51';
   }
 
   Widget _buildInfoRow(
@@ -73,12 +88,18 @@ class _DatosCuentaState extends State<DatosCuenta> {
 
     return InkWell(
       onTap: () {
+        // Asegurarse de que se pase el valor correcto al DetailScreen
+        String valueToPass = info;
+        if (type == 'phone' && !info.startsWith('+')) {
+          valueToPass = _phoneNumber; // Usar el número completo con prefijo
+        }
+
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => DetailScreen(
               title: title,
-              value: info,
+              value: valueToPass,
               type: type,
               icon: icon,
               onUpdate: onUpdate,
@@ -97,20 +118,14 @@ class _DatosCuentaState extends State<DatosCuenta> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Icon(icon, color: darkModeProvider.iconColor, size: 18),
-                      SizedBox(width: 8),
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: fontSizeProvider.fontSize + 1,
-                          fontWeight: FontWeight.w600,
-                          color: textColor,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: fontSizeProvider.fontSize + 1,
+                      fontWeight: FontWeight.w600,
+                      color: textColor,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                   SizedBox(height: 8),
                   Text(
@@ -136,11 +151,6 @@ class _DatosCuentaState extends State<DatosCuenta> {
     );
   }
 
-  String _extractPrefix(String phoneNumber) {
-    final match = RegExp(r'^\+\d+').firstMatch(phoneNumber);
-    return match?.group(0) ?? '+51'; // Default to +52 if no prefix found
-  }
-
   @override
   Widget build(BuildContext context) {
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
@@ -158,7 +168,7 @@ class _DatosCuentaState extends State<DatosCuenta> {
             color: textColor,
           ),
         ),
-        centerTitle: true, // Asegura que el título esté centrado
+        centerTitle: true,
         backgroundColor: isDarkMode ? Colors.black : Colors.white,
         elevation: 0,
         leading: IconButton(
@@ -247,6 +257,7 @@ class _DetailScreenState extends State<DetailScreen> {
   String? _errorText;
   bool _isValidInput = false;
   late String _selectedPrefix;
+
   final List<String> _commonPrefixes = [
     '+51',  // Perú
     '+1',   // Estados Unidos, Canadá, y países del Caribe
@@ -273,20 +284,24 @@ class _DetailScreenState extends State<DetailScreen> {
   void initState() {
     super.initState();
 
-    // Asegúrate de que el valor de currentPrefix esté en la lista de prefijos comunes
-    _selectedPrefix = (_commonPrefixes.contains(widget.currentPrefix))
-        ? widget.currentPrefix!
-        : '+51'; // Valor predeterminado en caso de que no esté en la lista
+    // Inicialización mejorada del prefijo
+    _selectedPrefix = widget.currentPrefix ?? '+51';
+    if (!_commonPrefixes.contains(_selectedPrefix)) {
+      _selectedPrefix = '+51';
+    }
 
-    _controller = TextEditingController(
-      text: widget.type == 'phone'
-          ? widget.value.replaceFirst(RegExp(r'^\+\d+\s*'), '') // Si es un teléfono, limpia el prefijo
-          : widget.value, // De lo contrario, usa el valor tal cual
-    );
+    // Inicialización mejorada del controlador
+    if (widget.type == 'phone') {
+      // Extrae solo los números del teléfono, ignorando el prefijo
+      final phoneWithoutPrefix = widget.value.replaceFirst(RegExp(r'^\+\d+\s*'), '');
+      _controller = TextEditingController(text: phoneWithoutPrefix.trim());
+    } else {
+      _controller = TextEditingController(text: widget.value);
+    }
 
+    // Validación inicial
     _validateInput(_controller.text);
   }
-
 
   @override
   void dispose() {

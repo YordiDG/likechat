@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../../../../Globales/estadoDark-White/DarkModeProvider.dart';
 import '../../../../../Globales/estadoDark-White/Fuentes/FontSizeProvider.dart';
+import 'clases Impl/TwoStepAuthentication.dart';
 
 class SecuritySettings extends StatefulWidget {
   final Color sectionTitleColor;
@@ -38,11 +38,11 @@ class _SecuritySettingsState extends State<SecuritySettings> {
               isDarkMode: isDarkMode,
               children: [
                 _buildSecurityOption(
-                  title: 'Autenticación en dos pasos',
+                  title: 'Autenticación en dos pasos (2FA)',
                   description: 'Agrega una capa adicional de seguridad a tu cuenta mediante un código enviado a tu dispositivo.',
                   icon: Icons.security,
                   onTap: () {
-                    _navigateToDetailScreen('Autenticación en dos pasos');
+                    _navigateToDetail2FA();
                   },
                 ),
                 _buildSecurityOption(
@@ -145,7 +145,7 @@ class _SecuritySettingsState extends State<SecuritySettings> {
 
     return Card(
       elevation: 2,
-      color: isDarkMode ? Colors.grey[900] : Colors.white,
+      color: isDarkMode ? Colors.grey[900] : Colors.grey.shade100,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.0),
       ),
@@ -158,7 +158,7 @@ class _SecuritySettingsState extends State<SecuritySettings> {
               title,
               style: TextStyle(
                 color: widget.sectionTitleColor,
-                fontSize: fontSizeProvider.fontSize,
+                fontSize: fontSizeProvider.fontSize - 2,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -202,7 +202,7 @@ class _SecuritySettingsState extends State<SecuritySettings> {
                     title,
                     style: TextStyle(
                       color: widget.titleColor,
-                      fontSize: fontSizeProvider.fontSize - 1,
+                      fontSize: fontSizeProvider.fontSize,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -233,6 +233,26 @@ class _SecuritySettingsState extends State<SecuritySettings> {
       context,
       MaterialPageRoute(
         builder: (context) => SecurityDetailScreen(title: optionTitle),
+      ),
+    );
+  }
+
+  void _navigateToDetail2FA () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TwoStepAuthentication(
+          onVerificationComplete: (code) {
+            // Manejar código verificado exitosamente
+          },
+          validateCode: (code) async {
+            // Implementar la validación del código
+            return true; // Retornar true si es válido
+          },
+          resendCode: () async {
+            // Implementar la lógica de reenvío de código
+          },
+        ),
       ),
     );
   }
@@ -280,3 +300,4 @@ class SecurityDetailScreen extends StatelessWidget {
     );
   }
 }
+

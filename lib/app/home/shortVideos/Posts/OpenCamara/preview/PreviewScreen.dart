@@ -14,14 +14,13 @@ import 'package:provider/provider.dart';
 import 'configuracion/Promocionar/PromotionPreview.dart';
 import 'configuracion/EtiquetasAmigos/FriendsModal.dart';
 
-
 class PreviewScreen extends StatefulWidget {
-  final String imagePath;
+  final List<String> imagePaths; // Cambiado de String a List<String>
   final TextEditingController descriptionController;
   final VoidCallback onPublish;
 
   PreviewScreen({
-    required this.imagePath,
+    required this.imagePaths,
     required this.descriptionController,
     required this.onPublish,
   });
@@ -33,13 +32,21 @@ class PreviewScreen extends StatefulWidget {
 class _PreviewScreenState extends State<PreviewScreen> {
   final List<File> _images = [];
   final bool isModal = false;
-
   final ScrollController _controller = ScrollController();
+
+  // Añadir variable para el índice de la imagen actual
+  int _currentImageIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _images.add(File(widget.imagePath));
+    // Convertir todas las rutas de imagen a archivos File
+    if (widget.imagePaths.isNotEmpty) {
+      setState(() {
+        _images.clear(); // Limpiar la lista antes de agregar nuevas imágenes
+        _images.addAll(widget.imagePaths.map((path) => File(path)).toList());
+      });
+    }
   }
 
   Future<void> _pickImage() async {
@@ -52,6 +59,112 @@ class _PreviewScreenState extends State<PreviewScreen> {
     }
   }
 
+// Widget para mostrar la lista de imágenes con indicador de página
+  Widget buildImageList() {
+    if (_images.isEmpty) {
+      return Container(
+        height: 300.0,
+        margin: EdgeInsets.all(10.0),
+        child: Center(
+          child: Text('No hay imágenes seleccionadas'),
+        ),
+      );
+    }
+
+    return Container(
+      height: 300.0,
+      margin: EdgeInsets.all(10.0),
+      child: Stack(
+        children: [
+          CarouselSlider(
+            items: _images.map((file) {
+              return Container(
+                width: MediaQuery.of(context).size.width,
+                margin: EdgeInsets.symmetric(horizontal: 5.0),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10.0),
+                  child: Image.file(
+                    file,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                  ),
+                ),
+              );
+            }).toList(),
+            options: CarouselOptions(
+              height: 300.0,
+              viewportFraction: 1.0, // Mostrar una imagen a la vez
+              enlargeCenterPage: false,
+              enableInfiniteScroll: false,
+              onPageChanged: (index, reason) {
+                setState(() {
+                  _currentImageIndex = index;
+                });
+              },
+            ),
+          ),
+          // Indicador de página
+          if (_images.length > 1)
+            Positioned(
+              bottom: 10,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: _images.asMap().entries.map((entry) {
+                  return Container(
+                    width: 8.0,
+                    height: 8.0,
+                    margin: EdgeInsets.symmetric(horizontal: 4.0),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _currentImageIndex == entry.key
+                          ? Colors.white
+                          : Colors.white.withOpacity(0.4),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          // Contador de imágenes
+          if (_images.length > 1)
+            Positioned(
+              top: 10,
+              right: 10,
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${_currentImageIndex + 1}/${_images.length}',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // Método para eliminar una imagen
+  void _removeImage(int index) {
+    setState(() {
+      _images.removeAt(index);
+      if (_currentImageIndex >= _images.length) {
+        _currentImageIndex = _images.length - 1;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,17 +179,14 @@ class _PreviewScreenState extends State<PreviewScreen> {
       appBar: AppBar(
         leading: Padding(
           padding: const EdgeInsets.only(left: 10),
-          // Ajusta el margen izquierdo
           child: IconButton(
             icon: Icon(Icons.arrow_back_ios, color: iconColor),
-            // Flecha personalizada
             onPressed: () {
               Navigator.pop(context);
             },
           ),
         ),
         leadingWidth: 28,
-        // Ajusta el ancho del leading
         backgroundColor: background,
         title: LayoutBuilder(
           builder: (context, constraints) {
@@ -100,12 +210,11 @@ class _PreviewScreenState extends State<PreviewScreen> {
             child: ElevatedButton(
               onPressed: widget.onPublish,
               style: ElevatedButton.styleFrom(
-                backgroundColor:  Color(0xFF9B30FF),
+                backgroundColor: Color(0xFF9B30FF),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
-                padding: EdgeInsets.symmetric(
-                    horizontal: 17, vertical: 5), // Padding interno
+                padding: EdgeInsets.symmetric(horizontal: 17, vertical: 5),
               ),
               child: Text(
                 'Publicar',
@@ -119,92 +228,87 @@ class _PreviewScreenState extends State<PreviewScreen> {
           ),
         ],
       ),
-
       body: SingleChildScrollView(
         child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             buildImageList(),
-        buildCarousel(),
-        buildDescriptionInput(),
-
-        buildPublicationSettings(),
-
-        _buildSettingsItem(
-          icon: Icons.group_add,
-          iconColor: Colors.greenAccent,
-          title: 'Etiquetar personas',
-          subtitle: 'Agrega amigos a tu publicación',
-          onTap: () {
-            showDialog(
-              context: context,
-              builder: (context) => FriendsModales(),
-            );
-
-          },
-        ),
-
-        _buildSettingsItem(
-        icon: Icons.lock_outline,
-        iconColor: Colors.cyan,
-        title: 'Privacidad',
-        subtitle: 'Controla quién puede ver tu post',
-        onTap: () {
-          _showOptionsModalPrivacity(
-              context); // Llama al método para mostrar el modal
-        },
-      ),
-      _buildSettingsItem(
-        icon: Icons.campaign,
-        iconColor: Colors.redAccent,
-        title: 'Promocionar publicación',
-        subtitle: 'Aumenta el alcance de tu contenido',
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) =>
-                  PromotionPreview(
-                    imageUrl: 'https://cdn.pixabay.com/photo/2021/09/20/23/03/car-6642036_1280.jpg',
-                    // Reemplaza con la URL real
-                    textColor: textColor,
-                  ),
+            buildCarousel(),
+            buildDescriptionInput(),
+            buildPublicationSettings(),
+            _buildSettingsItem(
+              icon: Icons.group_add,
+              iconColor: Colors.greenAccent,
+              title: 'Etiquetar personas',
+              subtitle: 'Agrega amigos a tu publicación',
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => FriendsModales(),
+                );
+              },
             ),
-          );
-        },
-      ),
-      _buildSettingsItem(
-        icon: Icons.location_on,
-        iconColor: Colors.blueAccent,
-        title: 'Seleccionar ubicación',
-        subtitle: 'Comparte dónde estás',
-        onTap: () {
-          _showOptionsModal(context, 'Seleccionar ubicación');
-        },
-      ),
-      _buildSettingsItem(
-        icon: Icons.schedule,
-        iconColor: Colors.amber,
-        title: 'Programar publicación',
-        subtitle: 'Elige cuándo publicar',
-        onTap: () {
-          _showOptionsModal(context, 'Programar publicación');
-        },
-      ),
-      _buildSettingsItem(
-        icon: Icons.more_horiz,
-        iconColor: Colors.grey,
-        title: 'Ver más',
-        subtitle: 'Opciones adicionales',
-        onTap: () {
-          // Acción de ver más
-        },
-      ),
-      ],
-    ),
-    )
-        .animate(delay: 100. ms)
-        .fadeIn(duration: 300.ms)
-        .slideY(begin: 0.1, end: 0),
+            _buildSettingsItem(
+              icon: Icons.lock_outline,
+              iconColor: Colors.cyan,
+              title: 'Privacidad',
+              subtitle: 'Controla quién puede ver tu post',
+              onTap: () {
+                _showOptionsModalPrivacity(
+                    context); // Llama al método para mostrar el modal
+              },
+            ),
+            _buildSettingsItem(
+              icon: Icons.campaign,
+              iconColor: Colors.redAccent,
+              title: 'Promocionar publicación',
+              subtitle: 'Aumenta el alcance de tu contenido',
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => PromotionPreview(
+                      imageUrl:
+                          'https://cdn.pixabay.com/photo/2021/09/20/23/03/car-6642036_1280.jpg',
+                      // Reemplaza con la URL real
+                      textColor: textColor,
+                    ),
+                  ),
+                );
+              },
+            ),
+            _buildSettingsItem(
+              icon: Icons.location_on,
+              iconColor: Colors.blueAccent,
+              title: 'Seleccionar ubicación',
+              subtitle: 'Comparte dónde estás',
+              onTap: () {
+                _showOptionsModal(context, 'Seleccionar ubicación');
+              },
+            ),
+            _buildSettingsItem(
+              icon: Icons.schedule,
+              iconColor: Colors.amber,
+              title: 'Programar publicación',
+              subtitle: 'Elige cuándo publicar',
+              onTap: () {
+                _showOptionsModal(context, 'Programar publicación');
+              },
+            ),
+            _buildSettingsItem(
+              icon: Icons.more_horiz,
+              iconColor: Colors.grey,
+              title: 'Ver más',
+              subtitle: 'Opciones adicionales',
+              onTap: () {
+                // Acción de ver más
+              },
+            ),
+          ],
+        ),
+      )
+          .animate(delay: 100.ms)
+          .fadeIn(duration: 300.ms)
+          .slideY(begin: 0.1, end: 0),
     );
   }
 
@@ -233,8 +337,8 @@ class _PreviewScreenState extends State<PreviewScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: isDarkMode ? Colors.grey.shade800 : Colors.grey
-                      .shade300,
+                  color:
+                      isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -324,36 +428,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
     );
   }
 
-
-  //imagen
-  Widget buildImageList() {
-    return Container(
-      height: 300.0,
-      margin: EdgeInsets.all(10.0),
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: _images.length,
-        itemBuilder: (context, index) {
-          return Container(
-            margin: EdgeInsets.symmetric(horizontal: 5.0),
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: FileImage(_images[index]),
-                fit: BoxFit.cover,
-              ),
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-            width: MediaQuery
-                .of(context)
-                .size
-                .width * 0.8,
-          );
-        },
-      ),
-    );
-  }
-
-  //carrucel de opciones
+  // Actualizar el carrusel de opciones para incluir la opción de eliminar
   Widget buildCarousel() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
@@ -366,6 +441,11 @@ class _PreviewScreenState extends State<PreviewScreen> {
                 onPressed: _pickImage,
                 icon: Icons.add_photo_alternate,
                 label: 'Añadir Foto',
+              ),
+              _buildCarouselButton(
+                onPressed: () => _removeImage(_currentImageIndex),
+                icon: Icons.delete,
+                label: 'Eliminar',
               ),
               _buildCarouselButton(
                 onPressed: _editMedia,
@@ -421,11 +501,13 @@ class _PreviewScreenState extends State<PreviewScreen> {
           border: InputBorder.none,
           // Sin borde
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.cyan,
+            borderSide: BorderSide(
+                color: Colors.cyan,
                 width: 1.0), // Borde cyan cuando está en foco
           ),
           enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.transparent,
+            borderSide: BorderSide(
+                color: Colors.transparent,
                 width: 1.0), // Borde transparente cuando está habilitado
           ),
         ),
@@ -434,7 +516,6 @@ class _PreviewScreenState extends State<PreviewScreen> {
       ),
     );
   }
-
 
   void _editMedia() async {
     // Muestra un diálogo o pantalla para editar el medio
@@ -550,7 +631,6 @@ class _PreviewScreenState extends State<PreviewScreen> {
     }
   }
 
-
   Widget _buildCarouselButton({
     required VoidCallback onPressed,
     required IconData icon,
@@ -624,5 +704,4 @@ class _PreviewScreenState extends State<PreviewScreen> {
       },
     );
   }
-
 }

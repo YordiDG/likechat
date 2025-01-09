@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import '../../../APIS-Consumir/DaoPost/PostDatabase.dart';
 import '../../../Globales/estadoDark-White/DarkModeProvider.dart';
+import '../../../Globales/estadoDark-White/Fuentes/FontSizeProvider.dart';
 import '../../../Globales/expandetext/ExpandableText.dart';
 import 'OpenCamara/preview/PreviewScreen.dart';
 import 'package:provider/provider.dart';
@@ -17,11 +20,13 @@ class PostClass extends StatefulWidget {
   _PostClassState createState() => _PostClassState();
 }
 
-class _PostClassState extends State<PostClass> with SingleTickerProviderStateMixin {
+class _PostClassState extends State<PostClass>
+    with SingleTickerProviderStateMixin {
   TextEditingController _searchController = TextEditingController();
   TextEditingController _descriptionController = TextEditingController();
-  String? _imagePath;
+  List<String>? _imagePaths; // Cambiar de String? a List<String>?
   List<Post> _posts = [];
+
   bool _permissionsDeniedMessageShown = false;
   late AnimationController _likeAnimationController;
   late Animation<double> _likeScaleAnimation;
@@ -65,12 +70,6 @@ class _PostClassState extends State<PostClass> with SingleTickerProviderStateMix
     super.dispose();
   }
 
-  void _toggleLike() {
-    setState(() {
-      isLiked = !isLiked;
-      likeCount += isLiked ? 1 : -1;
-    });
-  }
 
   void _onScroll(double offset) {
     if (offset > _lastScrollOffset && _isSearchBarVisible) {
@@ -103,7 +102,7 @@ class _PostClassState extends State<PostClass> with SingleTickerProviderStateMix
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Seleccionar Imagen',
+                'Seleccionar Imágenes',
                 style: TextStyle(
                   color: textColor,
                   fontSize: 18,
@@ -117,13 +116,19 @@ class _PostClassState extends State<PostClass> with SingleTickerProviderStateMix
                   _buildImageSourceOption(
                     icon: Icons.camera_alt,
                     label: 'Cámara',
-                    source: ImageSource.camera,
+                    onTap: () {
+                      Navigator.pop(context);
+                      _takePicture();
+                    },
                     color: Colors.cyan,
                   ),
                   _buildImageSourceOption(
-                    icon: Icons.photo,
+                    icon: Icons.photo_library,
                     label: 'Galería',
-                    source: ImageSource.gallery,
+                    onTap: () {
+                      Navigator.pop(context);
+                      _selectImages();
+                    },
                     color: Colors.red,
                   ),
                 ],
@@ -135,20 +140,34 @@ class _PostClassState extends State<PostClass> with SingleTickerProviderStateMix
     );
   }
 
+  // Método para tomar foto con la cámara
+  void _takePicture() async {
+    final XFile? photo = await ImagePicker().pickImage(source: ImageSource.camera);
+    if (photo != null) {
+      setState(() {
+        _imagePaths = [photo.path];
+      });
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => PreviewScreen(
+          imagePaths: _imagePaths!,
+          descriptionController: _descriptionController,
+          onPublish: _publishPost,
+        ),
+      ));
+    }
+  }
+
   Widget _buildImageSourceOption({
     required IconData icon,
     required String label,
-    required ImageSource source,
+    required VoidCallback onTap,
     required Color color,
   }) {
     final darkModeProvider = Provider.of<DarkModeProvider>(context, listen: false);
     final textColor = darkModeProvider.textColor;
 
     return GestureDetector(
-      onTap: () {
-        Navigator.pop(context);
-        _selectImage(source: source);
-      },
+      onTap: onTap,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -178,15 +197,16 @@ class _PostClassState extends State<PostClass> with SingleTickerProviderStateMix
     );
   }
 
-  void _selectImage({required ImageSource source}) async {
-    final pickedImage = await ImagePicker().pickImage(source: source);
-    if (pickedImage != null) {
+  void _selectImages() async {
+    final List<XFile>? pickedImages = await ImagePicker().pickMultiImage();
+    if (pickedImages != null && pickedImages.isNotEmpty) {
+      List<String> imagePaths = pickedImages.map((image) => image.path).toList();
       setState(() {
-        _imagePath = pickedImage.path;
+        _imagePaths = imagePaths; // Cambiar _imagePath por _imagePaths como Lista
       });
       Navigator.of(context).push(MaterialPageRoute(
         builder: (context) => PreviewScreen(
-          imagePath: _imagePath!,
+          imagePaths: _imagePaths!, // Actualizar para pasar lista de imágenes
           descriptionController: _descriptionController,
           onPublish: _publishPost,
         ),
@@ -194,9 +214,10 @@ class _PostClassState extends State<PostClass> with SingleTickerProviderStateMix
     }
   }
 
+  // Modificar el método _publishPost
   void _publishPost() async {
     String description = _descriptionController.text;
-    List<String> imagePaths = _imagePath != null ? [_imagePath!] : [];
+    List<String> imagePaths = _imagePaths ?? [];
 
     if (description.isNotEmpty || imagePaths.isNotEmpty) {
       Post newPost = Post(
@@ -205,10 +226,10 @@ class _PostClassState extends State<PostClass> with SingleTickerProviderStateMix
       );
 
       await PostDatabase.instance.createPost(newPost);
-      await _loadPosts(); // Recargar los posts
+      await _loadPosts();
 
       _descriptionController.clear();
-      _imagePath = null;
+      _imagePaths = null;
       Navigator.pop(context);
     }
   }
@@ -217,13 +238,21 @@ class _PostClassState extends State<PostClass> with SingleTickerProviderStateMix
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
     final isDarkMode = darkModeProvider.isDarkMode;
     final textColor = darkModeProvider.textColor;
-    final iconColor = darkModeProvider.iconColor;
     final backgroundColor = darkModeProvider.backgroundColor;
+    final fontSizeProvider = Provider.of<FontSizeProvider>(context);
+
+    print('Building published post cards');
+    print('Number of posts: ${_posts.length}');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: List.generate(_posts.length, (postIndex) {
         final post = _posts[postIndex];
+
+        // Log para verificar las imágenes de cada post
+        print('Post $postIndex - Number of images: ${post.imagePaths.length}');
+        print('Post $postIndex - Image paths: ${post.imagePaths}');
+
         return Container(
           margin: EdgeInsets.symmetric(horizontal: 7.0, vertical: 1.4),
           decoration: BoxDecoration(
@@ -231,34 +260,45 @@ class _PostClassState extends State<PostClass> with SingleTickerProviderStateMix
             borderRadius: BorderRadius.circular(8.0),
             boxShadow: [
               BoxShadow(
-                color: isDarkMode
-                    ? Colors.white.withOpacity(0.1)
-                    : Colors.grey.withOpacity(0.2),
+                color: isDarkMode ? Colors.white.withOpacity(0.1) : Colors.grey.withOpacity(0.2),
                 spreadRadius: 1,
                 blurRadius: 6,
                 offset: Offset(0, 3),
               )
             ],
             border: Border.all(
-              color: isDarkMode
-                  ? Colors.grey.withOpacity(0.2)
-                  : Colors.grey.withOpacity(0.3),
-              width: 1.0,
+              color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.3),
+              width: 0.6,
             ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+
               Padding(
-                padding: const EdgeInsets.all(12.0),
+                padding: const EdgeInsets.only(left: 12.0, top: 2),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    CircleAvatar(
-                      backgroundImage: AssetImage('lib/assets/avatar.png'),
-                      radius: 23.0,
+                    Container(
+                      width: 38.0, // Doble del radio
+                      height: 38.0,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.grey,
+                          width: 0.5,
+                        ),
+                      ),
+                      child: ClipOval(
+                        child: Image.asset(
+                          'lib/assets/avatar/avatar.png',
+                          fit: BoxFit.contain, // Ajusta la imagen para que encaje completamente.
+                        ),
+                      ),
                     ),
-                    SizedBox(width: 10.0),
+
+                    SizedBox(width: 8.0),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,9 +307,11 @@ class _PostClassState extends State<PostClass> with SingleTickerProviderStateMix
                             children: [
                               Expanded(
                                 child: Text(
-                                  post.userName.isEmpty ? 'Usuario' : post.userName,
+                                  post.userName.isEmpty
+                                      ? 'Yordi Gonzales'
+                                      : post.userName,
                                   style: TextStyle(
-                                    fontSize: 15.0,
+                                    fontSize: fontSizeProvider.fontSize + 1,
                                     fontWeight: FontWeight.bold,
                                     color: textColor,
                                   ),
@@ -291,46 +333,46 @@ class _PostClassState extends State<PostClass> with SingleTickerProviderStateMix
                       ),
                     ),
                     IconButton(
-                      onPressed: () => _showPostOptionsBottomSheet(context, post), // Pasar el post actual
-                      icon: Icon(Icons.more_vert, size: 25.0, color: iconColor),
+                      onPressed: () =>
+                          _showPostOptionsBottomSheet(context, post),
+                      icon:
+                      Icon(Icons.more_vert, size: 23.0, color: Colors.grey),
                     ),
                   ],
                 ),
               ),
-              if (post.description.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 9.0),
-                  child: ExpandableText(
-                    text: post.description,
-                    style: TextStyle(
-                      fontSize: 14.0,
-                      color: textColor,
-                    ),
-                  ),
-                ),
               if (post.imagePaths.isNotEmpty)
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Column(
-                      children: [
-                        if (post.imagePaths.length > 1)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: Text(
-                              '${_currentImageIndex + 1}/${post.imagePaths.length}',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 14.0,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        GestureDetector(
-                          onDoubleTapDown: (details) {
-                            _handleDoubleTap(postIndex);
-                          },
-                          child: post.imagePaths.length > 1
+                StatefulBuilder(
+                  builder: (context, setState) {
+                    int currentIndex = 0;
+                    bool showIndicators = true;
+                    Timer? hideTimer;
+
+                    void resetHideTimer() {
+                      if (hideTimer != null) {
+                        hideTimer!.cancel();
+                      }
+                      hideTimer = Timer(Duration(seconds: 3), () {
+                        setState(() {
+                          showIndicators = false;
+                        });
+                      });
+                    }
+
+                    return GestureDetector(
+                      onPanStart: (_) {
+                        setState(() {
+                          showIndicators = true;
+                        });
+                        resetHideTimer();
+                      },
+                      onDoubleTap: () {
+                        _handleDoubleTap(postIndex);
+                      },
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          post.imagePaths.length > 1
                               ? CarouselSlider(
                             options: CarouselOptions(
                               height: MediaQuery.of(context).size.width * 0.8,
@@ -356,28 +398,82 @@ class _PostClassState extends State<PostClass> with SingleTickerProviderStateMix
                             width: double.infinity,
                             fit: BoxFit.cover,
                           ),
-                        ),
-                      ],
-                    ),
-                    if (_showLikeAnimation[postIndex] ?? false)
-                      ScaleTransition(
-                        scale: _likeScaleAnimation,
-                        child: Icon(
-                          Icons.favorite,
-                          color: Colors.white,
-                          size: 40.0,
-                        ),
+                          if (showIndicators && post.imagePaths.length > 1)
+                            Positioned(
+                              bottom: 10.0,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: List.generate(post.imagePaths.length, (index) {
+                                  return Container(
+                                    width: 8.0,
+                                    height: 8.0,
+                                    margin: EdgeInsets.symmetric(horizontal: 4.0),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: index == currentIndex
+                                          ? Colors.white
+                                          : Colors.grey,
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ),
+                          if (showIndicators && post.imagePaths.length > 1)
+                            Positioned(
+                              top: 8.0,
+                              right: 8.0,
+                              child: Container(
+                                padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.6),
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                child: Text(
+                                  '${currentIndex + 1}/${post.imagePaths.length}',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12.0,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          if (_showLikeAnimation[postIndex] ?? false)
+                            ScaleTransition(
+                              scale: _likeScaleAnimation,
+                              child: Icon(
+                                Icons.favorite,
+                                color: Colors.white,
+                                size: 40.0,
+                              ),
+                            ),
+                        ],
                       ),
-                  ],
+                    );
+                  },
                 ),
+              Divider(
+                height: 1,
+                thickness: 0.3,
+                color: Colors.grey,
+              ),
+              SizedBox(height: 2),
+              if (post.description.isNotEmpty) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 9.0),
+                  child: ExpandableText(
+                    text: post.description,
+                  ),
+                ),
+                SizedBox(height: 2),
+                Divider(height: 1, thickness: 0.1, color: Colors.grey),
+              ],
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                padding: const EdgeInsets.symmetric(horizontal: 5.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
                       children: [
-                        // Ejemplo de uso en el widget padre
                         Likes(
                           post: post,
                           onLikeUpdated: _updatePost,
@@ -423,10 +519,15 @@ class _PostClassState extends State<PostClass> with SingleTickerProviderStateMix
   }
 
   void _handleDoubleTap(int postIndex) {
-    _handleLike(_posts[postIndex]);
+    // Solo dar like si no está marcado como "liked"
+    if (!_posts[postIndex].isLiked) {
+      _handleLike(_posts[postIndex]);
+    }
+
     setState(() {
       _showLikeAnimation[postIndex] = true;
     });
+
     _likeAnimationController.forward(from: 0.0).then((_) {
       setState(() {
         _showLikeAnimation[postIndex] = false;
@@ -436,15 +537,18 @@ class _PostClassState extends State<PostClass> with SingleTickerProviderStateMix
 
   void _handleLike(Post post) {
     setState(() {
-      post.isLiked = !post.isLiked;
-      post.likeCount += post.isLiked ? 1 : -1;
+      if (!post.isLiked) {
+        post.isLiked = true;
+        post.likeCount += 1;
+      }
     });
 
     // Optional: Update the post in the database
     PostDatabase.instance.updatePost(post);
   }
 
-  void _showPostOptionsBottomSheet(BuildContext context, Post postToEdit) {  // Agregar el parámetro Post
+  void _showPostOptionsBottomSheet(BuildContext context, Post postToEdit) {
+    // Agregar el parámetro Post
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
@@ -473,7 +577,8 @@ class _PostClassState extends State<PostClass> with SingleTickerProviderStateMix
                 leading: Icon(Icons.delete),
                 title: Text('Eliminar publicación'),
                 onTap: () async {
-                  print('postToEdit: $postToEdit');  // Verifica si el objeto es null
+                  print(
+                      'postToEdit: $postToEdit'); // Verifica si el objeto es null
                   if (postToEdit != null && postToEdit.id != null) {
                     await PostDatabase.instance.deletePost(postToEdit.id!);
                     await _loadPosts();
@@ -573,7 +678,8 @@ class _PostClassState extends State<PostClass> with SingleTickerProviderStateMix
           ),
           filled: true,
           fillColor: backgroundColor,
-          contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+          contentPadding:
+          EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
           prefixIcon: Icon(
             Icons.search,
             color: isDarkMode ? Colors.grey[400] : Colors.grey[700],
@@ -619,7 +725,7 @@ class Post {
   final DateTime createdAt;
   final String userName;
   final String userAvatar;
-  bool isLiked;  // Added back
+  bool isLiked; // Added back
   int likeCount; // Added back
 
   Post({
@@ -629,8 +735,8 @@ class Post {
     DateTime? createdAt,
     this.userName = '',
     this.userAvatar = 'lib/assets/avatar.png',
-    this.isLiked = false,  // Default value
-    this.likeCount = 0,    // Default value
+    this.isLiked = false, // Default value
+    this.likeCount = 0, // Default value
   }) : this.createdAt = createdAt ?? DateTime.now();
 
   String get timeAgo {

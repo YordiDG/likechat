@@ -39,6 +39,7 @@ class _EditImageScreenState extends State<EditImageScreen>
   //variables
   TextEditingController _descriptionController = TextEditingController();
   String? _imagePath;
+  final List<File> _imagePaths = [];
   List<Post> _publishedPosts = [];
 
   bool isZoomed = false;
@@ -288,15 +289,13 @@ class _EditImageScreenState extends State<EditImageScreen>
               child: ElevatedButton(
                 onPressed: () {
                   // Ya tenemos el archivo en widget.file, así que podemos usarlo directamente
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => PreviewScreen(
-                        imagePath: widget.file.path, // Usamos el path del archivo existente
-                        descriptionController: _descriptionController,
-                        onPublish: _publishPost,
-                      ),
+                  /*Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => PreviewScreen(
+                      imagePaths: _imagePaths!, // Lista de rutas de imágenes
+                      descriptionController: _descriptionController,
+                      onPublish: _publishPost,
                     ),
-                  );
+                  ));*/
                 },
                 style: buttonStyle(Color(0xFF9B30FF), Colors.white),
                 child: Row(

@@ -111,13 +111,11 @@ dependencies:
   fluttertoast: ^8.2.8
   vibration: ^1.9.0
   google_fonts: ^6.2.1
-  #arkit_plugin: ^1.1.0
-  #arcore_flutter_plugin: ^0.1.0
-  #geolocator: ^12.0.0
 
-  #flutter_localizations:
-  #    sdk: flutter
-  #  intl: ^0.19.0
+  #security 2a
+  pin_code_fields: ^8.0.1
+
+
 
 
 dev_dependencies:
@@ -171,6 +169,8 @@ flutter:
     - lib/assets/splash/chaski.png
     #success loading
     - lib/assets/succes/success.json
+
+    - lib/assets/avatar/avatar.png
 
     - lib/assets/LikeChat.gif
     - lib/assets/download.json

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:icons_plus/icons_plus.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import '../../../../../APIS-Consumir/Deezer-API-Musica/MusicModal.dart';
 import '../../../../../Globales/estadoDark-White/DarkModeProvider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../../Globales/estadoDark-White/Fuentes/FontSizeProvider.dart';
 import '../../eventos/ShareButton.dart';
 import 'configuracion/Maps/MapScreen.dart';
 import 'configuracion/Privacidad/PrivacyOptionsModal.dart';
@@ -15,7 +18,7 @@ import 'configuracion/Promocionar/PromotionPreview.dart';
 import 'configuracion/EtiquetasAmigos/FriendsModal.dart';
 
 class PreviewScreen extends StatefulWidget {
-  final List<String> imagePaths; // Cambiado de String a List<String>
+  final List<String> imagePaths;
   final TextEditingController descriptionController;
   final VoidCallback onPublish;
 
@@ -33,17 +36,14 @@ class _PreviewScreenState extends State<PreviewScreen> {
   final List<File> _images = [];
   final bool isModal = false;
   final ScrollController _controller = ScrollController();
-
-  // Añadir variable para el índice de la imagen actual
   int _currentImageIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    // Convertir todas las rutas de imagen a archivos File
     if (widget.imagePaths.isNotEmpty) {
       setState(() {
-        _images.clear(); // Limpiar la lista antes de agregar nuevas imágenes
+        _images.clear();
         _images.addAll(widget.imagePaths.map((path) => File(path)).toList());
       });
     }
@@ -59,45 +59,121 @@ class _PreviewScreenState extends State<PreviewScreen> {
     }
   }
 
-// Widget para mostrar la lista de imágenes con indicador de página
+  Widget _buildAddPhotoButton() {
+    return Positioned(
+      bottom: 16,
+      right: 16,
+      child: FloatingActionButton(
+        onPressed: _pickImage,
+        backgroundColor: Colors.cyan,
+        child: const Icon(Icons.add_photo_alternate, size: 30,color: Colors.white),
+      ),
+    );
+  }
+
   Widget buildImageList() {
     if (_images.isEmpty) {
       return Container(
         height: 300.0,
-        margin: EdgeInsets.all(10.0),
+        margin: const EdgeInsets.all(10.0),
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          borderRadius: BorderRadius.circular(15.0),
+        ),
         child: Center(
-          child: Text('No hay imágenes seleccionadas'),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.photo_library_outlined,
+                  size: 35, color: Colors.grey[600]),
+              const SizedBox(height: 16),
+              Text(
+                'No hay imágenes seleccionadas',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _pickImage,
+                icon: const Icon(Icons.add_photo_alternate),
+                label: const Text('Agregar Fotos'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.cyan,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
 
     return Container(
-      height: 300.0,
-      margin: EdgeInsets.all(10.0),
+      height: 400.0,
+      margin: const EdgeInsets.all(10.0),
       child: Stack(
         children: [
           CarouselSlider(
             items: _images.map((file) {
-              return Container(
-                width: MediaQuery.of(context).size.width,
-                margin: EdgeInsets.symmetric(horizontal: 5.0),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10.0),
-                  child: Image.file(
-                    file,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
+              return Stack(
+                children: [
+                  Container(
+                    width: MediaQuery.of(context).size.width,
+                    margin: const EdgeInsets.symmetric(horizontal: 5.0),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          spreadRadius: 1,
+                          blurRadius: 5,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(15.0),
+                      child: Image.file(
+                        file,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                      ),
+                    ),
                   ),
-                ),
+                  // Botón de eliminar
+                  Positioned(
+                    top: 10,
+                    left: 12,
+                    child: GestureDetector(
+                      onTap: () => _removeImage(_currentImageIndex),
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          FontAwesomeIcons.close,
+                          color: Colors.white,
+                          size: 17,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               );
             }).toList(),
             options: CarouselOptions(
-              height: 300.0,
-              viewportFraction: 1.0, // Mostrar una imagen a la vez
+              height: 400.0,
+              viewportFraction: 1.0,
               enlargeCenterPage: false,
               enableInfiniteScroll: false,
               onPageChanged: (index, reason) {
@@ -107,19 +183,19 @@ class _PreviewScreenState extends State<PreviewScreen> {
               },
             ),
           ),
-          // Indicador de página
+          // Indicadores de página
           if (_images.length > 1)
             Positioned(
-              bottom: 10,
+              bottom: 20,
               left: 0,
               right: 0,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: _images.asMap().entries.map((entry) {
                   return Container(
-                    width: 8.0,
-                    height: 8.0,
-                    margin: EdgeInsets.symmetric(horizontal: 4.0),
+                    width: 6.0,
+                    height: 6.0,
+                    margin: const EdgeInsets.symmetric(horizontal: 4.0),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: _currentImageIndex == entry.key
@@ -134,34 +210,37 @@ class _PreviewScreenState extends State<PreviewScreen> {
           if (_images.length > 1)
             Positioned(
               top: 10,
-              right: 10,
+              right: 12,
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.7),
-                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.black.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: Colors.white.withOpacity(0.3)),
                 ),
                 child: Text(
                   '${_currentImageIndex + 1}/${_images.length}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
             ),
+
+          _buildAddPhotoButton()
         ],
       ),
     );
   }
 
-  // Método para eliminar una imagen
   void _removeImage(int index) {
     setState(() {
       _images.removeAt(index);
       if (_currentImageIndex >= _images.length) {
-        _currentImageIndex = _images.length - 1;
+        _currentImageIndex = _images.isEmpty ? 0 : _images.length - 1;
       }
     });
   }
@@ -173,6 +252,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
     final textColor = darkModeProvider.textColor;
     final iconColor = darkModeProvider.iconColor;
     final background = darkModeProvider.backgroundColor;
+    final fontSizeProvider = Provider.of<FontSizeProvider>(context);
 
     return Scaffold(
       backgroundColor: background,
@@ -180,7 +260,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
         leading: Padding(
           padding: const EdgeInsets.only(left: 10),
           child: IconButton(
-            icon: Icon(Icons.arrow_back_ios, color: iconColor),
+            icon: Icon(Icons.arrow_back_ios, size: 20, color: iconColor),
             onPressed: () {
               Navigator.pop(context);
             },
@@ -197,7 +277,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: textColor,
-                  fontSize: 20,
+                  fontSize: fontSizeProvider.fontSize + 2,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -221,7 +301,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
-                  fontSize: 18,
+                  fontSize: fontSizeProvider.fontSize,
                 ),
               ),
             ),
@@ -238,7 +318,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
             buildPublicationSettings(),
             _buildSettingsItem(
               icon: Icons.group_add,
-              iconColor: Colors.greenAccent,
+              iconColor: Colors.grey,
               title: 'Etiquetar personas',
               subtitle: 'Agrega amigos a tu publicación',
               onTap: () {
@@ -250,17 +330,16 @@ class _PreviewScreenState extends State<PreviewScreen> {
             ),
             _buildSettingsItem(
               icon: Icons.lock_outline,
-              iconColor: Colors.cyan,
+              iconColor: Colors.grey,
               title: 'Privacidad',
               subtitle: 'Controla quién puede ver tu post',
               onTap: () {
-                _showOptionsModalPrivacity(
-                    context); // Llama al método para mostrar el modal
+                _showOptionsModalPrivacity(context);
               },
             ),
             _buildSettingsItem(
               icon: Icons.campaign,
-              iconColor: Colors.redAccent,
+              iconColor: Colors.grey,
               title: 'Promocionar publicación',
               subtitle: 'Aumenta el alcance de tu contenido',
               onTap: () {
@@ -269,7 +348,6 @@ class _PreviewScreenState extends State<PreviewScreen> {
                     builder: (context) => PromotionPreview(
                       imageUrl:
                           'https://cdn.pixabay.com/photo/2021/09/20/23/03/car-6642036_1280.jpg',
-                      // Reemplaza con la URL real
                       textColor: textColor,
                     ),
                   ),
@@ -278,7 +356,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
             ),
             _buildSettingsItem(
               icon: Icons.location_on,
-              iconColor: Colors.blueAccent,
+              iconColor: Colors.grey,
               title: 'Seleccionar ubicación',
               subtitle: 'Comparte dónde estás',
               onTap: () {
@@ -287,7 +365,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
             ),
             _buildSettingsItem(
               icon: Icons.schedule,
-              iconColor: Colors.amber,
+              iconColor: Colors.grey,
               title: 'Programar publicación',
               subtitle: 'Elige cuándo publicar',
               onTap: () {
@@ -306,129 +384,12 @@ class _PreviewScreenState extends State<PreviewScreen> {
           ],
         ),
       )
-          .animate(delay: 100.ms)
-          .fadeIn(duration: 300.ms)
+          .animate()
+          .fadeIn(duration: const Duration(milliseconds: 300))
           .slideY(begin: 0.1, end: 0),
     );
   }
 
-  Widget _buildSettingsItem({
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    final darkModeProvider = Provider.of<DarkModeProvider>(context);
-    final isDarkMode = darkModeProvider.isDarkMode;
-    final textColor = darkModeProvider.textColor;
-    final iconColor = darkModeProvider.iconColor;
-    final background = darkModeProvider.backgroundColor;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              // Circular icon container
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color:
-                      isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  icon,
-                  color: iconColor,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 16),
-
-              // Text content
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: textColor,
-                      ),
-                    ),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Chevron icon
-              Icon(
-                Icons.chevron_right,
-                color: Colors.grey,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget buildPublicationSettings() {
-    final darkModeProvider = Provider.of<DarkModeProvider>(context);
-    final isDarkMode = darkModeProvider.isDarkMode;
-    final textColor = darkModeProvider.textColor;
-    final iconColor = darkModeProvider.iconColor;
-    final background = darkModeProvider.backgroundColor;
-
-    return Column(
-      children: [
-        Divider(
-          color: Colors.grey[100],
-          thickness: 0.2,
-        ),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: isDarkMode ? Colors.grey[850] : Colors.grey[100],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.settings, // Ícono de la flecha o ícono que desees
-                color: textColor,
-              ),
-              SizedBox(width: 8), // Espacio entre el ícono y el texto
-              Text(
-                'Configuración de Publicación',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // Actualizar el carrusel de opciones para incluir la opción de eliminar
   Widget buildCarousel() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
@@ -437,16 +398,6 @@ class _PreviewScreenState extends State<PreviewScreen> {
         children: [
           CarouselSlider(
             items: [
-              _buildCarouselButton(
-                onPressed: _pickImage,
-                icon: Icons.add_photo_alternate,
-                label: 'Añadir Foto',
-              ),
-              _buildCarouselButton(
-                onPressed: () => _removeImage(_currentImageIndex),
-                icon: Icons.delete,
-                label: 'Eliminar',
-              ),
               _buildCarouselButton(
                 onPressed: _editMedia,
                 icon: Icons.edit,
@@ -462,11 +413,6 @@ class _PreviewScreenState extends State<PreviewScreen> {
                 icon: Icons.location_on,
                 label: 'Ubicación',
               ),
-              _buildCarouselButton(
-                onPressed: _addTags,
-                icon: Icons.tag,
-                label: 'Etiquetas',
-              ),
             ],
             options: CarouselOptions(
               height: 42.0,
@@ -481,11 +427,11 @@ class _PreviewScreenState extends State<PreviewScreen> {
     );
   }
 
-  //descripcion
   Widget buildDescriptionInput() {
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
     final isDarkMode = darkModeProvider.isDarkMode;
     final textColor = darkModeProvider.textColor;
+    final fontSizeProvider = Provider.of<FontSizeProvider>(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15.0),
@@ -495,20 +441,17 @@ class _PreviewScreenState extends State<PreviewScreen> {
         decoration: InputDecoration(
           filled: true,
           fillColor: isDarkMode ? Colors.black : Colors.grey[200],
-          // Fondo negro
           hintText: 'Agrega una breve descripción...',
-          hintStyle: TextStyle(color: textColor, fontSize: 13),
+          hintStyle: TextStyle(
+              color: textColor,
+              fontWeight: FontWeight.w500,
+              fontSize: fontSizeProvider.fontSize),
           border: InputBorder.none,
-          // Sin borde
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-                color: Colors.cyan,
-                width: 1.0), // Borde cyan cuando está en foco
+            borderSide: BorderSide(color: Colors.cyan, width: 1.0),
           ),
           enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-                color: Colors.transparent,
-                width: 1.0), // Borde transparente cuando está habilitado
+            borderSide: BorderSide(color: Colors.transparent, width: 1.0),
           ),
         ),
         maxLines: 2,
@@ -517,8 +460,149 @@ class _PreviewScreenState extends State<PreviewScreen> {
     );
   }
 
+  Widget buildPublicationSettings() {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+    final fontSizeProvider = Provider.of<FontSizeProvider>(context);
+
+    return Column(
+      children: [
+        Divider(color: Colors.grey[100], thickness: 0.2),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: isDarkMode ? Colors.grey[850] : Colors.grey[100],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.settings,
+                color: textColor,
+              ),
+              SizedBox(width: 8),
+              Text(
+                'Configuración de Publicación',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: fontSizeProvider.fontSize + 1,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSettingsItem({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+    final fontSizeProvider = Provider.of<FontSizeProvider>(context);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color:
+                      isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  color: iconColor,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: fontSizeProvider.fontSize,
+                        fontWeight: FontWeight.w600,
+                        color: textColor,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: fontSizeProvider.fontSize - 1.5,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: Colors.grey,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCarouselButton({
+    required VoidCallback onPressed,
+    required IconData icon,
+    required String label,
+  }) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.cyan,
+        minimumSize: Size(150, 40),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 5.0),
+        elevation: 5,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 20.0, color: Colors.white),
+          SizedBox(width: 3.0),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 13.0,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _editMedia() async {
-    // Muestra un diálogo o pantalla para editar el medio
     final result = await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -550,16 +634,14 @@ class _PreviewScreenState extends State<PreviewScreen> {
     );
 
     if (result != null) {
-      // Implementa la lógica según el tipo de medio
       if (result == 'image') {
-        // Navegar a la pantalla de edición de imágenes
+        // Implementar edición de imágenes
       } else if (result == 'video') {
-        // Navegar a la pantalla de edición de videos
+        // Implementar edición de videos
       }
     }
   }
 
-  //api de freezer d emusic
   void _showMusicModal(BuildContext context) {
     showDialog(
       context: context,
@@ -570,7 +652,6 @@ class _PreviewScreenState extends State<PreviewScreen> {
   }
 
   void _addLocation() async {
-    // Obtiene la ubicación actual del usuario o abre un mapa para seleccionar una ubicación
     final location = await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => MapScreen(),
@@ -578,15 +659,13 @@ class _PreviewScreenState extends State<PreviewScreen> {
     );
 
     if (location != null) {
-      // Implementa la lógica para manejar la ubicación seleccionada
       print('Ubicación seleccionada: $location');
-      // Puedes actualizar el estado o hacer otra cosa con la ubicación
     }
   }
 
   void _addTags() async {
     final TextEditingController _controller = TextEditingController();
-    final List<String> tags = []; // Lista para almacenar las etiquetas
+    final List<String> tags = [];
 
     final result = await showDialog(
       context: context,
@@ -624,67 +703,26 @@ class _PreviewScreenState extends State<PreviewScreen> {
     );
 
     if (result != null) {
-      // Implementa la lógica para manejar las etiquetas ingresadas
       tags.addAll(result);
       print('Etiquetas añadidas: $tags');
-      // Puedes actualizar el estado o hacer otra cosa con las etiquetas
     }
   }
 
-  Widget _buildCarouselButton({
-    required VoidCallback onPressed,
-    required IconData icon,
-    required String label,
-  }) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.cyan,
-        minimumSize: Size(150, 40),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 5.0),
-        // Relleno ajustado
-        elevation: 5, // Agregar elevación para mayor profundidad
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min, // Tamaño mínimo del botón
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 20.0, color: Colors.white),
-          SizedBox(width: 3.0), // Espacio entre el icono y el texto
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 13.0,
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  //opciones adicionales va a cambial
   void _showOptionsModal(BuildContext context, String title) {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
         return Container(
           padding: EdgeInsets.all(16.0),
-          height: 250, // Ajusta la altura según lo que necesites
+          height: 250,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(title,
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               SizedBox(height: 16),
-              // Aquí puedes agregar más opciones para cada sección
               Text('Opción 1', style: TextStyle(color: Colors.white)),
               Text('Opción 2', style: TextStyle(color: Colors.white)),
-              // Agrega más opciones según sea necesario
             ],
           ),
         );
@@ -692,16 +730,16 @@ class _PreviewScreenState extends State<PreviewScreen> {
     );
   }
 
-  //privacidad
   void _showOptionsModalPrivacity(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (context) {
         return PrivacyOptionsModal(
-          isFullScreen: isModal, // Aquí pasas isModal
+          isFullScreen: isModal,
         );
       },
     );
   }
 }
+

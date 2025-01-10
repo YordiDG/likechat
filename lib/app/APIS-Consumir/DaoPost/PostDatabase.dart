@@ -1,6 +1,6 @@
+import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-
 import '../../home/shortVideos/Posts/PostClass.dart';
 
 class PostDatabase {
@@ -8,6 +8,16 @@ class PostDatabase {
   static Database? _database;
 
   PostDatabase._init();
+
+  // Método para codificar las rutas de imágenes a JSON
+  String _encodeImagePaths(List<String> paths) {
+    return json.encode(paths);
+  }
+
+  // Método para decodificar el JSON almacenado a una lista de rutas
+  List<String> _decodeImagePaths(String encodedPaths) {
+    return List<String>.from(json.decode(encodedPaths));
+  }
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -31,7 +41,7 @@ class PostDatabase {
       CREATE TABLE posts(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         description TEXT,
-        imagePath TEXT,
+        image_paths TEXT, -- Cambiado para almacenar rutas múltiples en formato JSON
         createdAt TEXT,
         userName TEXT,
         userAvatar TEXT,
@@ -45,7 +55,7 @@ class PostDatabase {
     final db = await database;
     final id = await db.insert('posts', {
       'description': post.description,
-      'imagePath': post.imagePaths.isNotEmpty ? post.imagePaths.first : '',
+      'image_paths': _encodeImagePaths(post.imagePaths), // Se codifica la lista
       'createdAt': post.createdAt.toIso8601String(),
       'userName': post.userName,
       'userAvatar': post.userAvatar,
@@ -62,9 +72,7 @@ class PostDatabase {
     return result.map((map) => Post(
       id: map['id'] as int,
       description: map['description'] as String,
-      imagePaths: map['imagePath'].toString().isEmpty
-          ? []
-          : [map['imagePath'] as String],
+      imagePaths: _decodeImagePaths(map['image_paths'] as String), // Decodifica las rutas
       createdAt: DateTime.parse(map['createdAt'] as String),
       userName: map['userName'] as String,
       userAvatar: map['userAvatar'] as String,
@@ -79,7 +87,8 @@ class PostDatabase {
       'posts',
       {
         'description': post.description,
-        'imagePath': post.imagePaths.isNotEmpty ? post.imagePaths.first : '',
+        'image_paths': _encodeImagePaths(post.imagePaths), // Actualiza las rutas
+        'createdAt': post.createdAt.toIso8601String(),
         'userName': post.userName,
         'userAvatar': post.userAvatar,
         'isLiked': post.isLiked ? 1 : 0,

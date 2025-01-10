@@ -54,15 +54,15 @@ class ShareButton extends StatelessWidget {
           Icon(
             FontAwesomeIcons.paperPlane,
             color: Colors.grey ,
-            size: 21,
+            size: 20,
           ),
           SizedBox(width: 4), // Espaciado entre el icono y el contador
           Text(
             formatShareCount(shareCount),
             style: TextStyle(
               color: Colors.grey ,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+              fontSize: 11,
+              fontWeight: FontWeight.w400,
             ),
           ),
         ],

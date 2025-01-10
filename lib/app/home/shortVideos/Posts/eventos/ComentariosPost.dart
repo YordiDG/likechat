@@ -54,15 +54,15 @@ class ComentariosPost extends StatelessWidget {
           Icon(
             FontAwesomeIcons.commentDots,
             color: Colors.grey,
-            size: 24,
+            size: 20,
           ),
           SizedBox(width: 4), // Espacio mínimo entre el icono y el texto
           Text(
             formatCommentCount(commentCount),
             style: TextStyle(
               color: Colors.grey,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+              fontSize: 11,
+              fontWeight: FontWeight.w400,
             ),
           ),
         ],

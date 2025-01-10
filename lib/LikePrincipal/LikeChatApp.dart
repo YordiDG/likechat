@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
 import '../app/APIS-Consumir/Deezer-API-Musica/MusicModal.dart';
 import '../app/Globales/Connections/NetworkProvider.dart';
 import '../app/Globales/estadoDark-White/DarkModeProvider.dart';
 import '../app/Globales/estadoDark-White/Fuentes/FontSizeProvider.dart';
+import '../app/Globales/FontApp/AppThemeProvider.dart';
+import '../app/Globales/FontApp/AppTypography.dart';
 import '../app/home/notificaction/NotificationsScreen.dart';
 import '../app/home/perfil/configuration/clasesImpl/idioma/AppTranslations.dart';
 import '../app/home/shortVideos/ShortVideosScreen.dart';
@@ -15,28 +18,30 @@ import '../app/registros/register/RegisterScreen.dart';
 import '../app/registros/splash/SplashScreen.dart';
 import 'HomeScreen.dart';
 
-import 'package:flutter/services.dart';
-
 class LikeChatApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Consumer4<DarkModeProvider, FontSizeProvider, LocalizationProvider, NetworkProvider>(
-      builder: (context, darkModeProvider, fontSizeProvider, localizationProvider, networkProvider, child) {
+    return Consumer5<DarkModeProvider, FontSizeProvider, LocalizationProvider, NetworkProvider, AppThemeProvider>(
+      builder: (context, darkModeProvider, fontSizeProvider, localizationProvider, networkProvider, appThemeProvider, child) {
         final isDarkMode = darkModeProvider.isDarkMode;
+        final typography = AppTypography();
 
         // Cambiar el estilo del sistema según el modo oscuro o claro
         SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent, // Color transparente para el fondo de la barra de estado
-          statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark, // Iconos de la barra de estado
-          systemNavigationBarColor: isDarkMode ? Colors.black : Colors.white, // Color de la barra de navegación
-          systemNavigationBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark, // Iconos de la barra de navegación
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+          systemNavigationBarColor: isDarkMode ? Colors.black : Colors.white,
+          systemNavigationBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
         ));
 
         Widget noConnectionBanner = networkProvider.isConnected
             ? SizedBox()
             : Container(
           color: Colors.grey.shade800,
-          padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top, bottom: 4),
+          padding: EdgeInsets.only(
+            top: MediaQuery.of(context).padding.top,
+            bottom: 4,
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -44,7 +49,10 @@ class LikeChatApp extends StatelessWidget {
               SizedBox(width: 8),
               Text(
                 'Sin conexión a Internet',
-                style: TextStyle(color: Colors.white, fontSize: 14),
+                style: typography.getTextTheme(
+                  fontSize: fontSizeProvider.fontSize,
+                  isDarkMode: isDarkMode,
+                ).bodyMedium,
               ),
             ],
           ),
@@ -56,9 +64,9 @@ class LikeChatApp extends StatelessWidget {
             brightness: Brightness.light,
             primaryColor: Colors.cyan,
             scaffoldBackgroundColor: Colors.white,
-            textTheme: TextTheme(
-              bodyLarge: TextStyle(color: Colors.black, fontSize: fontSizeProvider.fontSize),
-              bodyMedium: TextStyle(color: Colors.black, fontSize: fontSizeProvider.fontSize),
+            textTheme: typography.getTextTheme(
+              fontSize: fontSizeProvider.fontSize,
+              isDarkMode: false,
             ),
             inputDecorationTheme: InputDecorationTheme(
               filled: true,
@@ -90,9 +98,9 @@ class LikeChatApp extends StatelessWidget {
             brightness: Brightness.dark,
             primaryColor: Colors.cyan,
             scaffoldBackgroundColor: Colors.black,
-            textTheme: TextTheme(
-              bodyLarge: TextStyle(color: Colors.white, fontSize: fontSizeProvider.fontSize),
-              bodyMedium: TextStyle(color: Colors.white, fontSize: fontSizeProvider.fontSize),
+            textTheme: typography.getTextTheme(
+              fontSize: fontSizeProvider.fontSize,
+              isDarkMode: true,
             ),
             inputDecorationTheme: InputDecorationTheme(
               filled: true,
@@ -123,8 +131,8 @@ class LikeChatApp extends StatelessWidget {
           locale: localizationProvider.currentLocale,
           supportedLocales: AppTranslations.supportedLocales,
           themeMode: darkModeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+
           builder: (context, child) {
-            // Envolver la app con un Stack para mostrar el banner de sin conexión
             return Stack(
               children: [
                 child!,
@@ -137,6 +145,7 @@ class LikeChatApp extends StatelessWidget {
               ],
             );
           },
+
           initialRoute: '/',
           routes: {
             '/': (context) => SplashScreen(),
@@ -150,6 +159,27 @@ class LikeChatApp extends StatelessWidget {
             '/musica-modal': (context) => MusicModal(),
             '/avisos': (context) => NotificationsScreen(),
           },
+
+          // Configuraciones adicionales para mejorar la accesibilidad
+          debugShowCheckedModeBanner: false,
+          highContrastDarkTheme: ThemeData(
+            brightness: Brightness.dark,
+            primaryColor: Colors.cyan,
+            scaffoldBackgroundColor: Colors.black,
+            textTheme: typography.getTextTheme(
+              fontSize: fontSizeProvider.fontSize * 1.2,
+              isDarkMode: true,
+            ),
+          ),
+          highContrastTheme: ThemeData(
+            brightness: Brightness.light,
+            primaryColor: Colors.cyan,
+            scaffoldBackgroundColor: Colors.white,
+            textTheme: typography.getTextTheme(
+              fontSize: fontSizeProvider.fontSize * 1.2,
+              isDarkMode: false,
+            ),
+          ),
         );
       },
     );

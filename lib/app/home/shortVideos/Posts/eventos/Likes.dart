@@ -87,7 +87,7 @@ class _LikeButtonState extends State<Likes> {
               widget.post.isLiked
                   ? FontAwesomeIcons.solidHeart
                   : FontAwesomeIcons.heart,
-              size: 24,
+              size: 20,
               color: widget.post.isLiked ? Colors.red : Colors.grey,
             ),
           ),
@@ -96,8 +96,8 @@ class _LikeButtonState extends State<Likes> {
             formatLikeCount(widget.post.likeCount),
             style: TextStyle(
               color: Colors.grey,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
             ),
           ),
         ],

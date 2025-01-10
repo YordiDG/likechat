@@ -105,6 +105,8 @@ dependencies:
   #patrones del celular
   local_auth: ^2.3.0
   pattern_lock: ^2.0.0
+  #filter borroso de post
+  shimmer: ^3.0.0
 
   cached_network_image: ^3.4.0
   sqflite: ^2.3.3+1

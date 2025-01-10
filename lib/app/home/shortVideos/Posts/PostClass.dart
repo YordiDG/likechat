@@ -1,13 +1,17 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../../APIS-Consumir/DaoPost/PostDatabase.dart';
 import '../../../Globales/estadoDark-White/DarkModeProvider.dart';
 import '../../../Globales/estadoDark-White/Fuentes/FontSizeProvider.dart';
 import '../../../Globales/expandetext/ExpandableText.dart';
+import '../../../Globales/skeleton loading/SkeletonLoading.dart';
+import '../../../Globales/skeleton loading/SkeletonService.dart';
 import 'OpenCamara/preview/PreviewScreen.dart';
 import 'package:provider/provider.dart';
 import 'eventos/ComentariosPost.dart';
@@ -30,7 +34,7 @@ class _PostClassState extends State<PostClass>
   bool _permissionsDeniedMessageShown = false;
   late AnimationController _likeAnimationController;
   late Animation<double> _likeScaleAnimation;
-  int _currentImageIndex = 0;
+  int _currentIndex = 0;
   Map<int, bool> _showLikeAnimation = {};
 
   bool isLiked = false;
@@ -39,12 +43,15 @@ class _PostClassState extends State<PostClass>
   bool _isSearchBarVisible = true;
   double _lastScrollOffset = 0.0;
 
+  bool _isLoading = true; //variable que regua el skeleton o contenido
+
   final PostDatabase _postDatabase = PostDatabase.instance;
 
   @override
   void initState() {
     super.initState();
     _loadPosts();
+    fetchPosts();
     _likeAnimationController = AnimationController(
       duration: Duration(milliseconds: 400),
       vsync: this,
@@ -64,12 +71,12 @@ class _PostClassState extends State<PostClass>
     ]).animate(_likeAnimationController);
   }
 
+
   @override
   void dispose() {
     _likeAnimationController.dispose();
     super.dispose();
   }
-
 
   void _onScroll(double offset) {
     if (offset > _lastScrollOffset && _isSearchBarVisible) {
@@ -234,6 +241,7 @@ class _PostClassState extends State<PostClass>
     }
   }
 
+  //card de podt
   Widget _buildPublishedPostCards() {
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
     final isDarkMode = darkModeProvider.isDarkMode;
@@ -241,261 +249,408 @@ class _PostClassState extends State<PostClass>
     final backgroundColor = darkModeProvider.backgroundColor;
     final fontSizeProvider = Provider.of<FontSizeProvider>(context);
 
-    print('Building published post cards');
-    print('Number of posts: ${_posts.length}');
+    return SkeletonService.wrap(
+      isLoading: _isLoading || _posts.isEmpty,
+      skeleton: Column(
+        children: List.generate(3, (index) => _buildPostSkeleton(isDarkMode, backgroundColor)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: List.generate(_posts.length, (postIndex) {
+          final post = _posts[postIndex];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: List.generate(_posts.length, (postIndex) {
-        final post = _posts[postIndex];
-
-        // Log para verificar las imágenes de cada post
-        print('Post $postIndex - Number of images: ${post.imagePaths.length}');
-        print('Post $postIndex - Image paths: ${post.imagePaths}');
-
-        return Container(
-          margin: EdgeInsets.symmetric(horizontal: 7.0, vertical: 1.4),
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: BorderRadius.circular(8.0),
-            boxShadow: [
-              BoxShadow(
-                color: isDarkMode ? Colors.white.withOpacity(0.1) : Colors.grey.withOpacity(0.2),
-                spreadRadius: 1,
-                blurRadius: 6,
-                offset: Offset(0, 3),
-              )
-            ],
-            border: Border.all(
-              color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.3),
-              width: 0.6,
+          return Container(
+            margin: EdgeInsets.symmetric(horizontal: 7.0, vertical: 2),
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(8.0),
+              boxShadow: [
+                BoxShadow(
+                  color: isDarkMode ? Colors.white.withOpacity(0.1) : Colors.grey.withOpacity(0.2),
+                  spreadRadius: 1,
+                  blurRadius: 6,
+                  offset: Offset(0, 3),
+                )
+              ],
+              border: Border.all(
+                color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.3),
+                width: 0.6,
+              ),
             ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-
-              Padding(
-                padding: const EdgeInsets.only(left: 12.0, top: 2),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+            child: Stack(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 38.0, // Doble del radio
-                      height: 38.0,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.grey,
-                          width: 0.5,
-                        ),
-                      ),
-                      child: ClipOval(
-                        child: Image.asset(
-                          'lib/assets/avatar/avatar.png',
-                          fit: BoxFit.contain, // Ajusta la imagen para que encaje completamente.
-                        ),
-                      ),
-                    ),
-
-                    SizedBox(width: 8.0),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    Padding(
+                      padding: const EdgeInsets.only(left: 12.0, top: 2),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  post.userName.isEmpty
-                                      ? 'Yordi Gonzales'
-                                      : post.userName,
-                                  style: TextStyle(
-                                    fontSize: fontSizeProvider.fontSize + 1,
-                                    fontWeight: FontWeight.bold,
-                                    color: textColor,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                ),
+                          Container(
+                            width: 38.0,
+                            height: 38.0,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.grey,
+                                width: 0.5,
                               ),
-                              SizedBox(width: 8.0),
-                              Text(
-                                '• ${post.timeAgo}',
-                                style: TextStyle(
-                                  fontSize: 12.0,
-                                  color: Colors.grey[600],
-                                ),
+                            ),
+                            child: ClipOval(
+                              child: Image.asset(
+                                'lib/assets/avatar/avatar.png',
+                                fit: BoxFit.contain,
                               ),
-                            ],
+                            ),
+                          ),
+                          SizedBox(width: 8.0),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        post.userName.isEmpty ? 'Yordi Gonzales' : post.userName,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w500,
+                                          color: textColor,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
+                                    ),
+                                    SizedBox(width: 8.0),
+                                    Text(
+                                      '• ${post.timeAgo}',
+                                      style: TextStyle(
+                                        fontSize: 11.0,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () => _showPostOptionsBottomSheet(context, post),
+                            icon: Icon(Icons.more_vert, size: 23.0, color: Colors.grey),
                           ),
                         ],
                       ),
                     ),
-                    IconButton(
-                      onPressed: () =>
-                          _showPostOptionsBottomSheet(context, post),
-                      icon:
-                      Icon(Icons.more_vert, size: 23.0, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
-              if (post.imagePaths.isNotEmpty)
-                StatefulBuilder(
-                  builder: (context, setState) {
-                    int currentIndex = 0;
-                    bool showIndicators = true;
-                    Timer? hideTimer;
+                    if (post.imagePaths.isNotEmpty)
+                      StatefulBuilder(
+                        builder: (context, setCarouselState) {  // Cambio importante aquí
+                          return GestureDetector(
+                            onDoubleTap: () => _handleDoubleTap(postIndex),
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                return Stack(
+                                  children: [
+                                    if (post.imagePaths.length > 1)
+                                      CarouselSlider.builder(
+                                        options: CarouselOptions(
+                                          viewportFraction: 1.0,
+                                          enableInfiniteScroll: false,
+                                          autoPlay: false,
+                                          height: MediaQuery.of(context).size.width,
+                                          onPageChanged: (index, reason) {
+                                            setCarouselState(() {  // Usa setCarouselState aquí
+                                              _currentIndex = index;  // Usa una variable de clase
+                                            });
+                                          },
+                                        ),
+                                        itemCount: post.imagePaths.length,
+                                        itemBuilder: (context, index, realIndex) {
+                                          return Container(
+                                            width: constraints.maxWidth,
+                                            child: Image.file(
+                                              File(post.imagePaths[index]),
+                                              width: constraints.maxWidth,
+                                              height: MediaQuery.of(context).size.width,
+                                              fit: BoxFit.cover,
+                                              frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                                                if (wasSynchronouslyLoaded) return child;
+                                                return AnimatedSwitcher(
+                                                  duration: const Duration(milliseconds: 500),
+                                                  child: frame != null
+                                                      ? child
+                                                      : Stack(
+                                                    alignment: Alignment.center,
+                                                    children: [
+                                                      Shimmer.fromColors(
+                                                        baseColor: Colors.grey[300]!,
+                                                        highlightColor: Colors.grey[100]!,
+                                                        child: Container(
+                                                          width: constraints.maxWidth,
+                                                          height: MediaQuery.of(context).size.width,
+                                                          color: Colors.white,
+                                                        ),
+                                                      ),
+                                                      CircularProgressIndicator(
+                                                        strokeWidth: 2.0,
+                                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          );
+                                        },
+                                      )
+                                    else
+                                      Container(
+                                        width: constraints.maxWidth,
+                                        height: MediaQuery.of(context).size.width,
+                                        child: Image.file(
+                                          File(post.imagePaths.first),
+                                          width: constraints.maxWidth,
+                                          height: MediaQuery.of(context).size.width,
+                                          fit: BoxFit.cover,
+                                          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                                            if (wasSynchronouslyLoaded) return child;
+                                            return AnimatedSwitcher(
+                                              duration: const Duration(milliseconds: 500),
+                                              child: frame != null
+                                                  ? child
+                                                  : Stack(
+                                                alignment: Alignment.center,
+                                                children: [
+                                                  Shimmer.fromColors(
+                                                    baseColor: Colors.grey[300]!,
+                                                    highlightColor: Colors.grey[100]!,
+                                                    child: Container(
+                                                      width: constraints.maxWidth,
+                                                      height: MediaQuery.of(context).size.width,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                  CircularProgressIndicator(
+                                                    strokeWidth: 2.0,
+                                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
 
-                    void resetHideTimer() {
-                      if (hideTimer != null) {
-                        hideTimer!.cancel();
-                      }
-                      hideTimer = Timer(Duration(seconds: 3), () {
-                        setState(() {
-                          showIndicators = false;
-                        });
-                      });
-                    }
+                                    // Indicators
+                                    if (post.imagePaths.length > 1)
+                                      Positioned(
+                                        bottom: 10.0,
+                                        left: 0,
+                                        right: 0,
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: List.generate(
+                                            post.imagePaths.length,
+                                                (index) => Container(
+                                              margin: EdgeInsets.symmetric(horizontal: 4.0),
+                                              child: CircleAvatar(
+                                                radius: _currentIndex == index ? 4.0 : 3.0,
+                                                backgroundColor: _currentIndex == index
+                                                    ? Colors.white
+                                                    : Colors.white.withOpacity(0.5),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
 
-                    return GestureDetector(
-                      onPanStart: (_) {
-                        setState(() {
-                          showIndicators = true;
-                        });
-                        resetHideTimer();
-                      },
-                      onDoubleTap: () {
-                        _handleDoubleTap(postIndex);
-                      },
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          post.imagePaths.length > 1
-                              ? CarouselSlider(
-                            options: CarouselOptions(
-                              height: MediaQuery.of(context).size.width * 0.8,
-                              viewportFraction: 1.0,
-                              enableInfiniteScroll: false,
-                              autoPlay: false,
-                              onPageChanged: (index, reason) {
-                                setState(() {
-                                  _currentImageIndex = index;
-                                });
+                                    // Image counter
+                                    if (post.imagePaths.length > 1)
+                                      Positioned(
+                                        top: 8.0,
+                                        right: 8.0,
+                                        child: Container(
+                                          padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                          decoration: BoxDecoration(
+                                            color: Colors.black.withOpacity(0.6),
+                                            borderRadius: BorderRadius.circular(8.0),
+                                          ),
+                                          child: Text(
+                                            '${_currentIndex + 1}/${post.imagePaths.length}',
+                                            style: TextStyle(color: Colors.white, fontSize: 12.0),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                );
                               },
                             ),
-                            items: post.imagePaths.map((path) {
-                              return Image.file(
-                                File(path),
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                              );
-                            }).toList(),
-                          )
-                              : Image.file(
-                            File(post.imagePaths.first),
-                            width: double.infinity,
-                            fit: BoxFit.cover,
+                          );
+                        },
+                      ),
+                    Divider(height: 1, thickness: 0.2, color: Colors.grey.shade900),
+                    SizedBox(height: 2),
+                    if (post.description.isNotEmpty) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                        child: ExpandableText(text: post.description),
+                      ),
+                      SizedBox(height: 2),
+                      Divider(height: 1, thickness: 0.1, color: Colors.grey),
+                    ],
+
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Likes(post: post, onLikeUpdated: _updatePost),
+                                _buildVerticalDivider(),
+                                DislikeButtons(
+                                  onDislikeUpdated: (isDisliked) {
+                                    print('Dislike button status: $isDisliked');
+                                  },
+                                ),
+                                _buildVerticalDivider(),
+                                ComentariosPost(),
+                                _buildVerticalDivider(),
+                                ShareButton(),
+                              ],
+                            ),
                           ),
-                          if (showIndicators && post.imagePaths.length > 1)
-                            Positioned(
-                              bottom: 10.0,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: List.generate(post.imagePaths.length, (index) {
-                                  return Container(
-                                    width: 8.0,
-                                    height: 8.0,
-                                    margin: EdgeInsets.symmetric(horizontal: 4.0),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: index == currentIndex
-                                          ? Colors.white
-                                          : Colors.grey,
-                                    ),
-                                  );
-                                }),
-                              ),
-                            ),
-                          if (showIndicators && post.imagePaths.length > 1)
-                            Positioned(
-                              top: 8.0,
-                              right: 8.0,
-                              child: Container(
-                                padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.6),
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                                child: Text(
-                                  '${currentIndex + 1}/${post.imagePaths.length}',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12.0,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          if (_showLikeAnimation[postIndex] ?? false)
-                            ScaleTransition(
-                              scale: _likeScaleAnimation,
-                              child: Icon(
-                                Icons.favorite,
-                                color: Colors.white,
-                                size: 40.0,
-                              ),
-                            ),
+                          _buildVerticalDivider(),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 2.0),
+                            child: EtiquetaButton(), // Este se alinea al final.
+                          ),
                         ],
                       ),
-                    );
-                  },
-                ),
-              Divider(
-                height: 1,
-                thickness: 0.3,
-                color: Colors.grey,
-              ),
-              SizedBox(height: 2),
-              if (post.description.isNotEmpty) ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 9.0),
-                  child: ExpandableText(
-                    text: post.description,
-                  ),
-                ),
-                SizedBox(height: 2),
-                Divider(height: 1, thickness: 0.1, color: Colors.grey),
-              ],
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Likes(
-                          post: post,
-                          onLikeUpdated: _updatePost,
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        ComentariosPost(),
-                        SizedBox(width: 10),
-                        ShareButton(),
-                        EtiquetaButton(),
-                      ],
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
-        );
-      }),
+                if (_showLikeAnimation[postIndex] ?? false)
+                  Positioned.fill(
+                    child: ScaleTransition(
+                      scale: _likeScaleAnimation,
+                      child: Icon(Icons.favorite, color: Colors.white, size: 40.0),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        }),
+      ),
     );
+  }
+
+  //linea separadora de los iconos de likes, comentarios, etc
+
+  Widget _buildVerticalDivider() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 1.0), // E
+      height: 20,
+      alignment: Alignment.center,
+      child: VerticalDivider(
+        thickness: 0.2,
+        width: 1,
+        color: Colors.grey.shade400,
+      ),
+    );
+  }
+
+
+  //llama al skeleton
+  Widget _buildPostSkeleton(bool isDarkMode, Color backgroundColor) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 7.0, vertical: 1.4),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(8.0),
+        boxShadow: [
+          BoxShadow(
+            color: isDarkMode ? Colors.white.withOpacity(0.1) : Colors.grey.withOpacity(0.2),
+            spreadRadius: 1,
+            blurRadius: 6,
+            offset: Offset(0, 3),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Avatar y nombre
+          Padding(
+            padding: EdgeInsets.all(12.0),
+            child: Row(
+              children: [
+                const SkeletonLoading(width: 38, height: 38, borderRadius: 19),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      SkeletonLoading(width: 150, height: 16),
+                      SizedBox(height: 4),
+                      SkeletonLoading(width: 100, height: 12),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Imagen
+          SkeletonLoading(
+            height: MediaQuery.of(context).size.width * 0.8,
+            borderRadius: 0,
+          ),
+          // Botones
+          const Padding(
+            padding: EdgeInsets.all(12.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SkeletonLoading(width: 80, height: 20),
+                Row(
+                  children: [
+                    SkeletonLoading(width: 60, height: 20),
+                    SizedBox(width: 8),
+                    SkeletonLoading(width: 60, height: 20),
+                    SizedBox(width: 8),
+                    SkeletonLoading(width: 60, height: 20),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  //carga los dtos de la api
+  void fetchPosts() async {
+    setState(() => _isLoading = true);
+
+    try {
+      // Simulate network delay
+      await Future.delayed(Duration(seconds: 2));
+
+      // Fetch your posts here
+      final posts = await SkeletonService.getPosts();
+
+      setState(() {
+        _posts = posts;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      // Handle error appropriately
+    }
   }
 
   Future<void> _loadPosts() async {

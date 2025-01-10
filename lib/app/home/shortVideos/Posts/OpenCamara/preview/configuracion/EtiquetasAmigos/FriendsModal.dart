@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:provider/provider.dart';
 import '../../../../../../../Globales/estadoDark-White/DarkModeProvider.dart';
+import '../../../../../../../Globales/estadoDark-White/Fuentes/FontSizeProvider.dart';
 
 class FriendsModales extends StatefulWidget {
   @override
@@ -99,6 +100,8 @@ class _FriendsModalState extends State<FriendsModales> {
     final iconColor = darkModeProvider.iconColor;
     final background = darkModeProvider.backgroundColor;
 
+    final fontSizeProvider = Provider.of<FontSizeProvider>(context);
+
     return DraggableScrollableSheet(
       initialChildSize: _modalHeightFactor, // Altura inicial
       minChildSize: 0.7, // Altura mínima (50% de la pantalla)
@@ -107,15 +110,15 @@ class _FriendsModalState extends State<FriendsModales> {
       builder: (context, scrollController) {
         return Material(
           borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(15),
-            topRight: Radius.circular(15),
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
           ),
           child: Container(
             decoration: BoxDecoration(
-              color: background,
+              color: isDarkMode ? Colors.grey.shade900 : Colors.grey.shade300,
               borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(10),
-                topRight: Radius.circular(10),
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
               ),
             ),
             child: Column(
@@ -129,7 +132,7 @@ class _FriendsModalState extends State<FriendsModales> {
                       Row(
                         children: [
                           IconButton(
-                            icon: Icon(Icons.arrow_back_ios_new, color: iconColor),
+                            icon: Icon(Icons.arrow_back_ios_new,size: 20, color: iconColor),
                             onPressed: () {
                               Navigator.pop(context);
                             },
@@ -138,8 +141,8 @@ class _FriendsModalState extends State<FriendsModales> {
                             'Etiquetar Amigos',
                             style: TextStyle(
                               color: textColor,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
@@ -160,7 +163,7 @@ class _FriendsModalState extends State<FriendsModales> {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
-                            fontSize: 16,
+                            fontSize: fontSizeProvider.fontSize,
                           ),
                         ),
                       ),
@@ -174,7 +177,7 @@ class _FriendsModalState extends State<FriendsModales> {
                   child: Row(
                     children: [
                       Expanded(
-                        child: Container(
+                        child: SizedBox(
                           height: 37,
                           child: TextField(
                             controller: searchController,
@@ -185,7 +188,7 @@ class _FriendsModalState extends State<FriendsModales> {
                             cursorColor: Colors.cyan,
                             decoration: InputDecoration(
                               hintText: 'Buscar amigos...',
-                              hintStyle: TextStyle(color: textColor, fontSize: 14),
+                              hintStyle: TextStyle(color: textColor, fontSize: 12),
                               filled: true,
                               fillColor: Colors.transparent,
                               contentPadding:
@@ -220,7 +223,7 @@ class _FriendsModalState extends State<FriendsModales> {
                             margin: EdgeInsets.only(left: 8.0),
                             padding: EdgeInsets.all(3.0),
                             decoration: BoxDecoration(
-                              color: Colors.pink,
+                              color: Colors.grey.shade500,
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
@@ -268,13 +271,14 @@ class _FriendsModalState extends State<FriendsModales> {
                               friend["name"]!,
                               style: TextStyle(
                                 color: textColor,
-                                fontSize: 15,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w500,
                               ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                             subtitle: Text(
                               friend["username"]!,
-                              style: TextStyle(color: textColor, fontSize: 12),
+                              style: TextStyle(color: textColor, fontSize: 11),
                             ),
                             trailing: IconButton(
                               icon: Icon(
@@ -300,31 +304,62 @@ class _FriendsModalState extends State<FriendsModales> {
                 // Carrusel de amigos seleccionados
                 if (selectedFriends.isNotEmpty)
                   Container(
-                    height: 105,
-                    color: isDarkMode
-                        ? Color.fromRGBO(79, 78, 78, 0.5)
-                        : Colors.grey[300],
+                    height: 120,
+                    color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade100,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       itemCount: selectedFriends.length,
+                      padding: EdgeInsets.symmetric(horizontal: 8),
                       itemBuilder: (context, index) {
                         final selectedFriend = selectedFriends[index];
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
+                        return Container(
+                          width: 80,
+                          margin: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
                           child: Column(
                             children: [
-                              CircleAvatar(
-                                backgroundImage:
-                                NetworkImage(selectedFriend["image"]!),
-                                radius: 30,
+                              Stack(
+                                children: [
+                                  CircleAvatar(
+                                    backgroundImage: NetworkImage(selectedFriend["image"]!),
+                                    radius: 30,
+                                  ),
+                                  Positioned(
+                                    right: 1,
+                                    top: 2,
+                                    child: GestureDetector(
+                                      onTap: () => toggleSelection(selectedFriend, isRemove: true),
+                                      child: Container(
+                                        padding: EdgeInsets.all(1),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withOpacity(0.4),
+                                          shape: BoxShape.circle,
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black12,
+                                              spreadRadius: 1,
+                                              blurRadius: 1,
+                                            ),
+                                          ],
+                                        ),
+                                        child: Icon(Icons.close, size: 14, color: Colors.white),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                               SizedBox(height: 4),
-                              Text(
-                                selectedFriend["name"]!,
-                                style: TextStyle(
-                                    color: textColor, fontSize: 12),
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.center,
+                              Expanded(
+                                child: Text(
+                                  selectedFriend["name"]!,
+                                  style: TextStyle(
+                                    color: textColor,
+                                    fontSize: 10,
+                                    height: 1.2, fontWeight: FontWeight.w500
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             ],
                           ),
@@ -343,12 +378,12 @@ class _FriendsModalState extends State<FriendsModales> {
   Widget _messageOfLimit(bool showMessage) {
     if (showMessage) {
       Fluttertoast.showToast(
-        msg: "Solo se permiten etiquetar como máximo 5 amigos.",
+        msg: "Máximo 5 amigos permitidos",
         toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.TOP, // Posición del toast
-        backgroundColor: Colors.grey.shade800,
+        gravity: ToastGravity.BOTTOM, // Posición del toast
+        backgroundColor: Colors.grey.shade900,
         textColor: Colors.white,
-        fontSize: 13.0,
+        fontSize: 11.0,
       );
     }
     return SizedBox.shrink(); // Retorna un widget vacío si no hay mensaje

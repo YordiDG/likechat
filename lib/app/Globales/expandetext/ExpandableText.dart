@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../FontApp/AppTypography.dart';
 import '../estadoDark-White/DarkModeProvider.dart';
 import '../estadoDark-White/Fuentes/FontSizeProvider.dart';
 
@@ -22,53 +23,45 @@ class _ExpandableTextState extends State<ExpandableText> {
 
     final fontSizeProvider = Provider.of<FontSizeProvider>(context);
 
-    int? _maxLines = _isExpanded ? null : 2;
+    // Obtenemos el TextTheme desde AppTypography
+    final textTheme = AppTypography().getTextTheme(
+      fontSize: fontSizeProvider.fontSize,
+      isDarkMode: darkModeProvider.isDarkMode,  // Suponiendo que 'isDarkMode' es un bool que determina si es modo oscuro
+    );
 
     return LayoutBuilder(
       builder: (context, constraints) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            RichText(
-              textAlign: TextAlign.justify,  // Justificar el texto
-              text: TextSpan(
-                style: TextStyle(
-                  fontSize: fontSizeProvider.fontSize,
-                  color: textColor,
-                  height: 1.5,
-                ),
-                children: [
-                  TextSpan(
-                    text: _isExpanded
-                        ? widget.text
-                        : widget.text.length > 100
-                        ? widget.text.substring(0, 100) + '... '
-                        : widget.text,
-                  ),
-                  if (widget.text.length > 100)
-                    WidgetSpan(
-                      alignment: PlaceholderAlignment.middle,
-                      child: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _isExpanded = !_isExpanded;
-                          });
-                        },
-                        child: Text(
-                          _isExpanded ? 'ver menos' : 'ver más',
-                          style: TextStyle(
-                            color: Colors.cyan,
-                            fontSize: fontSizeProvider.fontSize - 1,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
+            Text(
+              widget.text,
+              style: textTheme.bodyLarge?.copyWith(
+                fontWeight: AppTypography.light, // Establecemos el peso 'light'
+                color: textColor,
+                height: 1.3,
               ),
-              maxLines: _maxLines,
-              overflow: TextOverflow.clip,
+              maxLines: _isExpanded ? null : 2,
+              overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
             ),
+            if (widget.text.length > 100)
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isExpanded = !_isExpanded;
+                  });
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: Text(
+                    _isExpanded ? 'ver menos' : 'ver más',
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: Colors.cyan,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
           ],
         );
       },

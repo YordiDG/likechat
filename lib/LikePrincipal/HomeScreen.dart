@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:vibration/vibration.dart';
@@ -72,52 +73,64 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     final darkModeProvider = Provider.of<DarkModeProvider>(context);
     final isDarkMode = darkModeProvider.isDarkMode;
+    final isIndex0 = _selectedIndex == 0;
 
-    return WillPopScope(
-      onWillPop: _onWillPop,
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (_selectedIndex == 3) // Mostrar LikeChatScreen solo cuando se selecciona la pestaña de chats
-              HistorysLikeChatScreen(),
-            Expanded(
-              child: _widgetOptions.elementAt(_selectedIndex),
-            ),
-          ],
-        ),
-        bottomNavigationBar: _isVideoCaptureScreen
-            ? SizedBox.shrink()
-            : Container(
-          color: _selectedIndex == 0
-              ? Colors.black
-              : (isDarkMode ? Colors.black : Colors.white), // Validación de colores
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: isIndex0
+          ? SystemUiOverlayStyle.light.copyWith(
+        systemNavigationBarColor: Colors.black,
+        statusBarColor: Colors.transparent,
+      )
+          : (isDarkMode ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark).copyWith(
+        systemNavigationBarColor: isDarkMode ? Colors.black : Colors.white,
+        systemNavigationBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+        statusBarColor: Colors.transparent,
+      ),
+      child: WillPopScope(
+        onWillPop: _onWillPop,
+        child: Scaffold(
+          backgroundColor: isIndex0 || isDarkMode ? Colors.black : Colors.white,
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Divider(
-                color: isDarkMode ? Colors.grey.shade200 : Colors.grey.shade700,
-                thickness: 0.01,
-                height: 0.1,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 3),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [ //Icons.hub icono de amigos, Icons.grid_view es cuadrados y este amigo wifi: Icons.connect_without_contact
-                    _buildNavItem(icon: Icons.home_outlined, label: "Inicio", index: 0),
-                    _buildNavItem(icon: Icons.grid_view, label: "Novedades", index: 1),
-                    _buildCircleButton(),
-                    _buildNavItemChat(icon: FontAwesomeIcons.comments, label: "Chats", index: 3),
-                    _buildNavItem(icon: Icons.person_outlined, label: "Perfil", index: 4),
-                  ],
-                ),
+              if (_selectedIndex == 3)
+                HistorysLikeChatScreen(),
+              Expanded(
+                child: _widgetOptions.elementAt(_selectedIndex),
               ),
             ],
+          ),
+          bottomNavigationBar: _isVideoCaptureScreen
+              ? SizedBox.shrink()
+              : Container(
+            color: isIndex0 || isDarkMode ? Colors.black : Colors.white,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Divider(
+                  color: isIndex0 || isDarkMode
+                      ? Colors.grey.shade700
+                      : Colors.grey.shade200,
+                  thickness: 0.5,
+                  height: 0.1,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildNavItem(icon: Icons.home_outlined, label: "Inicio", index: 0),
+                      _buildNavItem(icon: Icons.grid_view, label: "Novedades", index: 1),
+                      _buildCircleButton(),
+                      _buildNavItemChat(icon: FontAwesomeIcons.comments, label: "Chats", index: 3),
+                      _buildNavItem(icon: Icons.person_outlined, label: "Perfil", index: 4),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

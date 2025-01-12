@@ -1,6 +1,5 @@
 import 'package:LikeChat/app/home/shortVideos/searchRapida/SearchScreen.dart';
 import 'package:connectivity/connectivity.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'dart:io';
@@ -14,7 +13,6 @@ import '../../camera/UserAvatar.dart';
 import '../camara/VideoCaptureScreen.dart';
 import 'LikeButton.dart';
 import 'Posts/PostClass.dart';
-import 'PreviewVideo/PublicarVideo/VideoPublishScreen.dart';
 import 'PreviewVideo/VideoPreviewScreen.dart';
 import 'package:vibration/vibration.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -578,25 +576,6 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
                 });
               },
 
-              /* return GestureDetector(
-                  onTap: _toggleVideoPlayback,
-                  child: Stack(
-                    children: [
-                      Center(
-                        child: AspectRatio(
-                          aspectRatio: _controller?.value.aspectRatio ?? 16 / 9, // Proporcionar un valor por defecto
-                          child: _controller != null && _controller!.value.isInitialized
-                              ? VideoPlayer(_controller!)
-                              : CircularProgressIndicator(), // Mostrar indicador de carga mientras se inicializa
-                        ),
-                      ),
-                      _buildIcons(),
-                      _avatarPhoto(context),
-                      _pauseVideo(context),
-                    ],
-                  ),
-                );
-              */
               itemCount: _videos.length,
               itemBuilder: (context, index) {
                 return GestureDetector(
@@ -684,19 +663,27 @@ class _ShortVideosScreenState extends State<ShortVideosScreen> {
   }
 
   Widget _buildPlaceholder() {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final isDarkMode = darkModeProvider.isDarkMode;
+    final textColor = darkModeProvider.textColor;
+    final backgroundColor = darkModeProvider.backgroundColor;
+
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
             Icons.video_library,
-            color: Colors.white,
-            size: 80.0,
+            color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade400,
+            size: 50.0,
           ),
           SizedBox(height: 20),
           Text(
             'No videos available!',
-            style: TextStyle(color: Colors.white, fontSize: 18),
+            style: TextStyle(
+                color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade400,
+                fontSize: 14),
           ),
           SizedBox(height: 20),
         ],

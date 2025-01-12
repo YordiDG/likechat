@@ -88,7 +88,7 @@ class _LikeButtonState extends State<Likes> {
                   ? FontAwesomeIcons.solidHeart
                   : FontAwesomeIcons.heart,
               size: 20,
-              color: widget.post.isLiked ? Colors.red : Colors.grey,
+              color: widget.post.isLiked ? Color(0xFFFF0000)  : Colors.grey,
             ),
           ),
           const SizedBox(width: 5),

@@ -1,19 +1,23 @@
 import 'dart:async';
 import 'dart:math';
-
+import 'dart:ui';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:lottie/lottie.dart';
 import '../../../APIS-Consumir/DaoPost/PostDatabase.dart';
+import '../../../Globales/Connections/NetworkProvider.dart';
 import '../../../Globales/estadoDark-White/DarkModeProvider.dart';
 import '../../../Globales/estadoDark-White/Fuentes/FontSizeProvider.dart';
 import '../../../Globales/expandetext/ExpandableText.dart';
 import '../../../Globales/skeleton loading/SkeletonLoading.dart';
 import '../../../Globales/skeleton loading/SkeletonService.dart';
+import 'APIFAKE/PostCardManager.dart';
 import 'OpenCamara/preview/PreviewScreen.dart';
 import 'package:provider/provider.dart';
+import 'detailPost/PostDetailView.dart';
 import 'eventos/ComentariosPost.dart';
 import 'eventos/EtiquetaButton.dart';
 import 'eventos/Likes.dart';
@@ -34,7 +38,6 @@ class _PostClassState extends State<PostClass>
   bool _permissionsDeniedMessageShown = false;
   late AnimationController _likeAnimationController;
   late Animation<double> _likeScaleAnimation;
-  int _currentIndex = 0;
   Map<int, bool> _showLikeAnimation = {};
 
   bool isLiked = false;
@@ -47,35 +50,57 @@ class _PostClassState extends State<PostClass>
 
   final PostDatabase _postDatabase = PostDatabase.instance;
 
+  // posición del tap
+  Map<int, Offset> _doubleTapPositions = {};
+
   @override
   void initState() {
     super.initState();
     _loadPosts();
+    _loadInitialPosts();
     fetchPosts();
+    _setupAnimations();
+
+  }
+
+  @override
+  void dispose() {
+    _likeAnimationController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  // Configuración de animaciones para el efecto de like
+  void _setupAnimations() {
     _likeAnimationController = AnimationController(
-      duration: Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 700),
+      // Duración ajustada para más impacto
       vsync: this,
     );
 
     _likeScaleAnimation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 0.0, end: 1.4)
+        tween: Tween<double>(begin: 0.0, end: 1.2)
             .chain(CurveTween(curve: Curves.easeOut)),
-        weight: 60.0,
+        weight: 50,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.4, end: 1.0)
+        tween: Tween<double>(begin: 1.2, end: 0.9)
             .chain(CurveTween(curve: Curves.easeIn)),
-        weight: 40.0,
+        weight: 30,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.9, end: 1.0)
+            .chain(CurveTween(curve: Curves.elasticOut)),
+        weight: 20,
       ),
     ]).animate(_likeAnimationController);
-  }
 
-
-  @override
-  void dispose() {
-    _likeAnimationController.dispose();
-    super.dispose();
+    _likeAnimationController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        _likeAnimationController.reverse();
+      }
+    });
   }
 
   void _onScroll(double offset) {
@@ -92,7 +117,8 @@ class _PostClassState extends State<PostClass>
   }
 
   void _showImageSourceSelection() {
-    final darkModeProvider = Provider.of<DarkModeProvider>(context, listen: false);
+    final darkModeProvider =
+        Provider.of<DarkModeProvider>(context, listen: false);
     final isDarkMode = darkModeProvider.isDarkMode;
     final textColor = darkModeProvider.textColor;
 
@@ -149,7 +175,8 @@ class _PostClassState extends State<PostClass>
 
   // Método para tomar foto con la cámara
   void _takePicture() async {
-    final XFile? photo = await ImagePicker().pickImage(source: ImageSource.camera);
+    final XFile? photo =
+        await ImagePicker().pickImage(source: ImageSource.camera);
     if (photo != null) {
       setState(() {
         _imagePaths = [photo.path];
@@ -170,7 +197,8 @@ class _PostClassState extends State<PostClass>
     required VoidCallback onTap,
     required Color color,
   }) {
-    final darkModeProvider = Provider.of<DarkModeProvider>(context, listen: false);
+    final darkModeProvider =
+        Provider.of<DarkModeProvider>(context, listen: false);
     final textColor = darkModeProvider.textColor;
 
     return GestureDetector(
@@ -207,13 +235,16 @@ class _PostClassState extends State<PostClass>
   void _selectImages() async {
     final List<XFile>? pickedImages = await ImagePicker().pickMultiImage();
     if (pickedImages != null && pickedImages.isNotEmpty) {
-      List<String> imagePaths = pickedImages.map((image) => image.path).toList();
+      List<String> imagePaths =
+          pickedImages.map((image) => image.path).toList();
       setState(() {
-        _imagePaths = imagePaths; // Cambiar _imagePath por _imagePaths como Lista
+        _imagePaths =
+            imagePaths; // Cambiar _imagePath por _imagePaths como Lista
       });
       Navigator.of(context).push(MaterialPageRoute(
         builder: (context) => PreviewScreen(
-          imagePaths: _imagePaths!, // Actualizar para pasar lista de imágenes
+          imagePaths: _imagePaths!,
+          // Actualizar para pasar lista de imágenes
           descriptionController: _descriptionController,
           onPublish: _publishPost,
         ),
@@ -252,7 +283,8 @@ class _PostClassState extends State<PostClass>
     return SkeletonService.wrap(
       isLoading: _isLoading || _posts.isEmpty,
       skeleton: Column(
-        children: List.generate(3, (index) => _buildPostSkeleton(isDarkMode, backgroundColor)),
+        children: List.generate(
+            3, (index) => _buildPostSkeleton(isDarkMode, backgroundColor)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -260,21 +292,25 @@ class _PostClassState extends State<PostClass>
           final post = _posts[postIndex];
 
           return Container(
-            margin: EdgeInsets.symmetric(horizontal: 7.0, vertical: 2),
+            margin: EdgeInsets.symmetric(horizontal: 5.0, vertical: 2),
             decoration: BoxDecoration(
               color: backgroundColor,
               borderRadius: BorderRadius.circular(8.0),
               boxShadow: [
                 BoxShadow(
-                  color: isDarkMode ? Colors.white.withOpacity(0.1) : Colors.grey.withOpacity(0.2),
+                  color: isDarkMode
+                      ? Colors.white.withOpacity(0.1)
+                      : Colors.grey.withOpacity(0.2),
                   spreadRadius: 1,
                   blurRadius: 6,
                   offset: Offset(0, 3),
                 )
               ],
               border: Border.all(
-                color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.3),
-                width: 0.6,
+                color: isDarkMode
+                    ? Colors.white.withOpacity(0.4)
+                    : Colors.grey.withOpacity(0.3),
+                width: 0.1,
               ),
             ),
             child: Stack(
@@ -313,7 +349,9 @@ class _PostClassState extends State<PostClass>
                                   children: [
                                     Expanded(
                                       child: Text(
-                                        post.userName.isEmpty ? 'Yordi Gonzales' : post.userName,
+                                        post.userName.isEmpty
+                                            ? 'Yordi Gonzales'
+                                            : post.userName,
                                         style: TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w500,
@@ -327,7 +365,7 @@ class _PostClassState extends State<PostClass>
                                     Text(
                                       '• ${post.timeAgo}',
                                       style: TextStyle(
-                                        fontSize: 11.0,
+                                        fontSize: 13.0,
                                         color: Colors.grey[600],
                                       ),
                                     ),
@@ -337,160 +375,316 @@ class _PostClassState extends State<PostClass>
                             ),
                           ),
                           IconButton(
-                            onPressed: () => _showPostOptionsBottomSheet(context, post),
-                            icon: Icon(Icons.more_vert, size: 23.0, color: Colors.grey),
+                            onPressed: () =>
+                                _showPostOptionsBottomSheet(context, post),
+                            icon: Icon(Icons.more_vert,
+                                size: 23.0, color: Colors.grey),
                           ),
                         ],
                       ),
                     ),
                     if (post.imagePaths.isNotEmpty)
                       StatefulBuilder(
-                        builder: (context, setCarouselState) {  // Cambio importante aquí
-                          return GestureDetector(
-                            onDoubleTap: () => _handleDoubleTap(postIndex),
-                            child: LayoutBuilder(
-                              builder: (context, constraints) {
-                                return Stack(
-                                  children: [
-                                    if (post.imagePaths.length > 1)
-                                      CarouselSlider.builder(
-                                        options: CarouselOptions(
-                                          viewportFraction: 1.0,
-                                          enableInfiniteScroll: false,
-                                          autoPlay: false,
-                                          height: MediaQuery.of(context).size.width,
-                                          onPageChanged: (index, reason) {
-                                            setCarouselState(() {  // Usa setCarouselState aquí
-                                              _currentIndex = index;  // Usa una variable de clase
-                                            });
-                                          },
-                                        ),
-                                        itemCount: post.imagePaths.length,
-                                        itemBuilder: (context, index, realIndex) {
-                                          return Container(
-                                            width: constraints.maxWidth,
-                                            child: Image.file(
-                                              File(post.imagePaths[index]),
-                                              width: constraints.maxWidth,
-                                              height: MediaQuery.of(context).size.width,
-                                              fit: BoxFit.cover,
-                                              frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                                                if (wasSynchronouslyLoaded) return child;
-                                                return AnimatedSwitcher(
-                                                  duration: const Duration(milliseconds: 500),
-                                                  child: frame != null
-                                                      ? child
-                                                      : Stack(
-                                                    alignment: Alignment.center,
-                                                    children: [
-                                                      Shimmer.fromColors(
-                                                        baseColor: Colors.grey[300]!,
-                                                        highlightColor: Colors.grey[100]!,
-                                                        child: Container(
-                                                          width: constraints.maxWidth,
-                                                          height: MediaQuery.of(context).size.width,
-                                                          color: Colors.white,
+                        builder: (context, setCarouselState) {
+                          return Consumer<NetworkProvider>(
+                              builder: (context, network, child) {
+                            return GestureDetector(
+                              onDoubleTapDown: (details) =>
+                                  _handleDoubleTap(postIndex, details),
+                              onDoubleTap: () {},
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return Container(
+                                    color: Colors.black.withOpacity(0.02),
+                                    child: Column(
+                                      children: [
+                                        Stack(
+                                          children: [
+                                            if (post.imagePaths.length > 1)
+                                              CarouselSlider.builder(
+                                                options: CarouselOptions(
+                                                  height: constraints.maxWidth *
+                                                      1.3,
+                                                  viewportFraction: 1.0,
+                                                  enableInfiniteScroll: false,
+                                                  autoPlay: false,
+                                                  onPageChanged:
+                                                      (index, reason) {
+                                                    setCarouselState(() {
+                                                      post.currentIndex = index;
+                                                      post.showControls = true;
+                                                      post.controlsTimer
+                                                          ?.cancel();
+                                                      post.controlsTimer =
+                                                          Timer(
+                                                        const Duration(
+                                                            seconds: 1),
+                                                        () {
+                                                          setCarouselState(() {
+                                                            post.showControls =
+                                                                false;
+                                                          });
+                                                        },
+                                                      );
+                                                    });
+                                                  },
+                                                ),
+                                                itemCount:
+                                                    post.imagePaths.length,
+                                                itemBuilder: (context, index,
+                                                    realIndex) {
+                                                  return SizedBox(
+                                                    width: constraints.maxWidth,
+                                                    height:
+                                                        constraints.maxWidth *
+                                                            1.3,
+                                                    child: Stack(
+                                                      children: [
+                                                        // Imagen de baja resolución con desenfoque
+                                                        Image.file(
+                                                          File(post.imagePaths[
+                                                              index]),
+                                                          width: constraints
+                                                              .maxWidth,
+                                                          height: constraints
+                                                                  .maxWidth *
+                                                              1.3,
+                                                          fit: BoxFit.cover,
+                                                          cacheWidth: 32,
+                                                          frameBuilder: (context,
+                                                              child,
+                                                              frame,
+                                                              wasSynchronouslyLoaded) {
+                                                            return ClipRect(
+                                                              child:
+                                                                  ImageFiltered(
+                                                                imageFilter:
+                                                                    ImageFilter
+                                                                        .blur(
+                                                                  sigmaX: frame ==
+                                                                          null
+                                                                      ? 15
+                                                                      : 0,
+                                                                  sigmaY: frame ==
+                                                                          null
+                                                                      ? 15
+                                                                      : 0,
+                                                                ),
+                                                                child: child,
+                                                              ),
+                                                            );
+                                                          },
                                                         ),
+                                                        // Imagen principal con fade in
+                                                        Image.file(
+                                                          File(post.imagePaths[
+                                                              index]),
+                                                          width: constraints
+                                                              .maxWidth,
+                                                          height: constraints
+                                                                  .maxWidth *
+                                                              1.3,
+                                                          fit: BoxFit.cover,
+                                                          frameBuilder: (context,
+                                                              child,
+                                                              frame,
+                                                              wasSynchronouslyLoaded) {
+                                                            if (wasSynchronouslyLoaded)
+                                                              return child;
+
+                                                            return Stack(
+                                                              children: [
+                                                                AnimatedOpacity(
+                                                                  opacity:
+                                                                      frame !=
+                                                                              null
+                                                                          ? 1.0
+                                                                          : 0.0,
+                                                                  duration: const Duration(
+                                                                      milliseconds:
+                                                                          500),
+                                                                  curve: Curves
+                                                                      .easeOut,
+                                                                  child: child,
+                                                                ),
+                                                                if (frame ==
+                                                                    null)
+                                                                  Center(
+                                                                    child:
+                                                                        SizedBox(
+                                                                      width: 50,
+                                                                      height:
+                                                                          50,
+                                                                      child:
+                                                                          CircularProgressIndicator(
+                                                                        strokeWidth:
+                                                                            2.5,
+                                                                        backgroundColor:
+                                                                            Colors.grey[400],
+                                                                        valueColor:
+                                                                            const AlwaysStoppedAnimation(Colors.white),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                              ],
+                                                            );
+                                                          },
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                },
+                                              )
+                                            else
+                                              SizedBox(
+                                                width: constraints.maxWidth,
+                                                child: Image.file(
+                                                  File(post.imagePaths.first),
+                                                  width: constraints.maxWidth,
+                                                  fit: BoxFit.contain,
+                                                ),
+                                              ),
+
+                                            // Contador con animación mejorada
+                                            if (post.imagePaths.length > 1)
+                                              Positioned(
+                                                top: 16.0,
+                                                right: 16.0,
+                                                child: AnimatedOpacity(
+                                                  opacity: post.showControls
+                                                      ? 1.0
+                                                      : 0.0,
+                                                  duration: Duration(
+                                                      milliseconds: 200),
+                                                  child: Container(
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                      horizontal: 10.0,
+                                                    ),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.black
+                                                          .withOpacity(0.4),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              12.0),
+                                                    ),
+                                                    child: Text(
+                                                      '${post.currentIndex + 1}/${post.imagePaths.length}',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 13.0,
+                                                        fontWeight:
+                                                            FontWeight.w400,
                                                       ),
-                                                      CircularProgressIndicator(
-                                                        strokeWidth: 2.0,
-                                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                          );
-                                        },
-                                      )
-                                    else
-                                      Container(
-                                        width: constraints.maxWidth,
-                                        height: MediaQuery.of(context).size.width,
-                                        child: Image.file(
-                                          File(post.imagePaths.first),
-                                          width: constraints.maxWidth,
-                                          height: MediaQuery.of(context).size.width,
-                                          fit: BoxFit.cover,
-                                          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                                            if (wasSynchronouslyLoaded) return child;
-                                            return AnimatedSwitcher(
-                                              duration: const Duration(milliseconds: 500),
-                                              child: frame != null
-                                                  ? child
-                                                  : Stack(
-                                                alignment: Alignment.center,
-                                                children: [
-                                                  Shimmer.fromColors(
-                                                    baseColor: Colors.grey[300]!,
-                                                    highlightColor: Colors.grey[100]!,
-                                                    child: Container(
-                                                      width: constraints.maxWidth,
-                                                      height: MediaQuery.of(context).size.width,
-                                                      color: Colors.white,
                                                     ),
                                                   ),
-                                                  CircularProgressIndicator(
-                                                    strokeWidth: 2.0,
-                                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                                  ),
-                                                ],
+                                                ),
                                               ),
-                                            );
-                                          },
-                                        ),
-                                      ),
-
-                                    // Indicators
-                                    if (post.imagePaths.length > 1)
-                                      Positioned(
-                                        bottom: 10.0,
-                                        left: 0,
-                                        right: 0,
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: List.generate(
-                                            post.imagePaths.length,
-                                                (index) => Container(
-                                              margin: EdgeInsets.symmetric(horizontal: 4.0),
-                                              child: CircleAvatar(
-                                                radius: _currentIndex == index ? 4.0 : 3.0,
-                                                backgroundColor: _currentIndex == index
-                                                    ? Colors.white
-                                                    : Colors.white.withOpacity(0.5),
+                                            // Icono de detalle en la parte inferior derecha
+                                            Positioned(
+                                              bottom: 16.0,
+                                              right: 16.0,
+                                              child: Container(
+                                                width: 30.0,
+                                                height: 30.0,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.black.withOpacity(0.3),
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: IconButton(
+                                                  icon: Icon(
+                                                    Icons.fullscreen,
+                                                    color: Colors.white,
+                                                    size: 25.0,
+                                                  ),
+                                                  padding: EdgeInsets.zero, // Elimina el padding interno del IconButton
+                                                  onPressed: () {
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) => PostDetailView(
+                                                          post: post,
+                                                          onLikeUpdated: _updatePost,
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                        ),
-                                      ),
 
-                                    // Image counter
-                                    if (post.imagePaths.length > 1)
-                                      Positioned(
-                                        top: 8.0,
-                                        right: 8.0,
-                                        child: Container(
-                                          padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                                          decoration: BoxDecoration(
-                                            color: Colors.black.withOpacity(0.6),
-                                            borderRadius: BorderRadius.circular(8.0),
-                                          ),
-                                          child: Text(
-                                            '${_currentIndex + 1}/${post.imagePaths.length}',
-                                            style: TextStyle(color: Colors.white, fontSize: 12.0),
-                                          ),
+                                          ],
                                         ),
-                                      ),
-                                  ],
-                                );
-                              },
-                            ),
-                          );
+
+                                        // Dots actualizados y movidos fuera del Stack
+                                        if (post.imagePaths.length > 1)
+                                          Container(
+                                            padding: EdgeInsets.only(top: 4.0, bottom: 4.0),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: List.generate(
+                                                    post.imagePaths.length,
+                                                        (index) {
+                                                      bool isActive = index == post.currentIndex;
+                                                      bool shouldShow = true;
+
+                                                      // Lógica para mostrar un rango dinámico de 5 dots
+                                                      if (post.imagePaths.length > 5) {
+                                                        int visibleRangeStart;
+
+                                                        // Calculamos el inicio del rango dinámico
+                                                        if (post.currentIndex < 2) {
+                                                          // Al inicio del carrusel (primeras 2 imágenes)
+                                                          visibleRangeStart = 0;
+                                                        } else if (post.currentIndex > post.imagePaths.length - 3) {
+                                                          // Al final del carrusel (últimas 2 imágenes)
+                                                          visibleRangeStart = post.imagePaths.length - 5;
+                                                        } else {
+                                                          // En el medio del carrusel
+                                                          visibleRangeStart = post.currentIndex - 2;
+                                                        }
+
+                                                        // Verificamos si el índice actual está dentro del rango visible
+                                                        shouldShow = index >= visibleRangeStart && index < visibleRangeStart + 5;
+                                                      }
+
+                                                      if (!shouldShow) return SizedBox.shrink();
+
+                                                      return AnimatedOpacity(
+                                                        duration: Duration(milliseconds: 200),
+                                                        opacity: 1.0,
+                                                        child: AnimatedContainer(
+                                                          duration: Duration(milliseconds: 200),
+                                                          width: isActive ? 5.0 : 4.0,
+                                                          height: isActive ? 5.0 : 4.0,
+                                                          margin: EdgeInsets.symmetric(horizontal: 3.0),
+                                                          decoration: BoxDecoration(
+                                                            shape: BoxShape.circle,
+                                                            color: isActive
+                                                                ? Colors.cyan
+                                                                : Colors.grey.withOpacity(0.5),
+                                                          ),
+                                                        ),
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          });
                         },
                       ),
-                    Divider(height: 1, thickness: 0.2, color: Colors.grey.shade900),
-                    SizedBox(height: 2),
                     if (post.description.isNotEmpty) ...[
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 3.0),
@@ -499,7 +693,6 @@ class _PostClassState extends State<PostClass>
                       SizedBox(height: 2),
                       Divider(height: 1, thickness: 0.1, color: Colors.grey),
                     ],
-
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 2.0),
                       child: Row(
@@ -526,18 +719,30 @@ class _PostClassState extends State<PostClass>
                           _buildVerticalDivider(),
                           Padding(
                             padding: const EdgeInsets.only(left: 2.0),
-                            child: EtiquetaButton(), // Este se alinea al final.
+                            child: EtiquetaButton(),
                           ),
                         ],
                       ),
                     ),
                   ],
                 ),
-                if (_showLikeAnimation[postIndex] ?? false)
-                  Positioned.fill(
+                if (_showLikeAnimation[post.currentIndex] == true &&
+                    _doubleTapPositions
+                        .containsKey(post.currentIndex))
+                  Positioned(
+                    left:
+                    _doubleTapPositions[post.currentIndex]!.dx -
+                        30,
+                    top:
+                    _doubleTapPositions[post.currentIndex]!.dy -
+                        30,
                     child: ScaleTransition(
                       scale: _likeScaleAnimation,
-                      child: Icon(Icons.favorite, color: Colors.white, size: 40.0),
+                      child: const Icon(
+                        Icons.favorite,
+                        color: Colors.pinkAccent,
+                        size: 60,
+                      ),
                     ),
                   ),
               ],
@@ -563,7 +768,6 @@ class _PostClassState extends State<PostClass>
     );
   }
 
-
   //llama al skeleton
   Widget _buildPostSkeleton(bool isDarkMode, Color backgroundColor) {
     return Container(
@@ -573,7 +777,9 @@ class _PostClassState extends State<PostClass>
         borderRadius: BorderRadius.circular(8.0),
         boxShadow: [
           BoxShadow(
-            color: isDarkMode ? Colors.white.withOpacity(0.1) : Colors.grey.withOpacity(0.2),
+            color: isDarkMode
+                ? Colors.white.withOpacity(0.1)
+                : Colors.grey.withOpacity(0.2),
             spreadRadius: 1,
             blurRadius: 6,
             offset: Offset(0, 3),
@@ -673,19 +879,22 @@ class _PostClassState extends State<PostClass>
     });
   }
 
-  void _handleDoubleTap(int postIndex) {
-    // Solo dar like si no está marcado como "liked"
-    if (!_posts[postIndex].isLiked) {
-      _handleLike(_posts[postIndex]);
-    }
-
+  // Manejo del doble tap para like
+  void _handleDoubleTap(int postIndex, TapDownDetails details) {
     setState(() {
       _showLikeAnimation[postIndex] = true;
+      _doubleTapPositions[postIndex] = details.localPosition;
+      final post = _posts[postIndex];
+      if (!post.isLiked) {
+        post.isLiked = true;
+        post.likeCount++;
+      }
     });
-
-    _likeAnimationController.forward(from: 0.0).then((_) {
+    _likeAnimationController.forward(from: 0.0);
+    Future.delayed(const Duration(milliseconds: 500), () {
       setState(() {
         _showLikeAnimation[postIndex] = false;
+        _doubleTapPositions.remove(postIndex);
       });
     });
   }
@@ -703,7 +912,6 @@ class _PostClassState extends State<PostClass>
   }
 
   void _showPostOptionsBottomSheet(BuildContext context, Post postToEdit) {
-    // Agregar el parámetro Post
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
@@ -731,16 +939,9 @@ class _PostClassState extends State<PostClass>
               ListTile(
                 leading: Icon(Icons.delete),
                 title: Text('Eliminar publicación'),
-                onTap: () async {
-                  print(
-                      'postToEdit: $postToEdit'); // Verifica si el objeto es null
-                  if (postToEdit != null && postToEdit.id != null) {
-                    await PostDatabase.instance.deletePost(postToEdit.id!);
-                    await _loadPosts();
-                    Navigator.pop(context);
-                  } else {
-                    print('El objeto postToEdit o su ID es nulo');
-                  }
+                onTap: () {
+                  Navigator.pop(context); // Cierra el BottomSheet
+                  _showDeleteConfirmationDialog(context, postToEdit);
                 },
               )
             ],
@@ -750,102 +951,188 @@ class _PostClassState extends State<PostClass>
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final darkModeProvider = Provider.of<DarkModeProvider>(context);
-    final isDarkMode = darkModeProvider.isDarkMode;
-    final backgroundColor = darkModeProvider.backgroundColor;
-
-    return Scaffold(
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              AnimatedContainer(
-                duration: Duration(milliseconds: 300),
-                height: _isSearchBarVisible ? 50.0 : 0.0,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14.0,
-                    vertical: 8.0,
-                  ),
-                  child: _buildSearchBar(isDarkMode, backgroundColor),
+  void _showDeleteConfirmationDialog(BuildContext context, Post postToEdit) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          // Fondo blanco
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            '¿Eliminar publicación?',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
                 ),
+            textAlign: TextAlign.center,
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Si eliminas esta publicación, no podrás recuperarla. ¿Estás seguro de que deseas continuar?',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey[600],
+                      height: 1.5,
+                    ),
+                textAlign: TextAlign.center,
               ),
-              Expanded(
-                child: NotificationListener<ScrollNotification>(
-                  onNotification: (scrollNotification) {
-                    if (scrollNotification is ScrollUpdateNotification) {
-                      _onScroll(scrollNotification.metrics.pixels);
-                    }
-                    return false;
-                  },
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _buildPublishedPostCards(),
-                      ],
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey[200],
+                        foregroundColor: Colors.black87,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text(
+                        'Cancelar',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        if (postToEdit.id != null) {
+                          try {
+                            await PostDatabase.instance
+                                .deletePost(postToEdit.id!);
+                            await _loadPosts();
+
+                            // Mostrar un Fluttertoast al eliminar exitosamente
+                            Fluttertoast.showToast(
+                              msg: "Publicación eliminada exitosamente",
+                              toastLength: Toast.LENGTH_SHORT,
+                              gravity: ToastGravity.BOTTOM,
+                              backgroundColor: Colors.grey.shade900,
+                              textColor: Colors.white,
+                              fontSize: 14.0,
+                            );
+                          } catch (e) {
+                            // Mostrar un Fluttertoast en caso de error
+                            Fluttertoast.showToast(
+                              msg: "Error al eliminar la publicación",
+                              toastLength: Toast.LENGTH_SHORT,
+                              gravity: ToastGravity.BOTTOM,
+                              backgroundColor: Colors.red.shade600,
+                              textColor: Colors.white,
+                              fontSize: 14.0,
+                            );
+                          }
+                        }
+                      },
+                      child: const Text(
+                        'Eliminar',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          Positioned(
-            bottom: 38.0,
-            right: 18.0,
-            child: _buildCameraButton(),
-          ),
-        ],
-      ),
+          contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+          actionsPadding: EdgeInsets.zero,
+        );
+      },
     );
   }
 
-  // Continuación de la clase _PostClassState
-  Widget _buildSearchBar(bool isDarkMode, Color backgroundColor) {
-    return Container(
-      color: Colors.transparent,
-      height: 38.0,
-      child: TextField(
-        controller: _searchController,
-        cursorColor: Colors.cyan,
-        decoration: InputDecoration(
-          hintText: 'Buscar amigo',
-          hintStyle: TextStyle(
-            color: isDarkMode ? Colors.grey[500] : Colors.grey[700],
-            fontSize: 12.0,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
-            borderSide: BorderSide(color: Colors.white, width: 0.8),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
-            borderSide: BorderSide(
-              color: isDarkMode ? Colors.grey : Colors.grey[400]!,
-              width: 0.8,
+  Future<void> _loadInitialPosts() async {
+    setState(() => _isLoading = true);
+    await Future.delayed(
+        const Duration(milliseconds: 500)); // Simular carga inicial
+    setState(() => _isLoading = false);
+  }
+
+  Future<void> _refreshPosts() async {
+    setState(() => _isLoading = true);
+    await Future.delayed(const Duration(milliseconds: 500)); // Simular refresh
+    setState(() => _isLoading = false);
+  }
+
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  Widget build(BuildContext context) {
+    final darkModeProvider = Provider.of<DarkModeProvider>(context);
+    final backgroundColor = darkModeProvider.backgroundColor;
+
+    return RefreshIndicator(
+      onRefresh: _refreshPosts,
+      color: Colors.cyan, // Cambia el color del indicador de progreso
+      child: Scaffold(
+        backgroundColor: backgroundColor,
+        body: Stack(
+          children: [
+            Column(
+              children: [
+                Expanded(
+                  child: NotificationListener<ScrollNotification>(
+                    onNotification: (scrollNotification) {
+                      if (scrollNotification is ScrollUpdateNotification) {
+                        _onScroll(scrollNotification.metrics.pixels);
+                      }
+                      return false;
+                    },
+                    child: RefreshIndicator(
+                      onRefresh: _refreshPosts,
+                      color: Colors.cyan, // Color del RefreshIndicator
+                      child: SingleChildScrollView(
+                        controller: _scrollController,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildPublishedPostCards(),
+                            PostCardManager(),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                if (_isLoading)
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Center(
+                      child: Lottie.asset(
+                        'lib/assets/loading/loading_infinity.json',
+                        width: 40,
+                        height: 40,
+                      ),
+                    ),
+                  ),
+              ],
             ),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
-            borderSide: BorderSide(color: Colors.cyan, width: 0.8),
-          ),
-          filled: true,
-          fillColor: backgroundColor,
-          contentPadding:
-          EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
-          prefixIcon: Icon(
-            Icons.search,
-            color: isDarkMode ? Colors.grey[400] : Colors.grey[700],
-          ),
+            Positioned(
+              bottom: 38.0,
+              right: 18.0,
+              child: _buildCameraButton(),
+            ),
+          ],
         ),
-        style: TextStyle(
-          color: isDarkMode ? Colors.white : Colors.black,
-        ),
-        onChanged: (value) {
-          // Implementar lógica de búsqueda aquí
-        },
       ),
     );
   }
@@ -880,8 +1167,15 @@ class Post {
   final DateTime createdAt;
   final String userName;
   final String userAvatar;
-  bool isLiked; // Added back
-  int likeCount; // Added back
+  bool isLiked;
+  int likeCount;
+
+  // Estado del carrusel
+  int currentIndex = 0;
+  int currentPostIndex = 0;
+  bool showControls = false;
+  bool hasInteracted = false;
+  Timer? controlsTimer;
 
   Post({
     this.id,
@@ -890,9 +1184,35 @@ class Post {
     DateTime? createdAt,
     this.userName = '',
     this.userAvatar = 'lib/assets/avatar.png',
-    this.isLiked = false, // Default value
-    this.likeCount = 0, // Default value
+    this.isLiked = false,
+    this.likeCount = 0,
   }) : this.createdAt = createdAt ?? DateTime.now();
+
+  void resetControlsTimer() {
+    controlsTimer?.cancel();
+    showControls = true;
+    controlsTimer = Timer(const Duration(seconds: 1), () {
+      showControls = false;
+    });
+  }
+
+  void startControlsTimer() {
+    controlsTimer?.cancel();
+    controlsTimer = Timer(const Duration(seconds: 1), () {
+      showControls = false;
+    });
+  }
+
+  // Método para actualizar el índice actual
+  void updateCurrentIndex(int newIndex) {
+    if (newIndex >= 0 && newIndex < imagePaths.length) {
+      currentIndex = newIndex;
+    }
+  }
+
+  void dispose() {
+    controlsTimer?.cancel();
+  }
 
   String get timeAgo {
     final now = DateTime.now();

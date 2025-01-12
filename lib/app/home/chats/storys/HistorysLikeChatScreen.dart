@@ -87,7 +87,6 @@ class _LikeChatScreenState extends State<HistorysLikeChatScreen> {
             style: TextStyle(
               color: isDarkMode ? Colors.white : Colors.black87,
               fontSize: 17.0,
-              fontFamily: 'Montserrat',
               fontWeight: FontWeight.bold,
               letterSpacing: 1.2,
             ),

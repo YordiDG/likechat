@@ -62,7 +62,6 @@ dependencies:
   google_maps_flutter: ^2.7.0
   audioplayers: ^6.0.0
   flutter_sound: ^9.6.0
-  flutter_riverpod: ^2.5.1
   ffmpeg_kit_flutter: ^5.1.0-LTS
   multiple_images_picker: ^1.0.1
   flutter_file_downloader: ^2.0.0
